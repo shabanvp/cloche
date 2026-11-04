@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const cleanEmail = email.trim().toLowerCase();
+    let cleanEmail = email.trim().toLowerCase();
     const { url, serviceKey, anonKey } = getSupabaseConfig();
     const apiKey = serviceKey || anonKey;
 
@@ -36,29 +36,75 @@ export async function POST(req: Request) {
     let isVendorAccount = false;
     let vendorRecord: any = null;
 
-    // 1. Query custom database users table (case-insensitive lookup)
-    let userRes = await fetch(
-      `${url}/rest/v1/users?email=eq.${encodeURIComponent(cleanEmail)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status)`,
-      {
-        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-        cache: "no-store",
-      }
-    ).catch(() => null);
+    // Handle mobile number format vs email format
+    const isEmail = cleanEmail.includes("@");
+    if (!isEmail) {
+      const digits = cleanEmail.replace(/\D/g, "").slice(-10);
+      if (digits.length >= 10) {
+        // Query users by phone
+        const phoneRes = await fetch(
+          `${url}/rest/v1/users?phone=ilike.%25${digits}%25&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status)`,
+          {
+            headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+            cache: "no-store",
+          }
+        ).catch(() => null);
+        if (phoneRes && phoneRes.ok) {
+          const pUsers = await phoneRes.json();
+          if (Array.isArray(pUsers) && pUsers.length > 0) {
+            customUser = pUsers[0];
+            cleanEmail = (customUser.email || "").toLowerCase();
+          }
+        }
 
-    if (!userRes || !userRes.ok) {
-      userRes = await fetch(
-        `${url}/rest/v1/users?email=ilike.${encodeURIComponent(cleanEmail)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status)`,
+        // Also check vendor_contacts by phone if user not found yet
+        if (!customUser) {
+          const vcRes = await fetch(
+            `${url}/rest/v1/vendor_contacts?phone=ilike.%25${digits}%25&select=email,vendor_id&limit=1`,
+            {
+              headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+              cache: "no-store",
+            }
+          ).catch(() => null);
+          if (vcRes && vcRes.ok) {
+            const vcList = await vcRes.json();
+            if (Array.isArray(vcList) && vcList.length > 0 && vcList[0]?.email) {
+              cleanEmail = vcList[0].email.toLowerCase();
+            }
+          }
+        }
+
+        if (!customUser && !cleanEmail.includes("@")) {
+          cleanEmail = `${digits}@partner.cloche.luxury`;
+        }
+      }
+    }
+
+    // 1. Query custom database users table by email (case-insensitive lookup)
+    if (!customUser && cleanEmail.includes("@")) {
+      let userRes = await fetch(
+        `${url}/rest/v1/users?email=eq.${encodeURIComponent(cleanEmail)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status)`,
         {
           headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
           cache: "no-store",
         }
       ).catch(() => null);
-    }
 
-    if (userRes && userRes.ok) {
-      const users = await userRes.json();
-      if (Array.isArray(users) && users.length > 0) {
-        customUser = users[0];
+      if (!userRes || !userRes.ok) {
+        userRes = await fetch(
+          `${url}/rest/v1/users?email=ilike.${encodeURIComponent(cleanEmail)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status)`,
+          {
+            headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+            cache: "no-store",
+          }
+        ).catch(() => null);
+      }
+
+      if (userRes && userRes.ok) {
+        const users = await userRes.json();
+        if (Array.isArray(users) && users.length > 0) {
+          customUser = users[0];
+        }
       }
     }
 
@@ -81,6 +127,12 @@ export async function POST(req: Request) {
           },
           body: JSON.stringify({ password: password, email_confirm: true }),
         }).catch(() => null);
+
+        // Retry Supabase Auth login to obtain valid session tokens
+        const retryAuth = await signInWithSupabaseAuth(cleanEmail, password);
+        if (!retryAuth.error && retryAuth.user) {
+          authResult = retryAuth;
+        }
       }
     } else if (!authResult.error && authResult.user) {
       isPasswordValid = true;
@@ -101,7 +153,7 @@ export async function POST(req: Request) {
     // SCENARIO 1: Account Not Found
     if (!customUser && (authResult.error || !authResult.user)) {
       return NextResponse.json(
-        { success: false, statusCode: 404, error: { code: "USER_NOT_FOUND", message: "No account found with this email address. Please sign up first." } },
+        { success: false, statusCode: 404, error: { code: "USER_NOT_FOUND", message: "No account found with this email address or mobile number. Please sign up first." } },
         { status: 404 }
       );
     }
@@ -115,7 +167,7 @@ export async function POST(req: Request) {
     }
 
     // Refetch user record if initially absent
-    if (!customUser) {
+    if (!customUser && cleanEmail.includes("@")) {
       const reFetchRes = await fetch(
         `${url}/rest/v1/users?email=ilike.${encodeURIComponent(cleanEmail)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status)`,
         { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` }, cache: "no-store" }
@@ -146,22 +198,27 @@ export async function POST(req: Request) {
       }
     }
 
-    if (userRoles.length === 0) {
-      userRoles = [requestedRole === "vendor" || requestedRole === "partner" ? "vendor" : "customer"];
-    }
-
-    if (!userRoles.includes("customer") && !userRoles.includes("user")) {
-      userRoles.push("customer");
-    }
-
-    // SCENARIO 4: Role/Portal Authorization Checks
-    if (requestedRole === "vendor" || requestedRole === "partner") {
-      if (!userRoles.includes("vendor") && !isVendorAccount) {
-        return NextResponse.json(
-          { success: false, statusCode: 403, error: { code: "ROLE_MISMATCH", message: "This email is registered as a customer account. Please log in through the user portal or register as a vendor." } },
-          { status: 403 }
-        );
+    // Query vendors table directly if not resolved via relation
+    if (!vendorRecord && userId) {
+      const vRes = await fetch(
+        `${url}/rest/v1/vendors?user_id=eq.${encodeURIComponent(userId)}&deleted_at=is.null&select=id,vendor_code,status,publication_status,category_id,onboarding_stage,vendor_profiles(business_name,slug,city,state)&limit=1`,
+        { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` }, cache: "no-store" }
+      ).catch(() => null);
+      if (vRes && vRes.ok) {
+        const vRows = await vRes.json();
+        if (Array.isArray(vRows) && vRows.length > 0) {
+          vendorRecord = vRows[0];
+          isVendorAccount = true;
+          if (!userRoles.includes("vendor")) userRoles.push("vendor");
+        }
       }
+    }
+
+    // Partner/Vendor portal specific role assignment
+    if (requestedRole === "vendor" || requestedRole === "partner") {
+      if (!userRoles.includes("vendor")) userRoles.push("vendor");
+      isVendorAccount = true;
+
       if (vendorRecord && vendorRecord.publication_status === "suspended") {
         return NextResponse.json(
           { success: false, statusCode: 403, error: { code: "VENDOR_SUSPENDED", message: "Your vendor account is suspended. Please contact support." } },
@@ -175,6 +232,14 @@ export async function POST(req: Request) {
           { status: 403 }
         );
       }
+    }
+
+    if (userRoles.length === 0) {
+      userRoles = [requestedRole === "vendor" || requestedRole === "partner" ? "vendor" : "customer"];
+    }
+
+    if (!userRoles.includes("customer") && !userRoles.includes("user")) {
+      userRoles.push("customer");
     }
 
     // SCENARIO 5: Successful Response & Session Cookie Generation
@@ -207,6 +272,8 @@ export async function POST(req: Request) {
         data: {
           user: userObj,
           token: jwtToken,
+          supabaseSession: authResult?.session || null,
+          vendor: vendorRecord || null,
         },
       },
       { status: 200 }

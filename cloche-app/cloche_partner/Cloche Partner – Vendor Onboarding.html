@@ -2976,6 +2976,74 @@
     async function rpc(fn, args) { const { data, error } = await sb.rpc(fn, args || {}); if (error) { console.error(fn, error); throw new Error(friendly(error)) } return data }
     const mediaUrl = (bucket, path) => sb.storage.from(bucket).getPublicUrl(path).data.publicUrl;
 
+    /* Direct query fallback for vendor profile across public tables */
+    async function fetchVendorDirect(userId, email) {
+      try {
+        const uId = userId || (S.user && S.user.id);
+        const em = (email || (S.user && S.user.email) || '').toLowerCase();
+        let headers = { apikey: CFG.supabaseAnonKey };
+        const sess = (await sb.auth.getSession()).data?.session;
+        if (sess?.access_token) {
+          headers['Authorization'] = `Bearer ${sess.access_token}`;
+        }
+
+        let vRows = [];
+        if (uId) {
+          const res = await fetch(`${CFG.supabaseUrl}/rest/v1/vendors?user_id=eq.${encodeURIComponent(uId)}&deleted_at=is.null&select=id,vendor_code,status,publication_status,category_id,onboarding_stage,vendor_profiles(*),vendor_categories(name,slug)&limit=1`, { headers });
+          if (res.ok) vRows = await res.json();
+        }
+        if ((!vRows || vRows.length === 0) && em) {
+          const uRes = await fetch(`${CFG.supabaseUrl}/rest/v1/users?email=ilike.${encodeURIComponent(em)}&select=id&limit=1`, { headers });
+          if (uRes.ok) {
+            const uList = await uRes.json();
+            if (uList && uList[0]?.id) {
+              const res2 = await fetch(`${CFG.supabaseUrl}/rest/v1/vendors?user_id=eq.${encodeURIComponent(uList[0].id)}&deleted_at=is.null&select=id,vendor_code,status,publication_status,category_id,onboarding_stage,vendor_profiles(*),vendor_categories(name,slug)&limit=1`, { headers });
+              if (res2.ok) vRows = await res2.json();
+            }
+          }
+        }
+        if ((!vRows || vRows.length === 0) && em) {
+          const cRes = await fetch(`${CFG.supabaseUrl}/rest/v1/vendor_contacts?email=ilike.${encodeURIComponent(em)}&select=vendor_id&limit=1`, { headers });
+          if (cRes.ok) {
+            const cList = await cRes.json();
+            if (cList && cList[0]?.vendor_id) {
+              const res3 = await fetch(`${CFG.supabaseUrl}/rest/v1/vendors?id=eq.${encodeURIComponent(cList[0].vendor_id)}&deleted_at=is.null&select=id,vendor_code,status,publication_status,category_id,onboarding_stage,vendor_profiles(*),vendor_categories(name,slug)&limit=1`, { headers });
+              if (res3.ok) vRows = await res3.json();
+            }
+          }
+        }
+
+        if (vRows && vRows.length > 0) {
+          const v = vRows[0];
+          const vp = (Array.isArray(v.vendor_profiles) && v.vendor_profiles[0]) || {};
+          const cat = (v.vendor_categories && (v.vendor_categories.slug || v.vendor_categories.name)) || '';
+          const targetStep = (v.status === 'active' || v.publication_status === 'published') ? 'dashboard' : 'business';
+          return {
+            has_vendor: true,
+            vendor: v,
+            category_key: cat,
+            step: targetStep,
+            profile: {
+              business_name: vp.business_name || '',
+              slug: vp.slug || '',
+              about: vp.about || '',
+              city: vp.city || '',
+              state: vp.state || '',
+              pincode: vp.pincode || '',
+            },
+            contact: {
+              email: em,
+              phone: '',
+              name: ''
+            }
+          };
+        }
+      } catch (e) {
+        console.warn('fetchVendorDirect error:', e);
+      }
+      return null;
+    }
+
     /* Copy a server state snapshot into the UI state. keep=true leaves the current screen alone. */
     function applyState(st, keep) {
       const u = S.user || {};
@@ -2992,9 +3060,38 @@
       S.photos = (st.photos || []).map(x => ({ id: x.id, path: x.path, src: x.url }));
       S.docs = Object.assign({}, st.documents || {});
       if (st.logo) S.docs.logo = { name: st.logo.name, path: st.logo.path };
-      if (!keep) { S.confirm = false; S.step = STEPS.includes(st.step) ? st.step : 'login'; S.reached = Math.max(STEPS.indexOf(S.step), 0) }
+      if (!keep) {
+        S.confirm = false;
+        const s = (st.vendor && (st.vendor.status === 'active' || st.vendor.publication_status === 'published')) ? 'dashboard' : (STEPS.includes(st.step) ? st.step : 'category');
+        S.step = s;
+        S.reached = Math.max(STEPS.indexOf(s), 0);
+      }
     }
-    async function loadAll(keep = false) { try { const st = await rpc('partner_get_state'); applyState(st, keep) } catch (e) { console.warn('loadAll note:', e) } }
+    async function loadAll(keep = false) {
+      try {
+        const st = await rpc('partner_get_state');
+        if (st && st.has_vendor) {
+          applyState(st, keep);
+          if (S.vendor) {
+            try { localStorage.setItem('cloche_active_vendor_identity', JSON.stringify(S.vendor)); } catch (e) {}
+          }
+          return st;
+        }
+      } catch (e) {
+        console.warn('loadAll note:', e);
+      }
+      if (S.user) {
+        const direct = await fetchVendorDirect(S.user.id, S.user.email);
+        if (direct && direct.has_vendor) {
+          applyState(direct, keep);
+          if (S.vendor) {
+            try { localStorage.setItem('cloche_active_vendor_identity', JSON.stringify(S.vendor)); } catch (e) {}
+          }
+          return direct;
+        }
+      }
+      return null;
+    }
     async function loadDash() {
       try { const d = await rpc('partner_dashboard'); S.dash = d; applyState(d.state, true) } catch (e) { toast(e.message) }
       if (S.step === 'dashboard') render();
@@ -3002,7 +3099,7 @@
     setInterval(() => { if (S.user && S.step === 'dashboard' && !S.sheet && !document.hidden) loadDash() }, 60000);
 
     function parseContact(v) {
-      v = v.trim(); const c = v.replace(/[\s\-()]/g, ''); const d = c.replace(/^\+?91(?=\d{10}$)/, '');
+      v = (v || '').trim(); const c = v.replace(/[\s\-()]/g, ''); const d = c.replace(/^(?:\+?91|0)(?=\d{10}$)/, '');
       if (/^[6-9]\d{9}$/.test(d)) return { phone: '+91' + d, show: '+91 ' + d.slice(0, 5) + ' ' + d.slice(5) };
       if (/^\+\d{8,15}$/.test(c)) return { phone: c, show: c };
       if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return { email: v.toLowerCase(), show: v.toLowerCase() };
@@ -3383,13 +3480,30 @@
     const LOCK = 'Your profile is live. Changes to a live profile need Cloche review, so they can\u2019t be edited here yet.';
     const ACT = {
       setTab(t) { S.authTab = t.dataset.tab; S.err = {}; render() },
-      continueSession() { go('category') },
+      continueSession() {
+        if (isLive() || (S.vendor && (S.vendor.status === 'active' || S.vendor.publication_status === 'published'))) {
+          go('dashboard');
+        } else if (S.step && S.step !== 'login' && STEPS.includes(S.step)) {
+          go(S.step);
+        } else if (S.vendor && S.vendor.category_id) {
+          go('business');
+        } else {
+          go('category');
+        }
+      },
       togglePw() { S.showPassword = !S.showPassword; render() },
       skipToDetails() { go('category') },
       async login(t) {
+        // Read directly from DOM to capture browser password manager autofill
+        const contactEl = $('#contact');
+        const pwEl = $('#password');
+        if (contactEl && contactEl.value) S.contact = contactEl.value.trim();
+        if (pwEl && pwEl.value) S.password = pwEl.value;
+
         const p = parseContact(S.contact);
-        if (!p) { S.err.contact = 'Enter a valid email or mobile number'; return fail() }
-        if (!S.password) { S.err.password = 'Enter your password'; return fail() }
+        if (!p) { S.err.contact = 'Enter a valid email or mobile number'; return fail('Enter a valid email or mobile number'); }
+        if (!S.password) { S.err.password = 'Enter your password'; return fail('Enter your password'); }
+        S.err = {};
 
         await withBusy(t, 'Logging in\u2026', async () => {
           let authed = false;
@@ -3397,33 +3511,45 @@
 
           // 1. If email, attempt standard Supabase password login
           if (p.email) {
-            const { data, error } = await sb.auth.signInWithPassword({ email: p.email, password: S.password });
-            if (!error && (data.user || data.session)) {
-              S.user = data.user || data.session.user;
-              authed = true;
-            } else {
-              authError = error;
+            try {
+              const { data, error } = await sb.auth.signInWithPassword({ email: p.email, password: S.password });
+              if (!error && (data?.user || data?.session)) {
+                S.user = data.user || data.session?.user;
+                authed = true;
+              } else if (error) {
+                authError = error;
+              }
+            } catch (e) {
+              authError = e;
             }
           }
 
-          // 2. If phone number
+          // 2. If phone number or if email attempt not authed
           if (!authed && p.phone) {
             const d10 = digits10(p.phone);
+            const phVariants = [p.phone, d10, '+91' + d10];
 
-            // 2a. Try Supabase phone sign in
-            const resPhone = await sb.auth.signInWithPassword({ phone: p.phone, password: S.password });
-            if (!resPhone.error && (resPhone.data.user || resPhone.data.session)) {
-              S.user = resPhone.data.user || resPhone.data.session.user;
-              authed = true;
+            for (const ph of phVariants) {
+              if (authed) break;
+              try {
+                const resPhone = await sb.auth.signInWithPassword({ phone: ph, password: S.password });
+                if (!resPhone.error && (resPhone.data?.user || resPhone.data?.session)) {
+                  S.user = resPhone.data.user || resPhone.data.session?.user;
+                  authed = true;
+                  break;
+                }
+              } catch (e) {}
             }
 
-            // 2b. Try phone-based email
+            // 2b. Try phone-based synthetic partner email
             if (!authed) {
-              const resEmail = await sb.auth.signInWithPassword({ email: `${d10}@partner.cloche.luxury`, password: S.password });
-              if (!resEmail.error && (resEmail.data.user || resEmail.data.session)) {
-                S.user = resEmail.data.user || resEmail.data.session.user;
-                authed = true;
-              }
+              try {
+                const resEmail = await sb.auth.signInWithPassword({ email: `${d10}@partner.cloche.luxury`, password: S.password });
+                if (!resEmail.error && (resEmail.data?.user || resEmail.data?.session)) {
+                  S.user = resEmail.data.user || resEmail.data.session?.user;
+                  authed = true;
+                }
+              } catch (e) {}
             }
 
             // 2c. Check public.users table for email registered with this phone
@@ -3434,54 +3560,105 @@
                 });
                 if (uRes.ok) {
                   const uList = await uRes.json();
-                  if (Array.isArray(uList) && uList.length && uList[0].email) {
+                  if (Array.isArray(uList) && uList.length && uList[0]?.email) {
                     const resDb = await sb.auth.signInWithPassword({ email: uList[0].email, password: S.password });
-                    if (!resDb.error && (resDb.data.user || resDb.data.session)) {
-                      S.user = resDb.data.user || resDb.data.session.user;
+                    if (!resDb.error && (resDb.data?.user || resDb.data?.session)) {
+                      S.user = resDb.data.user || resDb.data.session?.user;
                       authed = true;
                     }
                   }
                 }
               } catch (e) {}
             }
-
-            if (!authed && !authError) authError = resPhone.error;
           }
 
-          // 3. Fallback to API login
+          // 3. Fallback to backend API login endpoint (/api/v1/auth/login)
+          let apiVendor = null;
           if (!authed) {
             try {
               const bRes = await fetch('/api/v1/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: p.email || p.phone, password: S.password, role: 'vendor' })
+                body: JSON.stringify({ email: p.email || p.phone || S.contact, password: S.password, role: 'vendor' })
               });
-              if (bRes.ok) {
-                const bData = await bRes.json();
-                if (bData.token || bData.user) {
-                  S.user = bData.user || { id: bData.token, email: p.email, phone: p.phone };
+              const bData = await bRes.json();
+              if (bRes.ok && bData.success) {
+                const uObj = bData.data?.user || bData.user;
+                if (uObj) {
+                  S.user = uObj;
                   authed = true;
+                  apiVendor = bData.data?.vendor || null;
+
+                  // Set client Supabase session if returned
+                  const sbSess = bData.data?.supabaseSession;
+                  if (sbSess?.access_token && sbSess?.refresh_token) {
+                    try {
+                      await sb.auth.setSession({
+                        access_token: sbSess.access_token,
+                        refresh_token: sbSess.refresh_token
+                      });
+                    } catch (e) {}
+                  }
                 }
+              } else if (bData?.error?.message) {
+                authError = new Error(bData.error.message);
               }
-            } catch (e) {}
+            } catch (e) {
+              console.warn('API login fallback error:', e);
+            }
           }
 
           if (!authed) {
-            const msg = (authError && authError.message) || 'Invalid mobile number, email, or password.';
-            S.err.password = msg.includes('Invalid login credentials') ? 'Invalid mobile number, email, or password. Please try again.' : msg;
-            return fail();
+            const rawMsg = (authError && authError.message) || 'Invalid mobile number, email, or password.';
+            const userMsg = (rawMsg.includes('Invalid login credentials') || rawMsg.includes('INVALID_CREDENTIALS'))
+              ? 'Invalid mobile number, email, or password. Please try again.'
+              : rawMsg;
+            S.err.password = userMsg;
+            return fail(userMsg);
           }
 
           // Successfully authenticated! Load vendor state
-          await loadAll();
-          if (S.step === 'dashboard') loadDash();
-          render();
+          if (apiVendor) {
+            S.vendor = apiVendor;
+          }
+          await loadAll(true);
+
+          // Save active vendor in localStorage for all Cloche components
+          const vendorStorageObj = S.vendor || {
+            id: S.user.id,
+            email: S.user.email || p.email,
+            phone: S.user.phone || p.phone,
+            role: 'vendor'
+          };
+          try {
+            localStorage.setItem('cloche_active_vendor_identity', JSON.stringify(vendorStorageObj));
+          } catch (e) {}
+
+          toast('Welcome back!');
+
+          // Navigate to appropriate screen
+          if (isLive() || (S.vendor && (S.vendor.status === 'active' || S.vendor.publication_status === 'published'))) {
+            go('dashboard');
+          } else if (S.step && S.step !== 'login' && STEPS.includes(S.step)) {
+            go(S.step);
+          } else if (S.vendor && S.vendor.category_id) {
+            go('business');
+          } else {
+            go('category');
+          }
         });
       },
       async register(t) {
+        // Read directly from DOM to capture autofill
+        const contactEl = $('#contact');
+        const pwEl = $('#password');
+        if (contactEl && contactEl.value) S.contact = contactEl.value.trim();
+        if (pwEl && pwEl.value) S.password = pwEl.value;
+
         const p = parseContact(S.contact);
-        if (!p) { S.err.contact = 'Enter a valid email or mobile number'; return fail() }
-        if (!S.password || S.password.length < 6) { S.err.password = 'Password must be at least 6 characters'; return fail() }
+        if (!p) { S.err.contact = 'Enter a valid email or mobile number'; return fail('Enter a valid email or mobile number'); }
+        if (!S.password || S.password.length < 6) { S.err.password = 'Password must be at least 6 characters'; return fail('Password must be at least 6 characters'); }
+        S.err = {};
 
         await withBusy(t, 'Creating partner account\u2026', async () => {
           const email = p.email || `${digits10(p.phone)}@partner.cloche.luxury`;
@@ -3498,28 +3675,30 @@
             }
           });
 
-          // If user already registered, attempt login
+          // If user already registered, automatically log in with their credentials!
           if (error && (error.message.includes('already registered') || error.message.includes('already exists') || error.status === 422)) {
-            const loginRes = await sb.auth.signInWithPassword({ email: email, password: S.password });
-            if (!loginRes.error && loginRes.data.user) {
-              data = loginRes.data;
-              error = null;
-            } else {
-              S.err.contact = 'An account with this email or mobile number already exists. Please log in with your password.';
-              S.authTab = 'login';
-              return fail();
-            }
+            return ACT.login(t);
           }
 
           if (error) {
             S.err.contact = error.message || 'Could not create account. Please try again.';
-            return fail();
+            return fail(S.err.contact);
           }
 
           S.user = data.user || (data.session && data.session.user);
           if (p.email) S.biz.email = p.email;
           if (phone) S.biz.phone = phone;
 
+          try {
+            localStorage.setItem('cloche_active_vendor_identity', JSON.stringify({
+              id: S.user?.id,
+              email: email,
+              phone: phone,
+              role: 'vendor'
+            }));
+          } catch (e) {}
+
+          toast('Account created successfully!');
           // Directly advance to category selection to add shop & service details!
           go('category');
         });
@@ -3709,8 +3888,13 @@
       },
       menu(t, e) { e.stopPropagation(); $('#menu').classList.toggle('open') },
       async signout() {
-        try { await sb.auth.signOut() } catch (e) { }
-        S = freshState(); try { history.pushState({ s: 'login' }, '', '#login') } catch (e) { } render(); window.scrollTo(0, 0);
+        try { await sb.auth.signOut(); } catch (e) {}
+        try { localStorage.removeItem('cloche_active_vendor_identity'); } catch (e) {}
+        try { fetch('/api/v1/auth/logout', { method: 'POST' }).catch(() => {}); } catch (e) {}
+        S = freshState();
+        try { history.pushState({ s: 'login' }, '', '#login'); } catch (e) {}
+        render();
+        window.scrollTo(0, 0);
       },
       complete() {
         if (isLive()) return toast(LOCK);
@@ -3770,6 +3954,9 @@
     document.addEventListener('keydown', e => {
       if (e.key === 'Enter') {
         if (e.target.id === 'contact' || e.target.id === 'password') {
+          const cEl = $('#contact'); const pEl = $('#password');
+          if (cEl && cEl.value) S.contact = cEl.value.trim();
+          if (pEl && pEl.value) S.password = pEl.value;
           if (S.authTab === 'register') ACT.register();
           else ACT.login();
         }
