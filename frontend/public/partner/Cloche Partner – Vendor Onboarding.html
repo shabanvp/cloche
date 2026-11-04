@@ -2894,12 +2894,12 @@
       { k: 'reg', n: 'Business Registration Certificate', req: true }, { k: 'id', n: 'Identity Proof', req: true }, { k: 'pan', n: 'PAN Card', req: true },
       { k: 'gst', n: 'GST Certificate', req: false }, { k: 'logo', n: 'Brand Logo', req: false }
     ];
-    const STEPS = ['login', 'otp', 'category', 'business', 'questions', 'gallery', 'docs', 'review', 'dashboard'];
+    const STEPS = ['login', 'category', 'business', 'questions', 'gallery', 'docs', 'review', 'dashboard'];
     const STEPNO = { category: 2, business: 3, questions: 4, gallery: 5, docs: 6, review: 7 };
 
     /* ---------- state ---------- */
     const freshState = () => ({
-      step: 'login', reached: 0, contact: '', contactShow: '', target: null, otp: ['', '', '', '', '', ''], resendAt: 0, sending: false,
+      step: 'login', reached: 0, authTab: 'login', contact: '', contactShow: '', password: '', showPassword: false,
       user: null, vendor: null, slug: '', cat: 'venue', biz: { name: '', owner: '', phone: '', email: '', addr: '', city: '', state: '', pin: '', web: '', about: '' },
       ans: {}, err: {}, photos: [], docs: {}, confirm: false, ret: null, drag: false, dash: null, sheet: null
     });
@@ -3016,31 +3016,54 @@
     const bad = k => S.err[k] ? ' bad' : '';
 
     function vLogin() {
-      const terms = CFG.termsUrl ? `<p class="fine">By continuing you agree to the <a class="link" href="${esc(CFG.termsUrl)}" target="_blank" rel="noopener" style="display:inline;font-weight:500">Partner Terms</a>.</p>` : '';
+      const isReg = S.authTab === 'register';
+      const terms = CFG.termsUrl ? `<p class="fine" style="margin-top:12px">By continuing you agree to the <a class="link" href="${esc(CFG.termsUrl)}" target="_blank" rel="noopener" style="display:inline;font-weight:500">Partner Terms</a>.</p>` : '';
       return `<section class="screen split login">
   <div class="hero">${scene(11, 'arch', 'dawn')}${brand('lg')}</div>
   <div class="login-body">
-    <h1>Welcome to Cloche Partner</h1>
-    <p class="subtitle">Enter your email or mobile number. We'll send you a code to log you in, or set up your partner account if you're new.</p>
-    <div class="fld${bad('contact')}" style="margin-top:20px"><div class="inp">${ic('lock', 17)}<input id="contact" data-bind="contact" autocomplete="username" inputmode="email" placeholder="Email or Mobile Number" aria-label="Email or mobile number" value="${esc(S.contact)}"></div>${ferr('contact')}</div>
-    <div style="margin-top:14px"><button class="btn" data-act="sendOtp">Send OTP${ic('arrow', 18, 'arr')}</button></div>
+    <!-- Auth Mode Switcher -->
+    <div style="display:flex;background:var(--soft);padding:4px;border-radius:12px;margin-bottom:20px;border:1px solid var(--line);">
+      <button type="button" data-act="setTab" data-tab="login" style="flex:1;height:40px;border-radius:9px;font-size:13.5px;font-weight:600;display:flex;align-items:center;justify-content:center;transition:all .15s;${!isReg ? 'background:var(--card);color:var(--emerald);box-shadow:0 2px 6px rgba(0,0,0,.08);' : 'color:var(--muted);'}">Vendor Log In</button>
+      <button type="button" data-act="setTab" data-tab="register" style="flex:1;height:40px;border-radius:9px;font-size:13.5px;font-weight:600;display:flex;align-items:center;justify-content:center;transition:all .15s;${isReg ? 'background:var(--card);color:var(--emerald);box-shadow:0 2px 6px rgba(0,0,0,.08);' : 'color:var(--muted);'}">Register New Vendor</button>
+    </div>
+
+    ${!isReg ? `
+    <h1>Welcome Back</h1>
+    <p class="subtitle">Log in with your registered mobile number or email and password.</p>
+    <div class="fld${bad('contact')}" style="margin-top:20px">
+      <div class="inp">${ic('user', 17)}<input id="contact" data-bind="contact" autocomplete="username" placeholder="Mobile Number or Email" aria-label="Mobile number or email" value="${esc(S.contact)}"></div>
+      ${ferr('contact')}
+    </div>
+    <div class="fld${bad('password')}" style="margin-top:12px">
+      <div class="inp">${ic('lock', 17)}<input id="password" type="${S.showPassword ? 'text' : 'password'}" data-bind="password" autocomplete="current-password" placeholder="Password" aria-label="Password" value="${esc(S.password || '')}">
+      <button type="button" data-act="togglePw" style="color:var(--muted);padding:4px;display:flex;" aria-label="Toggle password visibility">${ic('eye', 17)}</button></div>
+      ${ferr('password')}
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:8px">
+      <a href="/forgot-password?role=vendor" target="_blank" class="link" style="font-size:12px;color:var(--muted);text-decoration:none;">Forgot password?</a>
+    </div>
+    <div style="margin-top:16px"><button class="btn" data-act="login">Log In${ic('arrow', 18, 'arr')}</button></div>
     <div class="divider">Or continue with</div>
     <div class="stack"><button class="btn-o" data-act="google">${GOOGLE}Continue with Google</button><button class="btn-o" data-act="apple">${APPLE}Continue with Apple</button></div>
+    <p class="fine">New vendor? <button class="link" data-act="setTab" data-tab="register" style="font-size:12.5px">Register and add your shop details</button></p>
+    ` : `
+    <h1>Register as Partner</h1>
+    <p class="subtitle">Create your account and proceed directly to add your shop and service details.</p>
+    <div class="fld${bad('contact')}" style="margin-top:20px">
+      <div class="inp">${ic('user', 17)}<input id="contact" data-bind="contact" autocomplete="username" placeholder="Mobile Number or Email" aria-label="Mobile number or email" value="${esc(S.contact)}"></div>
+      ${ferr('contact')}
+    </div>
+    <div class="fld${bad('password')}" style="margin-top:12px">
+      <div class="inp">${ic('lock', 17)}<input id="password" type="${S.showPassword ? 'text' : 'password'}" data-bind="password" autocomplete="new-password" placeholder="Create a password (min. 6 characters)" aria-label="Password" value="${esc(S.password || '')}">
+      <button type="button" data-act="togglePw" style="color:var(--muted);padding:4px;display:flex;" aria-label="Toggle password visibility">${ic('eye', 17)}</button></div>
+      ${ferr('password')}
+    </div>
+    <div style="margin-top:16px"><button class="btn" data-act="register">Continue to Add Shop Details${ic('arrow', 18, 'arr')}</button></div>
+    <div style="margin-top:12px"><button class="btn-o" data-act="skipToDetails" style="color:var(--emerald);border-color:var(--emerald);font-weight:600;">Browse Shop &amp; Service Fields Directly${ic('chevR', 14)}</button></div>
     ${terms}
+    <p class="fine">Already registered? <button class="link" data-act="setTab" data-tab="login" style="font-size:12.5px">Log in with password</button></p>
+    `}
   </div></section>`}
-
-    function vOtp() {
-      return `<section class="screen split otp">
-  <div class="topbar" style="padding:6px 12px 0"><button class="iconbtn" data-act="backLogin" aria-label="Back">${ic('back', 22)}</button></div>
-  <div class="otp-wrap">${brand('md')}<h1>Enter Verification Code</h1>
-    <p>We've sent a 6-digit code to <b>${esc(S.contactShow || S.contact)}</b></p>
-    <div class="boxes" id="boxes">${S.otp.map((d, i) => `<input inputmode="numeric" maxlength="1" autocomplete="${i ? 'off' : 'one-time-code'}" aria-label="Digit ${i + 1}" data-i="${i}" value="${d}" class="${d ? 'on' : ''}">`).join('')}</div>
-    <div class="ferr" id="otpErr" style="min-height:18px">${S.err.otp || ''}</div>
-    <div class="resend">Didn't receive the code?<br><span id="resend"></span></div>
-    <div class="otp-btn"><button class="btn" data-act="verify">Verify &amp; Continue${ic('arrow', 18, 'arr')}</button></div>
-  </div>
-  <div class="otp-art">${scene(21, 'arch', 'sunset')}</div></section>`
-    }
 
     function vCategory() {
       return `<section class="screen"><div class="pad narrow" style="max-width:none">
@@ -3061,6 +3084,7 @@
   ${inp('f-owner', 'Business Owner Name', 1, `<div class="inp"><input id="f-owner" data-bind="biz.owner" placeholder="e.g. Priya Sharma" value="${esc(b.owner)}"></div>`, 'owner')}
   ${inp('f-phone', 'Phone Number', 1, `<div class="inp"><span class="cc">+91 ${ic('chev', 14)}</span><input id="f-phone" inputmode="tel" maxlength="10" data-bind="biz.phone" data-digits placeholder="98765 43210" value="${esc(b.phone)}"></div>`, 'phone')}
   ${inp('f-email', 'Email Address', 1, `<div class="inp"><input id="f-email" type="email" inputmode="email" data-bind="biz.email" placeholder="you@yourbusiness.com" value="${esc(b.email)}"></div>`, 'email')}
+  ${!S.user ? inp('f-pw', 'Create Password', 1, `<div class="inp">${ic('lock', 17)}<input id="f-pw" type="password" data-bind="password" placeholder="Min. 6 characters to secure your portal" value="${esc(S.password || '')}"></div>`, 'password') : ''}
   ${inp('f-addr', 'Business Address', 1, `<div class="inp">${ic('pin', 17)}<input id="f-addr" data-bind="biz.addr" placeholder="e.g. 12 MG Road, near City Mall" value="${esc(b.addr)}"></div>`, 'addr')}
   ${inp('f-city', 'City', 1, `<div class="inp"><input id="f-city" data-bind="biz.city" placeholder="e.g. Jaipur" value="${esc(b.city)}"></div>`, 'city')}
   ${inp('f-state', 'State', 1, `<div class="sel"><select id="f-state" data-bind="biz.state" class="${b.state ? '' : 'empty'}"><option value="">Select state</option>${STATES.map(x => `<option${b.state === x ? ' selected' : ''}>${x}</option>`).join('')}</select>${ic('chev', 16)}</div>`, 'state')}
@@ -3175,19 +3199,10 @@
   </section>`}
 
     function esc(s) { return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])) }
-    const VIEWS = { login: vLogin, otp: vOtp, category: vCategory, business: vBusiness, questions: vQuestions, gallery: vGallery, docs: vDocs, review: vReview, dashboard: vDash };
+    const VIEWS = { login: vLogin, category: vCategory, business: vBusiness, questions: vQuestions, gallery: vGallery, docs: vDocs, review: vReview, dashboard: vDash };
     function render() {
       app.innerHTML = VIEWS[S.step]();
-      if (S.step === 'otp') { const b = $$('#boxes input'); (b.find(i => !i.value) || b[5]).focus(); tickResend() }
     }
-
-    /* ---------- OTP timer ---------- */
-    function tickResend() {
-      const el = $('#resend'); if (!el) return;
-      const left = Math.max(0, Math.ceil((S.resendAt - Date.now()) / 1000));
-      el.innerHTML = left > 0 ? `<a>Resend in 00:${String(left).padStart(2, '0')}</a>` : `<button data-act="resend">Resend code</button>`;
-    }
-    setInterval(tickResend, 1000);
 
     /* ---------- uploads ---------- */
     const MAX = 10 * 1024 * 1024;
@@ -3254,37 +3269,149 @@
     const isLive = () => !!(S.vendor && (S.vendor.status === 'active' || S.vendor.publication_status === 'published'));
     const LOCK = 'Your profile is live. Changes to a live profile need Cloche review, so they can\u2019t be edited here yet.';
     const ACT = {
-      async sendOtp(t) {
+      setTab(t) { S.authTab = t.dataset.tab; S.err = {}; render() },
+      togglePw() { S.showPassword = !S.showPassword; render() },
+      skipToDetails() { go('category') },
+      async login(t) {
         const p = parseContact(S.contact);
         if (!p) { S.err.contact = 'Enter a valid email or mobile number'; return fail() }
-        const target = p.email ? { email: p.email } : { phone: p.phone };
-        await withBusy(t, 'Sending\u2026', async () => {
-          const { error } = await sb.auth.signInWithOtp({ ...target, options: { shouldCreateUser: true } });
-          if (error) { S.err.contact = otpError(error); return fail() }
-          S.target = target; S.contactShow = p.show; S.otp = ['', '', '', '', '', '']; S.resendAt = Date.now() + 30000; go('otp');
+        if (!S.password) { S.err.password = 'Enter your password'; return fail() }
+
+        await withBusy(t, 'Logging in\u2026', async () => {
+          let authed = false;
+          let authError = null;
+
+          // 1. If email, attempt standard Supabase password login
+          if (p.email) {
+            const { data, error } = await sb.auth.signInWithPassword({ email: p.email, password: S.password });
+            if (!error && (data.user || data.session)) {
+              S.user = data.user || data.session.user;
+              authed = true;
+            } else {
+              authError = error;
+            }
+          }
+
+          // 2. If phone number
+          if (!authed && p.phone) {
+            const d10 = digits10(p.phone);
+
+            // 2a. Try Supabase phone sign in
+            const resPhone = await sb.auth.signInWithPassword({ phone: p.phone, password: S.password });
+            if (!resPhone.error && (resPhone.data.user || resPhone.data.session)) {
+              S.user = resPhone.data.user || resPhone.data.session.user;
+              authed = true;
+            }
+
+            // 2b. Try phone-based email
+            if (!authed) {
+              const resEmail = await sb.auth.signInWithPassword({ email: `${d10}@partner.cloche.luxury`, password: S.password });
+              if (!resEmail.error && (resEmail.data.user || resEmail.data.session)) {
+                S.user = resEmail.data.user || resEmail.data.session.user;
+                authed = true;
+              }
+            }
+
+            // 2c. Check public.users table for email registered with this phone
+            if (!authed) {
+              try {
+                const uRes = await fetch(`${CFG.supabaseUrl}/rest/v1/users?phone=ilike.%25${d10}%25&select=email`, {
+                  headers: { apikey: CFG.supabaseAnonKey }
+                });
+                if (uRes.ok) {
+                  const uList = await uRes.json();
+                  if (Array.isArray(uList) && uList.length && uList[0].email) {
+                    const resDb = await sb.auth.signInWithPassword({ email: uList[0].email, password: S.password });
+                    if (!resDb.error && (resDb.data.user || resDb.data.session)) {
+                      S.user = resDb.data.user || resDb.data.session.user;
+                      authed = true;
+                    }
+                  }
+                }
+              } catch (e) {}
+            }
+
+            if (!authed && !authError) authError = resPhone.error;
+          }
+
+          // 3. Fallback to API login
+          if (!authed) {
+            try {
+              const bRes = await fetch('/api/v1/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: p.email || p.phone, password: S.password, role: 'vendor' })
+              });
+              if (bRes.ok) {
+                const bData = await bRes.json();
+                if (bData.token || bData.user) {
+                  S.user = bData.user || { id: bData.token, email: p.email, phone: p.phone };
+                  authed = true;
+                }
+              }
+            } catch (e) {}
+          }
+
+          if (!authed) {
+            const msg = (authError && authError.message) || 'Invalid mobile number, email, or password.';
+            S.err.password = msg.includes('Invalid login credentials') ? 'Invalid mobile number, email, or password. Please try again.' : msg;
+            return fail();
+          }
+
+          // Successfully authenticated! Load vendor state
+          await loadAll();
+          if (S.step === 'dashboard') loadDash();
+          render();
+        });
+      },
+      async register(t) {
+        const p = parseContact(S.contact);
+        if (!p) { S.err.contact = 'Enter a valid email or mobile number'; return fail() }
+        if (!S.password || S.password.length < 6) { S.err.password = 'Password must be at least 6 characters'; return fail() }
+
+        await withBusy(t, 'Creating partner account\u2026', async () => {
+          const email = p.email || `${digits10(p.phone)}@partner.cloche.luxury`;
+          const phone = p.phone ? digits10(p.phone) : '';
+
+          let { data, error } = await sb.auth.signUp({
+            email: email,
+            password: S.password,
+            options: {
+              data: {
+                phone: phone,
+                role: 'vendor'
+              }
+            }
+          });
+
+          // If user already registered, attempt login
+          if (error && (error.message.includes('already registered') || error.message.includes('already exists') || error.status === 422)) {
+            const loginRes = await sb.auth.signInWithPassword({ email: email, password: S.password });
+            if (!loginRes.error && loginRes.data.user) {
+              data = loginRes.data;
+              error = null;
+            } else {
+              S.err.contact = 'An account with this email or mobile number already exists. Please log in with your password.';
+              S.authTab = 'login';
+              return fail();
+            }
+          }
+
+          if (error) {
+            S.err.contact = error.message || 'Could not create account. Please try again.';
+            return fail();
+          }
+
+          S.user = data.user || (data.session && data.session.user);
+          if (p.email) S.biz.email = p.email;
+          if (phone) S.biz.phone = phone;
+
+          // Directly advance to category selection to add shop & service details!
+          go('category');
         });
       },
       google(t) { return oauth('google', t) },
       apple(t) { return oauth('apple', t) },
-      backLogin() { go('login') },
-      async verify(t) {
-        const shake = msg => { const e = $('#otpErr'), b = $('#boxes'); if (e) e.textContent = msg; if (b) { b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake') } };
-        if (S.otp.some(d => !d)) return shake('Enter the 6-digit code');
-        await withBusy(t, 'Verifying\u2026', async () => {
-          const { data, error } = await sb.auth.verifyOtp({ ...S.target, token: S.otp.join(''), type: S.target.email ? 'email' : 'sms' });
-          if (error) { const m = (error.message || '').toLowerCase(); return shake(m.includes('expired') || m.includes('invalid') ? 'That code is incorrect or has expired' : error.message) }
-          S.user = (data.session && data.session.user) || data.user;
-          await loadAll(); go(S.step);
-        });
-      },
-      async resend() {
-        if (S.sending) return; S.sending = true;
-        try {
-          const { error } = await sb.auth.signInWithOtp({ ...S.target, options: { shouldCreateUser: true } });
-          if (error) throw error;
-          S.resendAt = Date.now() + 30000; S.otp = ['', '', '', '', '', '']; render(); toast('A new code is on its way');
-        } catch (e) { toast(otpError(e)) } finally { S.sending = false }
-      },
       cat(t) { if (S.cat !== t.dataset.k) { S.cat = t.dataset.k; S.ans = {}; S.ret = null } $$('.cat').forEach(c => c.setAttribute('aria-pressed', c.dataset.k === S.cat)) },
       async catNext(t) {
         await withBusy(t, 'Saving\u2026', async () => {
@@ -3381,13 +3508,7 @@
       if (t.matches('[data-digits]')) t.value = t.value.replace(/\D/g, '');
       if (t.dataset.bind) { setPath(t.dataset.bind, t.value); const fld = t.closest('.fld'); if (fld && fld.classList.contains('bad')) { fld.classList.remove('bad'); const f = $('.ferr', fld); if (f) f.remove() } }
       if (t.dataset.ans) { S.ans[t.dataset.ans] = t.value; const fld = t.closest('.fld'); if (fld && fld.classList.contains('bad')) { fld.classList.remove('bad'); const f = $('.ferr', fld); if (f) f.remove() } }
-      if (t.closest('#boxes')) {
-        const i = +t.dataset.i, v = t.value.replace(/\D/g, '');
-        if (v.length > 1) { [...v.slice(0, 6)].forEach((d, k) => { S.otp[k] = d }); render(); return }
-        t.value = v.slice(-1); S.otp[i] = t.value; t.classList.toggle('on', !!t.value);
-        if (t.value && i < 5) $$('#boxes input')[i + 1].focus();
-        const er = $('#otpErr'); if (er) er.textContent = '';
-      }
+
     });
     document.addEventListener('change', e => {
       const t = e.target;
@@ -3401,13 +3522,11 @@
       if (t.dataset.task !== undefined) { const i = +t.dataset.task; S.tasks[i] = t.checked; t.closest('.li').classList.toggle('done', t.checked) }
     });
     document.addEventListener('keydown', e => {
-      if (e.key === 'Backspace' && e.target.closest && e.target.closest('#boxes')) {
-        const t = e.target, i = +t.dataset.i;
-        if (!t.value && i > 0) { const p = $$('#boxes input')[i - 1]; p.value = ''; S.otp[i - 1] = ''; p.classList.remove('on'); p.focus() }
-      }
       if (e.key === 'Enter') {
-        if (e.target.id === 'contact') ACT.sendOtp();
-        else if (e.target.closest && e.target.closest('#boxes')) ACT.verify();
+        if (e.target.id === 'contact' || e.target.id === 'password') {
+          if (S.authTab === 'register') ACT.register();
+          else ACT.login();
+        }
       }
     });
     ['dragover', 'dragenter'].forEach(ev => document.addEventListener(ev, e => { if (e.target.closest && e.target.closest('#drop')) { e.preventDefault(); $('#drop').classList.add('over') } }));
