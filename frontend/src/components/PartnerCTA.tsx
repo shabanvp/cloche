@@ -20,7 +20,7 @@ export function PartnerCTA() {
                 </li>
               ))}
             </ul>
-            <a href="/partner?mode=create" className="inline-block">
+            <a href="/partner" className="inline-block">
               <Button variant="secondary" size="lg" className="font-semibold px-8 rounded-full">
                 Register as Partner
               </Button>

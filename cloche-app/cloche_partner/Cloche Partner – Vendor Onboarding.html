@@ -2633,7 +2633,7 @@
                 <svg class="cloche-drawer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
                 <span>About Cloche</span>
               </a>
-              <a href="/partner?mode=create" class="cloche-drawer-link active">
+              <a href="/partner" class="cloche-drawer-link active">
                 <svg class="cloche-drawer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/></svg>
                 <span>For Vendors</span>
               </a>
@@ -2649,7 +2649,7 @@
           </div>
 
           <!-- List Your Business Card -->
-          <a href="/partner?mode=create" class="cloche-drawer-cta">
+          <a href="/partner" class="cloche-drawer-cta">
             <div class="cloche-drawer-cta-logo">
               <img src="/logo.png" alt="" class="cloche-drawer-cta-img">
             </div>
@@ -2899,7 +2899,7 @@
 
     /* ---------- state ---------- */
     const freshState = () => ({
-      step: 'login', reached: 0, mode: 'login', contact: '', contactShow: '', target: null, otp: ['', '', '', '', '', ''], resendAt: 0, sending: false,
+      step: 'login', reached: 0, contact: '', contactShow: '', target: null, otp: ['', '', '', '', '', ''], resendAt: 0, sending: false,
       user: null, vendor: null, slug: '', cat: 'venue', biz: { name: '', owner: '', phone: '', email: '', addr: '', city: '', state: '', pin: '', web: '', about: '' },
       ans: {}, err: {}, photos: [], docs: {}, confirm: false, ret: null, drag: false, dash: null, sheet: null
     });
@@ -2970,7 +2970,7 @@
     function otpError(e) {
       const m = (e.message || '').toLowerCase();
       if (e.status === 429 || m.includes('rate limit') || m.includes('seconds')) return 'Too many requests. Wait a minute and try again.';
-      if (m.includes('signups not allowed') || m.includes('not found')) return 'No account found. Tap \u201cCreate an account\u201d below to sign up.';
+      if (m.includes('signups not allowed') || m.includes('not found')) return 'New sign-ups are turned off right now. Please contact Cloche support.';
       if (m.includes('sms') || m.includes('provider') || m.includes('twilio')) return 'We couldn\u2019t send the SMS. Check the number or use email.';
       return e.message || 'Could not send the code. Try again.';
     }
@@ -2990,14 +2990,12 @@
         const { data } = await sb.auth.getSession();
         if (data.session) {
           S.user = data.session.user;
-          if (new URLSearchParams(location.search).get('mode') === 'create') S.mode = 'create';
           await loadAll();
           try { history.replaceState({ s: S.step }, '', '#' + S.step) } catch (e) { }
           if (S.step === 'dashboard') loadDash();
           render(); return;
         }
       } catch (e) { console.error(e); toast('Could not restore your session') }
-      if (new URLSearchParams(location.search).get('mode') === 'create') S.mode = 'create';
       render();
     }
     /* ---------- navigation ---------- */
@@ -3018,16 +3016,17 @@
     const bad = k => S.err[k] ? ' bad' : '';
 
     function vLogin() {
-      const cr = S.mode === 'create'; return `<section class="screen split login">
+      const terms = CFG.termsUrl ? `<p class="fine">By continuing you agree to the <a class="link" href="${esc(CFG.termsUrl)}" target="_blank" rel="noopener" style="display:inline;font-weight:500">Partner Terms</a>.</p>` : '';
+      return `<section class="screen split login">
   <div class="hero">${scene(11, 'arch', 'dawn')}${brand('lg')}</div>
   <div class="login-body">
-    <h1>${cr ? 'Create your account' : 'Welcome Back'}</h1>
-    <p class="subtitle">${cr ? 'Join Cloche Partner and reach couples planning their wedding.' : 'Log in to your partner account to continue your journey.'}</p>
+    <h1>Welcome to Cloche Partner</h1>
+    <p class="subtitle">Enter your email or mobile number. We'll send you a code to log you in, or set up your partner account if you're new.</p>
     <div class="fld${bad('contact')}" style="margin-top:20px"><div class="inp">${ic('lock', 17)}<input id="contact" data-bind="contact" autocomplete="username" inputmode="email" placeholder="Email or Mobile Number" aria-label="Email or mobile number" value="${esc(S.contact)}"></div>${ferr('contact')}</div>
     <div style="margin-top:14px"><button class="btn" data-act="sendOtp">Send OTP${ic('arrow', 18, 'arr')}</button></div>
     <div class="divider">Or continue with</div>
     <div class="stack"><button class="btn-o" data-act="google">${GOOGLE}Continue with Google</button><button class="btn-o" data-act="apple">${APPLE}Continue with Apple</button></div>
-    <p class="fine">${cr ? 'Already have an account?' : 'New to Cloche Partner?'}<button class="link" data-act="toggleMode" style="font-size:12.5px">${cr ? 'Log in' : 'Create an account'}</button></p>
+    ${terms}
   </div></section>`}
 
     function vOtp() {
@@ -3255,13 +3254,12 @@
     const isLive = () => !!(S.vendor && (S.vendor.status === 'active' || S.vendor.publication_status === 'published'));
     const LOCK = 'Your profile is live. Changes to a live profile need Cloche review, so they can\u2019t be edited here yet.';
     const ACT = {
-      toggleMode() { S.mode = S.mode === 'create' ? 'login' : 'create'; S.err = {}; render() },
       async sendOtp(t) {
         const p = parseContact(S.contact);
         if (!p) { S.err.contact = 'Enter a valid email or mobile number'; return fail() }
         const target = p.email ? { email: p.email } : { phone: p.phone };
         await withBusy(t, 'Sending\u2026', async () => {
-          const { error } = await sb.auth.signInWithOtp({ ...target, options: { shouldCreateUser: S.mode === 'create' } });
+          const { error } = await sb.auth.signInWithOtp({ ...target, options: { shouldCreateUser: true } });
           if (error) { S.err.contact = otpError(error); return fail() }
           S.target = target; S.contactShow = p.show; S.otp = ['', '', '', '', '', '']; S.resendAt = Date.now() + 30000; go('otp');
         });
@@ -3282,7 +3280,7 @@
       async resend() {
         if (S.sending) return; S.sending = true;
         try {
-          const { error } = await sb.auth.signInWithOtp({ ...S.target, options: { shouldCreateUser: S.mode === 'create' } });
+          const { error } = await sb.auth.signInWithOtp({ ...S.target, options: { shouldCreateUser: true } });
           if (error) throw error;
           S.resendAt = Date.now() + 30000; S.otp = ['', '', '', '', '', '']; render(); toast('A new code is on its way');
         } catch (e) { toast(otpError(e)) } finally { S.sending = false }
