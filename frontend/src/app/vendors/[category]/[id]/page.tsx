@@ -24,20 +24,9 @@ export default async function DynamicVendorDetailPage({ params }: Props) {
   const { category, id } = await params;
   const { data: profile } = await fetchPublicVendorProfileFromDb(id);
 
-  const cleanProfile = profile || {
-    id: id,
-    name: "Luxury Wedding Partner",
-    category: category || "Wedding Vendor",
-    categorySlug: category || "vendors",
-    city: "Kerala",
-    address: "Kerala, India",
-    rating: 4.8,
-    reviewCount: 38,
-    is_verified: true,
-    starting_price: "Contact for Pricing",
-    phone: "919000000000",
-    about: "Premier luxury wedding partner providing bespoke services across Kerala."
-  };
+  if (!profile) {
+    notFound();
+  }
 
-  return <VendorProfileDispatcher profile={cleanProfile} forcedCategory={category} />;
+  return <VendorProfileDispatcher profile={profile} forcedCategory={category} />;
 }

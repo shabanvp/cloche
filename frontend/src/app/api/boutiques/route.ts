@@ -61,10 +61,11 @@ export async function GET() {
     const seenIds = new Set<string>();
 
     // 2. Query Supabase 'boutiques' table directly using select=* to prevent PostgREST column missing errors
-    const { data: boutiques, error: bErr } = await supabaseFetch("boutiques?select=*&order=created_at.desc");
+    const { data: boutiques, error: bErr } = await supabaseFetch("boutiques?status=eq.active&select=*&order=created_at.desc");
 
     if (!bErr && Array.isArray(boutiques) && boutiques.length > 0) {
       boutiques.forEach((b: any) => {
+        if (b.status && b.status !== "active") return;
         const rawLogoPic =
           b.logo_url ||
           b.logo ||
@@ -104,11 +105,13 @@ export async function GET() {
 
     // 3. Query Supabase 'vendors' & 'vendor_profiles' for registered vendor accounts using select=*
     const { data: vendors, error: vErr } = await supabaseFetch(
-      "vendors?select=*,vendor_categories(id,name,slug),vendor_profiles(*),vendor_addresses(*)"
+      "vendors?status=eq.active&deleted_at=is.null&select=*,vendor_categories(id,name,slug),vendor_profiles(*),vendor_addresses(*)"
     );
 
     if (!vErr && Array.isArray(vendors) && vendors.length > 0) {
       vendors.forEach((v: any) => {
+        if (v.status && v.status !== "active") return;
+        if (v.deleted_at) return;
         const vId = String(v.id);
         if (seenIds.has(vId)) return;
 

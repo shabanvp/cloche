@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { AuraMarkdown } from "@/components/AuraMarkdown";
 import { 
   Sparkles, Send, X, Star, MapPin, CheckCircle2, 
   ArrowRight, ExternalLink, RefreshCw, AlertCircle, 
@@ -14,7 +15,6 @@ import {
   AuraResponse, 
   AuraVendorItem, 
   AuraUserContext,
-  AuraVendorContext,
   BudgetBreakdownItem,
   WeddingChecklistItem,
   InquiryDraft,
@@ -58,9 +58,9 @@ export function AuraAssistantDrawer({ isOpen, onClose, initialQuery }: AuraAssis
   const [inputQuery, setInputQuery] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [userContext, setUserContext] = useState<AuraUserContext | null>(null);
-  const [vendorContext, setVendorContext] = useState<AuraVendorContext | null>(null);
   const [messages, setMessages] = useState<AuraChatMessage[]>([]);
   const [isActionLoading, setIsActionLoading] = useState(false);
+  const conversationIdRef = useRef(`drawer-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -70,39 +70,6 @@ export function AuraAssistantDrawer({ isOpen, onClose, initialQuery }: AuraAssis
     async function loadSession() {
       try {
         // 1. Check if Vendor session
-        const vRes = await fetch("/api/v1/vendor/profile").catch(() => null);
-        if (vRes && vRes.ok) {
-          const vJson = await vRes.json();
-          if (vJson.success && vJson.data?.vendor) {
-            const v = vJson.data.vendor;
-            const p = vJson.data.profile || {};
-            const ctx: AuraVendorContext = {
-              vendorId: v.id,
-              businessName: p.business_name || v.vendor_code || "your business",
-              category: vJson.data.category?.name || "Wedding Services",
-              categorySlug: vJson.data.category?.slug,
-              city: p.city || "Thrissur",
-              state: p.state || "Kerala",
-              about: p.about || "",
-              tagline: p.tagline || "",
-              rating: Number(p.rating || 0),
-              reviewCount: Number(p.review_count || 0),
-              startingPrice: p.starting_price,
-            };
-            setVendorContext(ctx);
-            setMessages([
-              {
-                id: "aura-welcome-vendor",
-                sender: "aura",
-                text: `Hi ${ctx.businessName}, I'm Aura — I can help you complete your profile, build packages, and manage enquiries. What would you like to work on?`,
-                timestamp: "Just now",
-              },
-            ]);
-            return;
-          }
-        }
-
-        // 2. Check if Customer session
         const res = await fetch("/api/v1/auth/me").catch(() => null);
         if (res && res.ok) {
           const json = await res.json();
@@ -175,7 +142,12 @@ export function AuraAssistantDrawer({ isOpen, onClose, initialQuery }: AuraAssis
     setIsTyping(true);
 
     try {
-      const response: AuraResponse = await queryAuraAssistant(textToSend, userContext, vendorContext);
+      const response: AuraResponse = await queryAuraAssistant(textToSend, userContext, null, {
+        conversationId: conversationIdRef.current,
+        history: messages
+          .filter((message) => !message.id.startsWith("aura-welcome") && !message.id.startsWith("aura-err-"))
+          .map((message) => ({ role: message.sender === "user" ? "user" as const : "assistant" as const, content: message.text })),
+      });
       const auraMessage: AuraChatMessage = {
         id: `aura-${Date.now()}`,
         sender: "aura",
@@ -200,7 +172,7 @@ export function AuraAssistantDrawer({ isOpen, onClose, initialQuery }: AuraAssis
         {
           id: `aura-err-${Date.now()}`,
           sender: "aura",
-          text: "I encountered a network issue while searching our live directory. Please try again.",
+          text: err instanceof Error ? err.message : "Aura could not complete that response. Please retry your message.",
           timestamp: "Just now",
         },
       ]);
@@ -372,13 +344,7 @@ export function AuraAssistantDrawer({ isOpen, onClose, initialQuery }: AuraAssis
     }
   };
 
-  const sampleChips = vendorContext ? [
-    "Draft a premium wedding package",
-    "Rewrite my profile description for SEO",
-    "Summarize my enquiries this week",
-    "Pricing suggestions for Kerala weddings",
-    "Tips to increase booking conversions",
-  ] : userContext?.userId ? [
+  const sampleChips = userContext?.userId ? [
     "Plan my wedding for 400 guests in Thrissur, budget ₹15 lakh",
     "Compare shaban and Acesd for decor",
     "Show my wedding checklist",
@@ -414,11 +380,11 @@ export function AuraAssistantDrawer({ isOpen, onClose, initialQuery }: AuraAssis
               <div className="flex items-center gap-1.5">
                 <h3 className="font-serif font-bold text-lg leading-none">Aura</h3>
                 <span className="bg-emerald-800 text-emerald-100 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-600">
-                  {vendorContext ? "Vendor Assistant" : userContext?.userId ? "Wedding Planner" : "AI Discovery"}
+                  {"AI Assistant"}
                 </span>
               </div>
               <p className="text-[11px] text-white/80 mt-0.5">
-                {vendorContext?.businessName ? `Active for ${vendorContext.businessName}` : userContext?.fullName ? `Active for ${userContext.fullName}` : "Cloche Discovery Assistant"}
+                {userContext?.fullName ? `Active for ${userContext.fullName}` : "Cloche AI Assistant"}
               </p>
             </div>
           </div>
@@ -446,7 +412,7 @@ export function AuraAssistantDrawer({ isOpen, onClose, initialQuery }: AuraAssis
                     : "bg-white text-charcoal border border-gold/15 rounded-bl-none"
                 }`}
               >
-                <div className="whitespace-pre-line">{m.text}</div>
+                {m.sender === "user" ? <div className="whitespace-pre-line">{m.text}</div> : <AuraMarkdown text={m.text} />}
 
                 {/* 1. Grounded Vendor Discovery Cards */}
                 {m.groundedVendors && m.groundedVendors.length > 0 && (
@@ -776,7 +742,7 @@ export function AuraAssistantDrawer({ isOpen, onClose, initialQuery }: AuraAssis
             type="text"
             value={inputQuery}
             onChange={(e) => setInputQuery(e.target.value)}
-            placeholder={vendorContext ? "Ask Aura: 'Draft a package', 'Rewrite my SEO description'..." : userContext?.userId ? "Ask Aura to budget, compare vendors, or send inquiry..." : "Ask Aura to find venues, caterers, photographers..."}
+            placeholder="Message Aura..."
             disabled={isTyping}
             className="flex-1 bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-[#0F4C45]"
           />

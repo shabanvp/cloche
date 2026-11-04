@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { fetchPublicVendorProfileFromDb } from "@/lib/supabase";
 import { VendorProfileDispatcher } from "@/components/VendorProfileDispatcher";
@@ -27,6 +28,10 @@ export default async function CateringDetailPage({ params }: Props) {
 
   const staticVendor = cateringVendors.find((c) => c.id === id);
 
+  if (!profile && !staticVendor) {
+    notFound();
+  }
+
   const cleanProfile = profile || (staticVendor ? {
     id: staticVendor.id,
     name: staticVendor.name,
@@ -43,21 +48,11 @@ export default async function CateringDetailPage({ params }: Props) {
     images: [staticVendor.image, ...staticVendor.menuHighlights.map((m) => m.image)],
     about: staticVendor.about,
     cuisineTypes: staticVendor.menuHighlights.map((m) => m.name),
-  } : {
-    id: id,
-    name: "Luxury Catering Services",
-    category: "Catering",
-    categorySlug: "catering",
-    categoryLabel: "Catering",
-    city: "Kerala",
-    address: "Kochi, Kerala",
-    rating: 4.8,
-    reviewCount: 35,
-    is_verified: true,
-    starting_price: "₹650 / Plate",
-    phone: "919000000000",
-    about: "Premier wedding catering specializing in traditional Kerala Sadya, royal buffets, and international live stations."
-  });
+  } : null);
+
+  if (!cleanProfile) {
+    notFound();
+  }
 
   return <VendorProfileDispatcher profile={cleanProfile} forcedCategory="catering" />;
 }

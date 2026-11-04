@@ -24,20 +24,9 @@ export default async function WeddingStudioDetailPage({ params }: Props) {
   const { id } = await params;
   const { data: profile } = await fetchPublicVendorProfileFromDb(id);
 
-  const cleanProfile = profile || {
-    id: id,
-    name: "Luxury Wedding Studio",
-    category: "Wedding Studio",
-    categorySlug: "wedding-studio",
-    city: "Kerala",
-    address: "Kochi, Kerala",
-    rating: 4.9,
-    reviewCount: 48,
-    is_verified: true,
-    starting_price: "₹15,000",
-    phone: "919000000000",
-    about: "Premier wedding studio specializing in ceremonial wear, bridal couture, and bespoke suits."
-  };
+  if (!profile) {
+    notFound();
+  }
 
-  return <VendorProfileDispatcher profile={cleanProfile} forcedCategory="wedding-studio" />;
+  return <VendorProfileDispatcher profile={profile} forcedCategory="wedding-studio" />;
 }

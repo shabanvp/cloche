@@ -44,6 +44,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: "/partner",
+        destination: "/partner/index.html",
+      },
+    ];
+  },
   async headers() {
     return [
       {

@@ -41,6 +41,24 @@ export async function POST(req: Request) {
       resolvedVendorId = vpRows[0].vendor_id;
     }
 
+    // Verify vendor is active before accepting leads
+    const { data: vRows } = await supabaseFetch(
+      `vendors?id=eq.${encodeURIComponent(resolvedVendorId)}&status=eq.active&deleted_at=is.null&select=id,status`
+    );
+    if (!Array.isArray(vRows) || vRows.length === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          statusCode: 400,
+          error: {
+            code: "VENDOR_NOT_ACTIVE",
+            message: "Inquiries can only be submitted for active vendors. This vendor is currently not available to receive new inquiries.",
+          },
+        },
+        { status: 400 }
+      );
+    }
+
     const payload = {
       vendor_id: resolvedVendorId,
       customer_name: customer_name.trim(),

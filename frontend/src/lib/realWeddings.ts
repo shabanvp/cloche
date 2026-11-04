@@ -367,7 +367,7 @@ export async function searchRegisteredVendors(
     
     // First try Supabase REST
     const res = await supabaseFetch(
-      `vendors?select=id,vendor_code,vendor_profiles(business_name,slug,city),vendor_categories(name,slug)&status=eq.active&publication_status=eq.published&limit=30`
+      `vendors?select=id,vendor_code,vendor_profiles(business_name,slug,city),vendor_categories(name,slug)&status=eq.active&deleted_at=is.null&limit=30`
     );
 
     if (res.data && Array.isArray(res.data) && res.data.length > 0) {
@@ -393,17 +393,11 @@ export async function searchRegisteredVendors(
           );
         });
 
-      if (mapped.length > 0) return mapped;
+      return mapped;
     }
   } catch (err) {
     console.error("[searchRegisteredVendors] Error fetching vendors:", err);
   }
 
-  return [
-    { id: "v-photo-1", business_name: "Light & Magic Weddings", category: "Photographers", city: "Kochi", slug: "light-magic-weddings" },
-    { id: "v-venue-1", business_name: "Kumarakom Lake Resort", category: "Venues", city: "Kumarakom", slug: "kumarakom-lake-resort" },
-    { id: "v-bridal-1", business_name: "Seematti Silks", category: "Bridal Wear", city: "Kochi", slug: "seematti-silks" },
-    { id: "v-photo-2", business_name: "Weva Photography", category: "Photographers", city: "Kochi", slug: "weva-photography" },
-    { id: "v-venue-2", business_name: "Bolgatty Palace Resort", category: "Venues", city: "Kochi", slug: "bolgatty-palace-resort" }
-  ];
+  return [];
 }

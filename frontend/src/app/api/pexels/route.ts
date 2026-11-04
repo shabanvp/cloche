@@ -13,6 +13,7 @@ const cache = new Map<string, { ts: number; data: PexelsPhoto[] }>();
 // ─────────────────────────────────────────────────────────────────────────────
 const CATEGORY_QUERIES: Record<string, string> = {
   "Wedding Photos": "indian wedding photography ceremony",
+  "Wedding Details": "indian wedding rings invitation jewelry floral details",
   "Wedding Photography": "indian wedding candid photography couple",
   "Bridal Looks": "indian bride wedding saree lehenga",
   "Groom Looks": "indian groom sherwani wedding",

@@ -88,7 +88,7 @@ export function Footer() {
             </Link>
 
             <p className="text-white/70 text-xs font-light leading-relaxed max-w-sm">
-              Cloche is Kerala's premier luxury wedding platform connecting couples with handpicked photographers, venues, bridal studios, makeup artists, and interactive digital invitations.
+              Cloche is Kerala&apos;s premier luxury wedding platform connecting couples with handpicked photographers, venues, bridal studios, makeup artists, and interactive digital invitations.
             </p>
 
             {/* Social Media Links */}
@@ -142,7 +142,7 @@ export function Footer() {
           <div>
             <h4 className="font-display text-base font-bold mb-4 text-[#C8A96A]">For Vendors</h4>
             <ul className="space-y-3 text-xs text-white/80 font-light">
-              <li><Link href="/vendor/register" className="hover:text-white transition-colors">Register as Vendor</Link></li>
+              <li><a href="/partner" className="hover:text-white transition-colors">Sign up as Partner</a></li>
               <li><Link href="/login?role=vendor" className="hover:text-white transition-colors">Vendor Portal Login</Link></li>
               <li><Link href="/content/vendor-agreement" className="hover:text-white transition-colors">Vendor Agreement</Link></li>
               <li><Link href="/content/pricing" className="hover:text-white transition-colors">Subscription Pricing</Link></li>

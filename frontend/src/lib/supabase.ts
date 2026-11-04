@@ -1218,23 +1218,24 @@ function mediaUrl(row: any) {
   return row?.cdn_url || row?.secure_url || row?.file_path || row?.url || "";
 }
 
-async function resolvePublicVendor(identifier: string) {
+async function resolvePublicVendor(identifier: string, options?: { includeNonActive?: boolean }) {
   const id = encodeURIComponent(identifier);
+  const statusFilter = options?.includeNonActive ? "" : "&status=eq.active";
 
   if (UUID_RE.test(identifier)) {
-    const byId = await supabaseFetch(`vendors?id=eq.${id}&deleted_at=is.null&select=*,vendor_categories(name,slug)`);
+    const byId = await supabaseFetch(`vendors?id=eq.${id}&deleted_at=is.null${statusFilter}&select=*,vendor_categories(name,slug)`);
     const vendor = firstRow(byId.data);
     if (vendor) return { vendor, error: null };
   }
 
-  const byCode = await supabaseFetch(`vendors?vendor_code=eq.${id}&deleted_at=is.null&select=*,vendor_categories(name,slug)`);
+  const byCode = await supabaseFetch(`vendors?vendor_code=eq.${id}&deleted_at=is.null${statusFilter}&select=*,vendor_categories(name,slug)`);
   const codeVendor = firstRow(byCode.data);
   if (codeVendor) return { vendor: codeVendor, error: null };
 
   const byProfileSlug = await supabaseFetch(`vendor_profiles?slug=eq.${id}&select=vendor_id`);
   const profileSlug = firstRow(byProfileSlug.data);
   if (profileSlug?.vendor_id) {
-    const byVendorId = await supabaseFetch(`vendors?id=eq.${encodeURIComponent(profileSlug.vendor_id)}&deleted_at=is.null&select=*,vendor_categories(name,slug)`);
+    const byVendorId = await supabaseFetch(`vendors?id=eq.${encodeURIComponent(profileSlug.vendor_id)}&deleted_at=is.null${statusFilter}&select=*,vendor_categories(name,slug)`);
     const vendor = firstRow(byVendorId.data);
     if (vendor) return { vendor, error: null };
   }
@@ -1243,16 +1244,17 @@ async function resolvePublicVendor(identifier: string) {
   const byProfileId = await supabaseFetch(`vendor_profiles?id=eq.${id}&select=*,vendor_id`);
   const profRow = firstRow(byProfileId.data);
   if (profRow?.vendor_id) {
-    const byV = await supabaseFetch(`vendors?id=eq.${encodeURIComponent(profRow.vendor_id)}&select=*,vendor_categories(name,slug)`);
+    const byV = await supabaseFetch(`vendors?id=eq.${encodeURIComponent(profRow.vendor_id)}&deleted_at=is.null${statusFilter}&select=*,vendor_categories(name,slug)`);
     const v = firstRow(byV.data);
     if (v) return { vendor: v, error: null };
   }
 
   // Check by boutique slug or id
-  const byBoutiqueSlug = await supabaseFetch(`boutiques?or=(slug.eq.${id},id.eq.${id})&select=id`);
+  const boutiqueStatus = options?.includeNonActive ? "" : "&status=eq.active";
+  const byBoutiqueSlug = await supabaseFetch(`boutiques?or=(slug.eq.${id},id.eq.${id})${boutiqueStatus}&select=id`);
   const bRow = firstRow(byBoutiqueSlug.data);
   if (bRow?.id) {
-    const byBId = await supabaseFetch(`vendors?id=eq.${encodeURIComponent(bRow.id)}&deleted_at=is.null&select=*,vendor_categories(name,slug)`);
+    const byBId = await supabaseFetch(`vendors?id=eq.${encodeURIComponent(bRow.id)}&deleted_at=is.null${statusFilter}&select=*,vendor_categories(name,slug)`);
     const vendor = firstRow(byBId.data);
     if (vendor) return { vendor, error: null };
   }
@@ -1262,7 +1264,7 @@ async function resolvePublicVendor(identifier: string) {
     const venueCatRes = await supabaseFetch(`vendor_categories?slug=ilike.*venue*&select=id`);
     const catId = firstRow(venueCatRes.data)?.id;
     if (catId) {
-      const byCat = await supabaseFetch(`vendors?category_id=eq.${encodeURIComponent(catId)}&deleted_at=is.null&order=updated_at.desc&limit=1&select=*,vendor_categories(name,slug)`);
+      const byCat = await supabaseFetch(`vendors?category_id=eq.${encodeURIComponent(catId)}&deleted_at=is.null${statusFilter}&order=updated_at.desc&limit=1&select=*,vendor_categories(name,slug)`);
       const v = firstRow(byCat.data);
       if (v) return { vendor: v, error: null };
     }
@@ -1271,11 +1273,11 @@ async function resolvePublicVendor(identifier: string) {
   return { vendor: null, error: byProfileSlug.error || byCode.error || null };
 }
 
-export async function fetchPublicVendorProfileFromDb(identifier: string) {
+export async function fetchPublicVendorProfileFromDb(identifier: string, options?: { includeNonActive?: boolean }) {
   if (!identifier) return { data: null, error: new Error("Vendor slug or ID is required.") };
 
   const start = Date.now();
-  const resolved = await resolvePublicVendor(identifier);
+  const resolved = await resolvePublicVendor(identifier, options);
   if (!resolved.vendor) {
     return { data: null, error: resolved.error || new Error("Vendor not found in database.") };
   }
@@ -1496,6 +1498,9 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
   return {
     data: {
       id: vendorId,
+      status: vendor.status || "active",
+      publicationStatus: vendor.publication_status || "published",
+      publication_status: vendor.publication_status || "published",
       slug: profile.slug || vendor.vendor_code || vendorId,
       name: profile.business_name || vendor.boutique_name || vendor.name || "Unnamed Vendor",
       ownerName: ownerName,

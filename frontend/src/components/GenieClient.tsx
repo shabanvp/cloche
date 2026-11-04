@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { AuraMarkdown } from "@/components/AuraMarkdown";
 import {
   Sparkles,
   Send,
@@ -35,13 +36,14 @@ import {
   Store,
   User,
   ExternalLink,
+  Pin,
+  Trash2,
 } from "lucide-react";
 import { 
   queryAuraAssistant, 
   AuraResponse, 
   AuraVendorItem,
   AuraUserContext,
-  AuraVendorContext,
   BudgetBreakdownItem,
   WeddingChecklistItem,
   InquiryDraft,
@@ -75,11 +77,23 @@ interface ChatMessage {
   timestamp: string;
 }
 
+interface SavedAuraChat {
+  id: string;
+  title: string;
+  messages: ChatMessage[];
+  pinned: boolean;
+  updatedAt: number;
+}
+
 export function GenieClient() {
   const [promptInput, setPromptInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [chatStorageKey, setChatStorageKey] = useState<string | null>(null);
+  const [chats, setChats] = useState<SavedAuraChat[]>([]);
+  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
+  const chatsRef = useRef<SavedAuraChat[]>([]);
+  const [sessionReady, setSessionReady] = useState(false);
   const [userContext, setUserContext] = useState<AuraUserContext | null>(null);
-  const [vendorContext, setVendorContext] = useState<AuraVendorContext | null>(null);
   const [isThinking, setIsThinking] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -87,6 +101,132 @@ export function GenieClient() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const storeChats = (nextChats: SavedAuraChat[], key = chatStorageKey) => {
+    chatsRef.current = nextChats;
+    setChats(nextChats);
+    if (key) {
+      try { localStorage.setItem(key, JSON.stringify(nextChats)); } catch {}
+    }
+  };
+
+  const restoreChat = (key: string, greeting: ChatMessage) => {
+    setChatStorageKey(key);
+    try {
+      const saved = localStorage.getItem(key);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed.every((chat) => chat?.id && Array.isArray(chat.messages))) {
+          const activeId = localStorage.getItem(`${key}:active`);
+          const ordered = [...parsed].sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.updatedAt - a.updatedAt) as SavedAuraChat[];
+          const activeChat = parsed.find((chat: SavedAuraChat) => chat.id === activeId) || ordered[0];
+          const normalized = parsed.map((chat: SavedAuraChat) => ({ ...chat, pinned: Boolean(chat.pinned), updatedAt: Number(chat.updatedAt) || Date.now() }));
+          storeChats(normalized, key);
+          setCurrentChatId(activeChat.id);
+          setMessages(activeChat.messages);
+          setSessionReady(true);
+          return;
+        }
+      }
+      // Migrate the earlier single-conversation save into the chat list.
+      const legacyKey = key.replace("cloche_aura_chats_v1:", "cloche_aura_chat_v1:");
+      const legacy = localStorage.getItem(legacyKey);
+      if (legacy) {
+        const oldMessages = JSON.parse(legacy);
+        if (Array.isArray(oldMessages) && oldMessages.length > 0 && oldMessages.every((message) => message?.id && ["user", "aura"].includes(message.sender))) {
+          const migrated: SavedAuraChat = { id: `chat-${Date.now()}`, title: "Previous chat", messages: oldMessages, pinned: false, updatedAt: Date.now() };
+          storeChats([migrated], key);
+          setCurrentChatId(migrated.id);
+          localStorage.setItem(`${key}:active`, migrated.id);
+          setMessages(migrated.messages);
+          setSessionReady(true);
+          return;
+        }
+      }
+    } catch {}
+    const firstChat: SavedAuraChat = { id: `chat-${Date.now()}`, title: "New chat", messages: [greeting], pinned: false, updatedAt: Date.now() };
+    storeChats([firstChat], key);
+    setCurrentChatId(firstChat.id);
+    try { localStorage.setItem(`${key}:active`, firstChat.id); } catch {}
+    setMessages(firstChat.messages);
+    setSessionReady(true);
+  };
+
+  useEffect(() => {
+    if (!sessionReady || !currentChatId || messages.length === 0) return;
+    const current = chatsRef.current.find((chat) => chat.id === currentChatId);
+    if (!current) return;
+    const firstUserMessage = messages.find((message) => message.sender === "user")?.text;
+    const updated: SavedAuraChat = {
+      ...current,
+      title: firstUserMessage ? (firstUserMessage.length > 42 ? `${firstUserMessage.slice(0, 42).trim()}…` : firstUserMessage) : current.title,
+      messages,
+      updatedAt: Date.now(),
+    };
+    const next = chatsRef.current.map((chat) => chat.id === currentChatId ? updated : chat);
+    storeChats(next);
+    if (chatStorageKey) {
+      try { localStorage.setItem(`${chatStorageKey}:active`, currentChatId); } catch {}
+    }
+  }, [messages, currentChatId, chatStorageKey, sessionReady]);
+
+  const startNewChat = () => {
+    const chat: SavedAuraChat = {
+      id: `chat-${Date.now()}`, title: "New chat",
+      messages: [{ id: `aura-init-${Date.now()}`, sender: "aura", text: "Hi! How can I help?", timestamp: "Just now" }],
+      pinned: false, updatedAt: Date.now(),
+    };
+    storeChats([chat, ...chatsRef.current]);
+    setCurrentChatId(chat.id);
+    setMessages(chat.messages);
+    if (chatStorageKey) {
+      try { localStorage.setItem(`${chatStorageKey}:active`, chat.id); } catch {}
+    }
+    setIsSidebarOpen(false);
+  };
+
+  const openChat = (chat: SavedAuraChat) => {
+    setCurrentChatId(chat.id);
+    setMessages(chat.messages);
+    if (chatStorageKey) {
+      try { localStorage.setItem(`${chatStorageKey}:active`, chat.id); } catch {}
+    }
+    setIsSidebarOpen(false);
+  };
+
+  const toggleChatPin = (chatId: string) => {
+    const chat = chatsRef.current.find((item) => item.id === chatId);
+    if (!chat) return;
+    const pinned = !chat.pinned;
+    storeChats(chatsRef.current.map((item) => item.id === chatId ? { ...item, pinned } : item));
+    fetch(`/api/aura/chats/${encodeURIComponent(chatId)}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pinned }),
+    }).catch(() => null);
+  };
+
+  const deleteChat = (chatId: string) => {
+    const next = chatsRef.current.filter((chat) => chat.id !== chatId);
+    if (next.length === 0) {
+      const chat: SavedAuraChat = {
+        id: `chat-${Date.now()}`, title: "New chat",
+        messages: [{ id: `aura-init-${Date.now()}`, sender: "aura", text: "Hi! How can I help?", timestamp: "Just now" }],
+        pinned: false, updatedAt: Date.now(),
+      };
+      next.push(chat);
+    }
+    storeChats(next);
+    fetch(`/api/aura/chats/${encodeURIComponent(chatId)}`, { method: "DELETE" }).catch(() => null);
+    if (chatId === currentChatId) {
+      setCurrentChatId(next[0].id);
+      setMessages(next[0].messages);
+      if (chatStorageKey) {
+        try { localStorage.setItem(`${chatStorageKey}:active`, next[0].id); } catch {}
+      }
+    }
+  };
+
+  const orderedChats = [...chats].sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.updatedAt - a.updatedAt);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -99,200 +239,117 @@ export function GenieClient() {
   // Fetch session on mount
   useEffect(() => {
     async function loadSession() {
+      const greeting: ChatMessage = { id: `aura-init-${Date.now()}`, sender: "aura", text: "Hi! How can I help?", timestamp: "Just now" };
       try {
-        // 1. Vendor check
-        const vRes = await fetch("/api/v1/vendor/profile").catch(() => null);
-        if (vRes && vRes.ok) {
-          const vJson = await vRes.json();
-          if (vJson.success && vJson.data?.vendor) {
-            const v = vJson.data.vendor;
-            const p = vJson.data.profile || {};
-            const ctx: AuraVendorContext = {
-              vendorId: v.id,
-              businessName: p.business_name || v.vendor_code || "your business",
-              category: vJson.data.category?.name || "Wedding Services",
-              categorySlug: vJson.data.category?.slug,
-              city: p.city || "Thrissur",
-              state: p.state || "Kerala",
-              about: p.about || "",
-              tagline: p.tagline || "",
-              rating: Number(p.rating || 0),
-              reviewCount: Number(p.review_count || 0),
-              startingPrice: p.starting_price,
-            };
-            setVendorContext(ctx);
-            setMessages([
-              {
-                id: "aura-init-vendor",
-                sender: "aura",
-                text: `Hi ${ctx.businessName}, I'm Aura — your AI assistant for Cloche. I can help you draft service packages, optimize your storefront SEO description, review client enquiries, and benchmark market pricing. What would you like to work on?`,
-                timestamp: "Just now",
-              },
-            ]);
-            return;
-          }
-        }
-
-        // 2. Customer check
         const res = await fetch("/api/v1/auth/me").catch(() => null);
-        if (res && res.ok) {
+        if (res?.ok) {
           const json = await res.json();
           if (json.data?.user) {
             const u = json.data.user;
             const ctx: AuraUserContext = {
-              userId: u.id,
-              fullName: u.fullName || u.email?.split("@")[0],
-              email: u.email,
-              phone: u.phone,
-              city: u.city || "Thrissur",
-              weddingDate: u.weddingDate,
+              userId: u.id, fullName: u.fullName || u.email?.split("@")[0], email: u.email,
+              phone: u.phone, city: u.city || "Thrissur", weddingDate: u.weddingDate,
             };
             setUserContext(ctx);
-            const firstName = ctx.fullName?.split(" ")[0] || "there";
-            setMessages([
-              {
-                id: "aura-init",
-                sender: "aura",
-                text: `Hi ${firstName}, I'm Aura, your Cloche AI Wedding Concierge. How can I help with your wedding planning today?`,
-                timestamp: "Just now",
-              },
-            ]);
+            const key = `cloche_aura_chats_v1:user:${u.id}`;
+            setChatStorageKey(key);
+            const localChats = (() => {
+              try {
+                const stored = JSON.parse(localStorage.getItem(key) || "[]");
+                return Array.isArray(stored) ? stored.map((chat: SavedAuraChat) => ({
+                  ...chat,
+                  messages: Array.isArray(chat.messages) ? chat.messages.map((message) => ({
+                    id: message.id,
+                    sender: message.sender,
+                    text: message.text,
+                    timestamp: message.timestamp,
+                  })) : [],
+                })) as SavedAuraChat[] : [];
+              } catch { return []; }
+            })();
+            const historyRes = await fetch("/api/aura/chats", { cache: "no-store" }).catch(() => null);
+            const history = historyRes?.ok ? await historyRes.json().catch(() => null) : null;
+            const remoteChats: SavedAuraChat[] = Array.isArray(history?.chats) ? history.chats.map((chat: any) => ({
+              id: chat.id,
+              title: chat.title || "New chat",
+              pinned: Boolean(chat.pinned),
+              updatedAt: Date.parse(chat.updated_at) || Date.now(),
+              messages: (chat.messages || []).map((message: any) => ({
+                id: message.client_message_id && message.role === "user" ? `user-${message.client_message_id}` : message.id,
+                sender: message.role === "user" ? "user" : "aura",
+                text: message.content,
+                groundedVendors: message.metadata?.groundedVendors,
+                budgetPlan: message.metadata?.budgetPlan,
+                checklist: message.metadata?.checklist,
+                timestamp: new Date(message.created_at).toLocaleString(),
+              })),
+            })) : [];
+            const remoteIds = new Set(remoteChats.map((chat) => chat.id));
+            const combined = [...remoteChats, ...localChats.filter((chat) => !remoteIds.has(chat.id))]
+              .sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.updatedAt - a.updatedAt);
+            if (!combined.length) combined.push({ id: `chat-${Date.now()}`, title: "New chat", messages: [greeting], pinned: false, updatedAt: Date.now() });
+            const activeId = localStorage.getItem(`${key}:active`);
+            const activeChat = combined.find((chat) => chat.id === activeId) || combined[0];
+            storeChats(combined, key);
+            setCurrentChatId(activeChat.id);
+            setMessages(activeChat.messages);
+            try { localStorage.setItem(`${key}:active`, activeChat.id); } catch {}
+            setSessionReady(true);
             return;
           }
         }
-      } catch (e) {}
+      } catch {}
 
-      setMessages([
-        {
-          id: "aura-init-guest",
-          sender: "aura",
-          text: "Hi, I'm Aura, your Cloche AI Wedding Assistant. Tell me what you're looking for — whether discovering venues, budgeting, comparing vendors, or planning your big day.",
-          timestamp: "Just now",
-        },
-      ]);
+      const guestChat: SavedAuraChat = { id: `chat-${Date.now()}`, title: "New chat", messages: [greeting], pinned: false, updatedAt: Date.now() };
+      chatsRef.current = [guestChat];
+      setChats([guestChat]);
+      setCurrentChatId(guestChat.id);
+      setMessages(guestChat.messages);
+      setSessionReady(true);
     }
-
     loadSession();
   }, []);
 
-  const samplePrompts = vendorContext ? [
-    "Draft a premium wedding package",
-    "Rewrite my profile description for SEO",
-    "Summarize my enquiries this week",
-    "Pricing suggestions for Kerala weddings",
-    "Tips to increase booking conversions",
-  ] : userContext?.userId ? [
-    "Plan my wedding for 400 guests in Thrissur, budget ₹15 lakh",
-    "Compare shaban and Acesd for decor",
-    "Show my wedding checklist",
-    "Send an inquiry to shaban",
-    "Find photographers in Kerala",
-  ] : [
-    "Find wedding venues in Kochi",
-    "Top rated photographers in Kerala",
-    "Compare decorators in Thrissur",
-    "Bridal makeup artists in Kochi",
-    "How much does a 500 guest wedding cost?",
-  ];
-
-  const workflowActions = vendorContext ? [
-    {
-      title: "Draft Service Package",
-      desc: "Create wedding packages with clear inclusions & pricing",
-      prompt: "Draft a premium wedding package for my storefront",
-      icon: Package,
-    },
-    {
-      title: "Storefront SEO Rewrite",
-      desc: "Generate high-converting, SEO-optimized business bio",
-      prompt: "Rewrite my profile description for SEO",
-      icon: FileText,
-    },
-    {
-      title: "Enquiry & Lead Summary",
-      desc: "Summarize real-time couple inquiries & upcoming dates",
-      prompt: "Summarize my enquiries this week",
-      icon: MessageSquare,
-    },
-    {
-      title: "Regional Pricing Benchmark",
-      desc: "Explore Kerala market pricing standards for your category",
-      prompt: "Suggest regional pricing benchmarks for my category",
-      icon: DollarSign,
-    },
-  ] : userContext?.userId ? [
-    {
-      title: "Budget Planning",
-      desc: "Calculate category-wise allocations tailored to your guests",
-      prompt: "Plan my wedding for 400 guests in Thrissur, budget ₹15 lakh",
-      icon: DollarSign,
-    },
-    {
-      title: "Side-by-Side Comparison",
-      desc: "Compare verified vendors side-by-side with real ratings",
-      prompt: "Compare shaban and Acesd for decor",
-      icon: Layers,
-    },
-    {
-      title: "Milestone Checklist",
-      desc: "Interactive countdown checklist for your wedding",
-      prompt: "Show my wedding checklist",
-      icon: CheckSquare,
-    },
-    {
-      title: "Direct Vendor Inquiry",
-      desc: "Draft verified booking inquiries with instant reference",
-      prompt: "Send an inquiry to shaban",
-      icon: MailCheck,
-    },
-  ] : [
-    {
-      title: "Discover Venues",
-      desc: "Explore verified banquet halls, resorts & heritage palaces",
-      prompt: "Find wedding venues in Kochi",
-      icon: Building2,
-    },
-    {
-      title: "Top Photographers",
-      desc: "Find candid & traditional wedding cinematographers",
-      prompt: "Top rated photographers in Kerala",
-      icon: Camera,
-    },
-    {
-      title: "Bridal Artists",
-      desc: "Certified makeup, glam & mehendi artists in your district",
-      prompt: "Find bridal makeup artists in Thrissur",
-      icon: Heart,
-    },
-    {
-      title: "Budget Estimator",
-      desc: "Estimate wedding expenses with realistic local benchmarks",
-      prompt: "How much does a 500 guest wedding cost in Kerala?",
-      icon: DollarSign,
-    },
-  ];
+  const samplePrompts: string[] = [];
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isThinking]);
 
-  const handleSendPrompt = async (textToSend?: string) => {
-    const query = (textToSend || promptInput).trim();
-    if (!query || isThinking) return;
+  const handleSendPrompt = async (textToSend?: string, regenerate = false) => {
+    const lastUserIndex = messages.map((message) => message.sender).lastIndexOf("user");
+    const query = (regenerate ? messages[lastUserIndex]?.text || "" : textToSend || promptInput).trim();
+    if (!query || isThinking || !sessionReady) return;
 
-    const userMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
-      sender: "user",
-      text: query,
-      timestamp: "Just now",
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    if (!textToSend) setPromptInput("");
+    const clientMessageId = regenerate
+      ? messages[lastUserIndex]?.id.match(/^user-([0-9a-f-]{36})$/i)?.[1] || crypto.randomUUID()
+      : crypto.randomUUID();
+    if (!regenerate) {
+      const userMessage: ChatMessage = {
+        id: `user-${clientMessageId}`,
+        sender: "user",
+        text: query,
+        timestamp: "Just now",
+      };
+      setMessages((prev) => [...prev, userMessage]);
+      if (!textToSend) setPromptInput("");
+    } else if (lastUserIndex >= 0) {
+      setMessages(messages.slice(0, lastUserIndex + 1));
+    }
     setIsThinking(true);
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     try {
-      const response: AuraResponse = await queryAuraAssistant(query, userContext, vendorContext);
+      const response: AuraResponse = await queryAuraAssistant(query, userContext, null, {
+        conversationId: currentChatId || undefined,
+        clientMessageId,
+        signal: controller.signal,
+        regenerate,
+        history: messages.slice(0, regenerate ? lastUserIndex + 1 : undefined)
+          .filter((message) => !message.id.startsWith("aura-init") && !message.id.startsWith("aura-err-"))
+          .map((message) => ({ role: message.sender === "user" ? "user" as const : "assistant" as const, content: message.text })),
+      });
       const auraMessage: ChatMessage = {
         id: `aura-${Date.now()}`,
         sender: "aura",
@@ -312,49 +369,19 @@ export function GenieClient() {
       };
       setMessages((prev) => [...prev, auraMessage]);
     } catch (err) {
+      if (controller.signal.aborted) return;
       setMessages((prev) => [
         ...prev,
         {
           id: `aura-err-${Date.now()}`,
           sender: "aura",
-          text: "I encountered a network error while searching our live directory. Please try again.",
+          text: err instanceof Error ? err.message : "Aura could not complete that response. Please retry your message.",
           timestamp: "Just now",
         },
       ]);
     } finally {
+      if (abortControllerRef.current === controller) abortControllerRef.current = null;
       setIsThinking(false);
-    }
-  };
-
-  const handleResetConversation = () => {
-    if (vendorContext) {
-      setMessages([
-        {
-          id: "aura-init-vendor",
-          sender: "aura",
-          text: `Hi ${vendorContext.businessName}, I'm Aura — your AI assistant for Cloche. I can help you draft service packages, optimize your storefront SEO description, review client enquiries, and benchmark market pricing. What would you like to work on?`,
-          timestamp: "Just now",
-        },
-      ]);
-    } else if (userContext?.userId) {
-      const firstName = userContext.fullName?.split(" ")[0] || "there";
-      setMessages([
-        {
-          id: "aura-init",
-          sender: "aura",
-          text: `Hi ${firstName}, I'm Aura, your Cloche AI Wedding Concierge. How can I help with your wedding planning today?`,
-          timestamp: "Just now",
-        },
-      ]);
-    } else {
-      setMessages([
-        {
-          id: "aura-init-guest",
-          sender: "aura",
-          text: "Hi, I'm Aura, your Cloche AI Wedding Assistant. Tell me what you're looking for — whether discovering venues, budgeting, comparing vendors, or planning your big day.",
-          timestamp: "Just now",
-        },
-      ]);
     }
   };
 
@@ -528,6 +555,11 @@ export function GenieClient() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Escape" && isThinking) {
+      e.preventDefault();
+      abortControllerRef.current?.abort();
+      return;
+    }
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendPrompt();
@@ -535,144 +567,31 @@ export function GenieClient() {
   };
 
   const isConversationStarted = messages.length > 1;
-  const currentEntityName = vendorContext?.businessName || userContext?.fullName?.split(" ")[0] || "there";
 
   return (
-    <div className="h-screen w-screen overflow-hidden flex bg-[#FAF9F6] text-[#2B2B2B] font-sans antialiased selection:bg-[#C8A96A]/30">
+    <div className="h-[calc(100dvh-64px)] md:h-[calc(100dvh-108px)] w-full overflow-hidden flex bg-[#FAF9F6] text-[#2B2B2B] font-sans antialiased selection:bg-[#C8A96A]/30">
       
-      {/* Mobile Sidebar Backdrop */}
-      {isSidebarOpen && (
-        <div 
-          onClick={() => setIsSidebarOpen(false)}
-          className="fixed inset-0 bg-black/30 z-30 md:hidden backdrop-blur-2xs transition-opacity"
-        />
-      )}
-
-      {/* Modern Left Sidebar (Like ChatGPT / Claude) */}
-      <aside 
-        className={`fixed md:static inset-y-0 left-0 z-40 bg-[#F4F1EA] border-r border-[#E5DECF] flex flex-col transition-all duration-300 ease-in-out ${
-          isSidebarOpen ? "w-[280px] translate-x-0" : "-translate-x-full md:w-0 md:translate-x-0 md:overflow-hidden md:border-r-0"
-        }`}
-      >
-        <div className="w-[280px] flex flex-col h-full">
-          {/* Sidebar Top: Logo & New Chat */}
-          <div className="p-3.5 border-b border-[#E5DECF] flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-8 h-8 rounded-xl bg-[#0F4C45] flex items-center justify-center text-[#C8A96A] shadow-xs group-hover:scale-105 transition-transform">
-                <Sparkles className="w-4 h-4" />
+      {isSidebarOpen && <div className="absolute inset-0 z-30 bg-black/25 md:hidden" onClick={() => setIsSidebarOpen(false)} />}
+      <aside className={`${isSidebarOpen ? "absolute md:relative inset-y-0 left-0 z-40 flex flex-col" : "hidden"} w-[280px] shrink-0 border-r border-[#E5DECF] bg-[#F4F1EA]`}>
+        <div className="flex h-full flex-col p-3">
+          <button onClick={startNewChat} className="mb-4 flex w-full items-center gap-2 rounded-xl border border-[#DDD3C2] bg-white px-3 py-3 text-sm font-semibold text-[#0F4C45] hover:bg-[#FAF7F2]">
+            <Plus className="h-4 w-4" /> New chat
+          </button>
+          <div className="mb-2 px-2 text-xs font-semibold uppercase tracking-wide text-charcoal/50">Chats</div>
+          <div className="flex-1 space-y-1 overflow-y-auto">
+            {orderedChats.map((chat) => (
+              <div key={chat.id} className={`group flex items-center gap-1 rounded-lg px-1 ${currentChatId === chat.id ? "bg-white" : "hover:bg-white/70"}`}>
+                <button onClick={() => openChat(chat)} className="min-w-0 flex-1 truncate px-2 py-2 text-left text-sm text-charcoal" title={chat.title}>
+                  {chat.pinned && <Pin className="mr-1 inline h-3 w-3 text-[#0F4C45]" />}{chat.title}
+                </button>
+                <button onClick={() => toggleChatPin(chat.id)} aria-label={chat.pinned ? "Unpin chat" : "Pin chat"} title={chat.pinned ? "Unpin chat" : "Pin chat"} className="rounded p-1.5 text-charcoal/45 hover:text-[#0F4C45]">
+                  <Pin className={`h-3.5 w-3.5 ${chat.pinned ? "fill-[#0F4C45] text-[#0F4C45]" : ""}`} />
+                </button>
+                <button onClick={() => deleteChat(chat.id)} aria-label="Delete chat" title="Delete chat" className="rounded p-1.5 text-charcoal/45 hover:text-red-600">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
               </div>
-              <div className="leading-tight">
-                <span className="font-serif font-bold text-sm text-[#0F4C45] tracking-wide block">CLOCHE</span>
-                <span className="text-[10px] text-[#C8A96A] font-semibold tracking-wider uppercase block">Aura AI</span>
-              </div>
-            </Link>
-
-            <button
-              onClick={() => setIsSidebarOpen(false)}
-              className="p-1.5 rounded-lg text-charcoal/60 hover:text-charcoal hover:bg-[#EAE4D7] transition-colors cursor-pointer"
-              title="Close sidebar"
-            >
-              <PanelLeftClose className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* New Chat Button */}
-          <div className="p-3">
-            <button
-              onClick={handleResetConversation}
-              className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-white/80 border border-[#DDD3C2] text-[#0F4C45] font-semibold text-xs flex items-center justify-between shadow-2xs hover:shadow-xs transition-all cursor-pointer group"
-            >
-              <span className="flex items-center gap-2">
-                <Plus className="w-4 h-4 text-[#C8A96A] group-hover:rotate-90 transition-transform duration-200" />
-                New Chat
-              </span>
-              <span className="text-[10px] text-charcoal/40 font-normal">⌘K</span>
-            </button>
-          </div>
-
-          {/* Workflows & Capabilities List */}
-          <div className="flex-1 overflow-y-auto px-3 py-2 space-y-4 scrollbar-thin">
-            <div>
-              <span className="px-2.5 text-[10px] font-bold uppercase tracking-wider text-charcoal/50 block mb-2">
-                {vendorContext ? "Vendor Workflows" : "AI Planning Tools"}
-              </span>
-              <div className="space-y-1">
-                {workflowActions.map((wf, idx) => {
-                  const Icon = wf.icon;
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        handleSendPrompt(wf.prompt);
-                        if (window.innerWidth < 768) setIsSidebarOpen(false);
-                      }}
-                      disabled={isThinking}
-                      className="w-full text-left px-2.5 py-2 rounded-xl text-xs text-charcoal/80 hover:text-[#0F4C45] hover:bg-white/70 transition-all flex items-center gap-2.5 cursor-pointer disabled:opacity-50 group"
-                    >
-                      <Icon className="w-3.5 h-3.5 text-charcoal/50 group-hover:text-[#0F4C45] shrink-0 transition-colors" />
-                      <span className="truncate font-medium">{wf.title}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div>
-              <span className="px-2.5 text-[10px] font-bold uppercase tracking-wider text-charcoal/50 block mb-2">
-                Suggested Prompts
-              </span>
-              <div className="space-y-1">
-                {samplePrompts.slice(0, 4).map((p, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      handleSendPrompt(p);
-                      if (window.innerWidth < 768) setIsSidebarOpen(false);
-                    }}
-                    disabled={isThinking}
-                    className="w-full text-left px-2.5 py-1.5 rounded-lg text-[11px] text-charcoal/70 hover:text-charcoal hover:bg-white/60 transition-colors truncate cursor-pointer block"
-                    title={p}
-                  >
-                    • {p}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Sidebar Footer: User / Vendor Badge */}
-          <div className="p-3 border-t border-[#E5DECF] bg-[#EDE9DF]/60">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-full bg-[#0F4C45] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
-                  {currentEntityName.charAt(0).toUpperCase()}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-semibold text-charcoal truncate">{currentEntityName}</p>
-                  <p className="text-[10px] text-charcoal/50 truncate">
-                    {vendorContext ? "Vendor Partner" : userContext?.userId ? "Wedding Planner" : "Guest Mode"}
-                  </p>
-                </div>
-              </div>
-
-              {vendorContext ? (
-                <Link
-                  href="/vendor/dashboard"
-                  className="p-1.5 rounded-lg text-charcoal/50 hover:text-[#0F4C45] hover:bg-white transition-colors"
-                  title="Vendor Dashboard"
-                >
-                  <Store className="w-4 h-4" />
-                </Link>
-              ) : (
-                <Link
-                  href="/"
-                  className="p-1.5 rounded-lg text-charcoal/50 hover:text-[#0F4C45] hover:bg-white transition-colors"
-                  title="Back to Cloche"
-                >
-                  <Home className="w-4 h-4" />
-                </Link>
-              )}
-            </div>
+            ))}
           </div>
         </div>
       </aside>
@@ -680,103 +599,22 @@ export function GenieClient() {
       {/* Main Chat Area */}
       <main className="flex-1 flex flex-col h-full min-w-0 relative bg-[#FAF9F6]">
         
-        {/* Modern Top Header (Clean like ChatGPT / Claude) */}
-        <header className="h-14 border-b border-[#E8E2D7] bg-white/80 backdrop-blur-md px-4 flex items-center justify-between shrink-0 z-10">
-          <div className="flex items-center gap-2.5">
-            {!isSidebarOpen && (
-              <button
-                onClick={() => setIsSidebarOpen(true)}
-                className="p-2 rounded-xl text-charcoal/70 hover:text-charcoal hover:bg-[#F2ECE1] transition-colors cursor-pointer"
-                title="Open sidebar"
-              >
-                <PanelLeft className="w-4 h-4" />
-              </button>
-            )}
-
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-lg bg-[#0F4C45] flex items-center justify-center text-[#C8A96A]">
-                <Sparkles className="w-3.5 h-3.5" />
-              </div>
-              <h1 className="font-serif font-bold text-sm text-[#0F4C45] tracking-tight">Aura</h1>
-              <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#FAF7F2] border border-gold/20 text-[#0F4C45] font-medium hidden sm:inline">
-                {vendorContext ? "Vendor Copilot" : "Wedding Concierge"}
-              </span>
-            </div>
-          </div>
-
+        <header className="flex h-12 shrink-0 items-center justify-between border-b border-[#E8E2D7] bg-white/80 px-4">
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleResetConversation}
-              className="text-xs text-charcoal/70 hover:text-[#0F4C45] px-2.5 py-1.5 rounded-lg hover:bg-[#F2ECE1] transition-colors flex items-center gap-1.5 cursor-pointer"
-              title="Reset Chat"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">New Chat</span>
+            <button onClick={() => setIsSidebarOpen((open) => !open)} className="rounded-lg p-2 text-charcoal/70 hover:bg-[#F2ECE1]" aria-label={isSidebarOpen ? "Close chat menu" : "Open chat menu"}>
+              {isSidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
             </button>
-
-            <Link
-              href={vendorContext ? "/vendor/dashboard" : "/"}
-              className="text-xs text-charcoal/70 hover:text-charcoal px-2.5 py-1.5 rounded-lg hover:bg-[#F2ECE1] transition-colors flex items-center gap-1"
-            >
-              <span className="hidden sm:inline">Exit</span>
-              <X className="w-4 h-4" />
-            </Link>
+            <span className="font-serif font-bold text-sm text-[#0F4C45]">Aura</span>
           </div>
+          <button onClick={startNewChat} className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-charcoal/70 hover:bg-[#F2ECE1]">
+            <Plus className="h-3.5 w-3.5" /> New chat
+          </button>
         </header>
 
         {/* Message Stream Viewport */}
         <div className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-8 py-6 scroll-smooth">
           <div className="max-w-3xl mx-auto w-full flex flex-col min-h-full">
             
-            {/* Minimalist Welcome State (Shown when chat starts) */}
-            {!isConversationStarted && (
-              <div className="my-auto py-8 text-center space-y-6 animate-in fade-in duration-300">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#0F4C45] to-[#176B61] mx-auto flex items-center justify-center text-[#C8A96A] shadow-md border border-gold/30">
-                  <Sparkles className="w-7 h-7" />
-                </div>
-
-                <div className="space-y-1.5">
-                  <h2 className="font-serif font-bold text-2xl sm:text-3xl text-[#0F4C45]">
-                    {vendorContext 
-                      ? `How can Aura help ${vendorContext.businessName}?`
-                      : `How can Aura assist your wedding, ${currentEntityName}?`}
-                  </h2>
-                  <p className="text-xs sm:text-sm text-charcoal/60 max-w-lg mx-auto leading-relaxed">
-                    {vendorContext
-                      ? "Create bespoke service packages, write SEO storefront copy, review couple enquiries, and explore Kerala wedding pricing benchmarks."
-                      : "Find verified venues, compare photographers, calculate category budgets, and craft inquiries with live Kerala directory data."}
-                  </p>
-                </div>
-
-                {/* 2x2 Clean Starter Cards (Like Claude / ChatGPT) */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl mx-auto text-left pt-2">
-                  {workflowActions.map((wf, idx) => {
-                    const Icon = wf.icon;
-                    return (
-                      <button
-                        key={idx}
-                        onClick={() => handleSendPrompt(wf.prompt)}
-                        disabled={isThinking}
-                        className="p-3.5 rounded-2xl bg-white hover:bg-white/90 border border-[#E2DAD0] hover:border-[#0F4C45]/40 shadow-xs hover:shadow-sm transition-all group cursor-pointer flex items-start gap-3 text-left"
-                      >
-                        <div className="p-2 rounded-xl bg-[#FAF7F2] group-hover:bg-[#0F4C45] text-[#0F4C45] group-hover:text-white transition-colors shrink-0">
-                          <Icon className="w-4 h-4" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <h3 className="font-bold text-xs text-charcoal group-hover:text-[#0F4C45] transition-colors">
-                            {wf.title}
-                          </h3>
-                          <p className="text-[11px] text-charcoal/60 line-clamp-2 mt-0.5 leading-snug">
-                            {wf.desc}
-                          </p>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
             {/* Conversation Messages */}
             <div className="space-y-6">
               {messages.map((m) => {
@@ -802,7 +640,7 @@ export function GenieClient() {
                             : "bg-white text-charcoal border border-[#E5DECF] rounded-tl-xs"
                         }`}
                       >
-                        <div className="whitespace-pre-line leading-relaxed">{m.text}</div>
+                        {isUser ? <div className="whitespace-pre-line leading-relaxed">{m.text}</div> : <AuraMarkdown text={m.text} />}
 
                         {/* Package Draft Card */}
                         {m.packageDraft && (
@@ -1052,6 +890,18 @@ export function GenieClient() {
                           </button>
                           <span>•</span>
                           <span>{m.timestamp}</span>
+                          {m.id === [...messages].reverse().find((item) => item.sender === "aura" && !item.id.startsWith("aura-init") && !item.id.startsWith("aura-err-"))?.id && (
+                            <button
+                              onClick={() => handleSendPrompt(undefined, true)}
+                              disabled={isThinking || !messages.some((item) => item.sender === "user")}
+                              className="ml-1 inline-flex items-center gap-1 hover:text-[#0F4C43] transition-colors disabled:opacity-40"
+                              aria-label="Regenerate response"
+                              title="Regenerate response"
+                            >
+                              <RefreshCw className="h-3 w-3" />
+                              <span>Regenerate</span>
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -1066,8 +916,7 @@ export function GenieClient() {
                     <Sparkles className="w-3.5 h-3.5 animate-spin" />
                   </div>
                   <div className="space-y-0.5">
-                    <span className="text-xs font-semibold text-charcoal block">Aura is searching Cloche database...</span>
-                    <span className="text-[10px] text-charcoal/50">Cross-referencing verified pricing, ratings & availability</span>
+                    <span className="text-xs font-semibold text-charcoal block">Aura is thinking...</span>
                   </div>
                 </div>
               )}
@@ -1081,7 +930,7 @@ export function GenieClient() {
           <div className="max-w-3xl mx-auto w-full space-y-2.5">
             
             {/* Quick Suggestion Chips */}
-            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5">
+            <div className="hidden">
               {samplePrompts.map((p, idx) => (
                 <button
                   key={idx}
@@ -1108,27 +957,24 @@ export function GenieClient() {
                 value={promptInput}
                 onChange={(e) => setPromptInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={
-                  vendorContext
-                    ? "Ask Aura to draft a package, rewrite SEO description, or summarize leads..."
-                    : "Ask Aura about wedding venues, decor budgets, photographers, or checklists..."
-                }
-                disabled={isThinking}
+                placeholder="Message Aura..."
+                disabled={isThinking || !sessionReady}
                 className="w-full bg-transparent resize-none max-h-36 px-3 py-2 text-xs sm:text-sm text-charcoal placeholder:text-charcoal/45 focus:outline-none"
               />
 
               <button
                 type="submit"
-                disabled={!promptInput.trim() || isThinking}
+                disabled={(!promptInput.trim() && !isThinking) || !sessionReady}
+                onClick={() => { if (isThinking) abortControllerRef.current?.abort(); }}
                 className="w-9 h-9 rounded-full bg-[#0F4C45] hover:bg-[#135951] disabled:opacity-30 disabled:hover:bg-[#0F4C45] text-white flex items-center justify-center transition-all shrink-0 cursor-pointer shadow-xs"
-                title="Send message"
+                title={isThinking ? "Stop response" : "Send message"}
               >
-                <ArrowUp className="w-4 h-4 stroke-[2.5]" />
+                {isThinking ? <Square className="h-3.5 w-3.5 fill-current" /> : <ArrowUp className="w-4 h-4 stroke-[2.5]" />}
               </button>
             </form>
 
             {/* Disclaimer */}
-            <p className="text-center text-[10.5px] text-charcoal/45">
+            <p className="hidden">
               Aura can assist with packages, pricing, and planning. Verified with live Cloche Directory data.
             </p>
           </div>

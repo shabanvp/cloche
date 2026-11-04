@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { Footer } from "@/components/Footer";
 import { AdBanner } from "@/components/AdBanner";
@@ -11,32 +10,52 @@ import { HomepageVendorCard, VendorCardItem } from "@/components/HomepageVendorC
 import { PopularNearYouSection } from "@/components/PopularNearYouSection";
 import { PhotographersForYouSection } from "@/components/PhotographersForYouSection";
 import { WeddingPlanningJourneySection } from "@/components/WeddingPlanningJourneySection";
-import { Sparkles, MapPin, Calendar, BookHeart, Plus, ArrowRight, Star, Heart, Flame } from "lucide-react";
+import { Sparkles, Plus, ArrowRight, Star, Heart, Flame } from "lucide-react";
 import { HOMEPAGE_CATEGORY_STRIP, normalizeCategory } from "@/lib/categories";
-import { RealWeddingStoryDb } from "@/lib/realWeddings";
 import { VendorCardSkeleton } from "@/components/skeletons/VendorCardSkeleton";
+import { WeddingInspirationSection } from "@/components/WeddingInspirationSection";
 
 export const dynamic = "force-dynamic";
+
+function mapBoutiqueVendor(b: any): VendorCardItem {
+  const norm = normalizeCategory(b.category);
+  const rawPrice = b.starting_price || b.startingPrice;
+  const amount = Number(String(rawPrice || "").replace(/[^\d.]/g, ""));
+  const startingPrice = !rawPrice ? "Contact for pricing" : typeof rawPrice === "string" && rawPrice.startsWith("â‚¹")
+    ? rawPrice : !isNaN(amount) && amount > 0 ? `â‚¹${amount.toLocaleString("en-IN")}` : String(rawPrice);
+  return {
+    id: String(b.id), slug: b.slug || String(b.id), name: b.name || b.boutique_name || "Luxury Boutique",
+    category: norm?.title || b.category || "Wedding Vendor", categorySlug: norm?.slug || b.categorySlug || "vendors",
+    city: b.city || "Kerala", rating: Number(b.rating || 0), reviewCount: Number(b.review_count || 0),
+    startingPrice, coverImage: b.cover_image || "", profileImage: b.profile_image || b.logo || "",
+  };
+}
 
 export default function Home() {
   const [allVendors, setAllVendors] = useState<VendorCardItem[]>([]);
   const [trendingVendors, setTrendingVendors] = useState<VendorCardItem[]>([]);
   const [featuredVendors, setFeaturedVendors] = useState<VendorCardItem[]>([]);
   const [vendorsLoading, setVendorsLoading] = useState(true);
-  const [stories, setStories] = useState<RealWeddingStoryDb[]>([]);
-  const [storiesLoading, setStoriesLoading] = useState(true);
-
-  // Fetch real registered vendors, boutiques, and real wedding stories concurrently
+  // Fetch real registered vendors and boutiques concurrently.
   useEffect(() => {
     let isMounted = true;
 
     async function loadData() {
       try {
-        const [vRes, bRes, sRes] = await Promise.all([
-          fetch("/api/v1/public/vendors?limit=16").catch(() => null),
-          fetch("/api/boutiques").catch(() => null),
-          fetch("/api/v1/public/real-weddings?limit=3").catch(() => null),
-        ]);
+        const boutiquesRequest = fetch("/api/boutiques")
+          .then(async (response) => {
+            if (!response.ok) return null;
+            const rows: any[] = await response.clone().json();
+            if (isMounted && Array.isArray(rows) && rows.length > 0) {
+              const quickVendors = rows.map(mapBoutiqueVendor);
+              setAllVendors(quickVendors);
+              setTrendingVendors(quickVendors.slice(0, 4));
+              setVendorsLoading(false);
+            }
+            return response;
+          })
+          .catch(() => null);
+        const vRes = await fetch("/api/v1/public/vendors?limit=16").catch(() => null);
 
         if (!isMounted) return;
 
@@ -68,6 +87,18 @@ export default function Home() {
             }
           } catch (e) {}
         }
+
+        // Let Popular Near You render as soon as the primary vendor API responds.
+        // Boutique enrichment continues in parallel afterward.
+        if (allPublicVendors.length > 0) {
+          setAllVendors(allPublicVendors);
+          setTrendingVendors(allPublicVendors.slice(0, 4));
+          setFeaturedVendors(allPublicVendors.slice(4, 8));
+        }
+        if (allPublicVendors.length > 0) setVendorsLoading(false);
+
+        const bRes = await boutiquesRequest;
+        if (!isMounted) return;
 
         let boutiqueVendors: VendorCardItem[] = [];
         if (bRes) {
@@ -127,21 +158,11 @@ export default function Home() {
         });
         setAllVendors(Array.from(combinedMap.values()));
 
-        // Process real wedding stories
-        if (sRes) {
-          try {
-            const sData = await sRes.json();
-            if (sData.success && Array.isArray(sData.stories)) {
-              setStories(sData.stories);
-            }
-          } catch (e) {}
-        }
       } catch (err) {
         console.error("Failed to load homepage data:", err);
       } finally {
         if (isMounted) {
           setVendorsLoading(false);
-          setStoriesLoading(false);
         }
       }
     }
@@ -446,87 +467,7 @@ export default function Home() {
         {/* ── SECTION C: WEDDING PLANNING JOURNEY (USEFUL STEP-BY-STEP ROADMAP) ── */}
         <WeddingPlanningJourneySection />
 
-        {/* ── REAL WEDDING STORIES (FETCHED LIVE FROM DATABASE) ── */}
-        <section className="pt-3 pb-6 md:pt-4 md:pb-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-4 flex justify-between items-center">
-            <div>
-              <h2 className="text-2xl font-bold text-on-surface font-display">Real Wedding Stories</h2>
-            </div>
-            <Link href="/real-weddings" className="text-primary text-sm font-bold hover:underline">View All Stories</Link>
-          </div>
-
-          {storiesLoading ? (
-            <div className="flex overflow-x-auto hide-scrollbar gap-4 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex-shrink-0 w-80 md:w-auto h-72 rounded-2xl bg-gray-100 animate-pulse border border-gold/10" />
-              ))}
-            </div>
-          ) : stories.length > 0 ? (
-            <div className="flex overflow-x-auto hide-scrollbar gap-4 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible">
-              {stories.slice(0, 3).map((story) => (
-                <Link key={story.id} href={`/real-weddings/${story.slug}`} className="flex-shrink-0 w-80 md:w-auto group">
-                  <div className="rounded-2xl overflow-hidden h-52 shadow-sm group-hover:shadow-md transition-all relative bg-gray-100">
-                    <img 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                      src={story.cover_image_url || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80"} 
-                      alt={story.title}
-                      loading="lazy"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80";
-                      }}
-                    />
-                    <span className="absolute top-3 left-3 bg-[#064E43]/90 backdrop-blur-xs text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full">
-                      {story.style || "Wedding"}
-                    </span>
-                  </div>
-                  <div className="py-4 space-y-1">
-                    <div className="flex items-center justify-between text-xs text-outline">
-                      <span className="flex items-center gap-1 font-semibold">
-                        <MapPin className="w-3.5 h-3.5 text-[#064E43]" /> {story.city || "Kerala"}
-                      </span>
-                      {story.wedding_date && (
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3.5 h-3.5 text-[#064E43]" /> {story.wedding_date}
-                        </span>
-                      )}
-                    </div>
-                    <h3 className="font-bold text-on-surface text-base md:text-lg leading-tight font-display group-hover:text-primary transition-colors line-clamp-2">
-                      {story.title}
-                    </h3>
-                    {story.couple_names && (
-                      <p className="text-xs font-bold text-[#064E43]">{story.couple_names}</p>
-                    )}
-                    <p className="text-xs text-outline line-clamp-2 leading-relaxed">
-                      {story.short_story || story.story_text}
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            /* Honest Editorial Invitation when 0 published stories exist */
-            <div className="p-8 sm:p-12 bg-white rounded-3xl border border-gold/20 shadow-md text-center max-w-2xl mx-auto space-y-4">
-              <div className="w-14 h-14 rounded-full bg-[#FAF9F6] border border-gold/30 text-[#064E43] flex items-center justify-center mx-auto shadow-inner">
-                <BookHeart className="w-7 h-7" />
-              </div>
-              <div className="space-y-1.5">
-                <h3 className="font-serif text-xl sm:text-2xl font-bold text-charcoal">
-                  Share Your Real Wedding Story
-                </h3>
-                <p className="text-xs sm:text-sm text-charcoal/70 max-w-md mx-auto leading-relaxed">
-                  Celebrate your love story on Cloche and give authentic credit to the photographers, decorators, and artisans who crafted your day.
-                </p>
-              </div>
-              <Link
-                href="/real-weddings"
-                className="inline-flex items-center gap-2 bg-[#064E43] hover:bg-[#12584E] text-white text-xs font-bold px-6 py-3 rounded-full shadow-md transition-all"
-              >
-                <span>Submit Your Wedding</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-          )}
-        </section>
+        <WeddingInspirationSection />
 
         {/* Mobile Sticky Sponsored Banner */}
         <AdBanner placement="Mobile Sticky Banner" />

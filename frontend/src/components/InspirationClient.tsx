@@ -445,6 +445,17 @@ export function InspirationClient() {
   }, []);
 
   useEffect(() => {
+    const requestedCategory = new URLSearchParams(window.location.search).get("category");
+    const matchingCategory = [
+      ...INSPIRATION_CATEGORIES.map((category) => category.id),
+      "Wedding Details",
+    ].find((category) => category.toLowerCase() === requestedCategory?.trim().toLowerCase());
+
+    if (matchingCategory && matchingCategory !== activeCategory) {
+      setActiveCategory(matchingCategory);
+      return;
+    }
+
     fetchPhotos(activeCategory);
   }, [activeCategory, fetchPhotos]);
 
@@ -546,7 +557,7 @@ export function InspirationClient() {
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h1 className="text-xl sm:text-2xl font-serif font-bold text-charcoal">
-              Wedding Inspiration Gallery
+              {activeCategory === "All" ? "Wedding Inspiration Gallery" : `${activeCategory} Inspiration`}
             </h1>
             <p className="text-xs text-charcoal/60 mt-0.5 font-light">
               Explore real wedding moments, bridal styling, and decor concepts

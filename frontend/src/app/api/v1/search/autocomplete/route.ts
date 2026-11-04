@@ -49,9 +49,10 @@ export async function GET(req: Request) {
 
     // 1. Query Supabase 'boutiques' table
     try {
-      const { data: boutiques } = await supabaseFetch("boutiques?select=*&order=created_at.desc");
+      const { data: boutiques } = await supabaseFetch("boutiques?status=eq.active&select=*&order=created_at.desc");
       if (Array.isArray(boutiques)) {
         boutiques.forEach((b: any) => {
+          if (b.status && b.status !== "active") return;
           const bName = (b.boutique_name || b.name || b.business_name || b.title || "").trim();
           if (!bName) return;
 
@@ -77,9 +78,11 @@ export async function GET(req: Request) {
 
     // 2. Query Supabase 'vendors' & 'vendor_profiles' tables
     try {
-      const { data: vendors } = await supabaseFetch("vendors?select=*,vendor_categories(id,name,slug),vendor_profiles(*)");
+      const { data: vendors } = await supabaseFetch("vendors?status=eq.active&deleted_at=is.null&select=*,vendor_categories(id,name,slug),vendor_profiles(*)");
       if (Array.isArray(vendors)) {
         vendors.forEach((v: any) => {
+          if (v.status && v.status !== "active") return;
+          if (v.deleted_at) return;
           const p = Array.isArray(v.vendor_profiles) && v.vendor_profiles.length > 0 ? v.vendor_profiles[0] : {};
           const catObj = v.vendor_categories || {};
           const bName = (p.business_name || v.boutique_name || v.name || p.name || "").trim();

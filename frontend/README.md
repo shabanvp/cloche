@@ -2,6 +2,8 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+frontend/public/partner/index.html is a copy of cloche-app/cloche_partner/index.html; update both together.
+
 First, run the development server:
 
 ```bash
