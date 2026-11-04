@@ -2940,7 +2940,7 @@
 
     /* ---------- state ---------- */
     const freshState = () => ({
-      step: 'login', reached: 0, authTab: 'login', contact: '', contactShow: '', password: '', showPassword: false,
+      step: 'login', reached: 0, authTab: 'register', contact: '', contactShow: '', password: '', showPassword: false,
       user: null, vendor: null, slug: '', cat: 'venue', biz: { name: '', owner: '', phone: '', email: '', addr: '', city: '', state: '', pin: '', web: '', about: '' },
       ans: {}, err: {}, photos: [], docs: {}, confirm: false, ret: null, drag: false, dash: null, sheet: null
     });
@@ -2982,7 +2982,7 @@
       if (!st || !st.has_vendor) {
         S.vendor = null; S.photos = []; S.docs = {}; S.ans = {};
         S.biz.email = S.biz.email || u.email || ''; S.biz.phone = S.biz.phone || digits10(u.phone);
-        if (!keep) { S.step = 'category'; S.reached = Math.max(S.reached, 2) }
+        if (!keep) { S.step = 'login'; S.reached = Math.max(S.reached, 0) }
         return;
       }
       S.vendor = st.vendor; S.cat = st.category_key || S.cat; S.ans = st.details || {};
@@ -2992,9 +2992,9 @@
       S.photos = (st.photos || []).map(x => ({ id: x.id, path: x.path, src: x.url }));
       S.docs = Object.assign({}, st.documents || {});
       if (st.logo) S.docs.logo = { name: st.logo.name, path: st.logo.path };
-      if (!keep) { S.confirm = false; S.step = STEPS.includes(st.step) ? st.step : 'category'; S.reached = Math.max(STEPS.indexOf(S.step), 2) }
+      if (!keep) { S.confirm = false; S.step = STEPS.includes(st.step) ? st.step : 'login'; S.reached = Math.max(STEPS.indexOf(S.step), 0) }
     }
-    async function loadAll() { applyState(await rpc('partner_get_state')) }
+    async function loadAll(keep = false) { try { const st = await rpc('partner_get_state'); applyState(st, keep) } catch (e) { console.warn('loadAll note:', e) } }
     async function loadDash() {
       try { const d = await rpc('partner_dashboard'); S.dash = d; applyState(d.state, true) } catch (e) { toast(e.message) }
       if (S.step === 'dashboard') render();
@@ -3027,16 +3027,43 @@
     async function boot() {
       if (!CFG_OK) { app.innerHTML = setupView(); return }
       app.innerHTML = '<section class="screen"><div class="loading">Loading\u2026</div></section>';
+
+      // Read hash step if explicitly requested
+      const hashStep = (location.hash || '').replace('#', '').trim();
+      const requestedStep = (STEPS.includes(hashStep) && hashStep !== 'login') ? hashStep : null;
+
+      // Determine default auth mode: default to 'register' (Create your account)
+      const params = new URLSearchParams(location.search);
+      if (params.get('tab') === 'login' || params.get('mode') === 'login') {
+        S.authTab = 'login';
+      } else {
+        S.authTab = 'register';
+      }
+
       try {
         const { data } = await sb.auth.getSession();
-        if (data.session) {
+        if (data && data.session) {
           S.user = data.session.user;
-          await loadAll();
-          try { history.replaceState({ s: S.step }, '', '#' + S.step) } catch (e) { }
-          if (S.step === 'dashboard') loadDash();
-          render(); return;
+          // Load vendor data from DB into state without forcing screen change away from login
+          await loadAll(true);
         }
-      } catch (e) { console.error(e); toast('Could not restore your session') }
+      } catch (e) {
+        console.error(e);
+      }
+
+      // If user specifically requested a step (e.g. #dashboard) and has an active profile, go there
+      if (requestedStep) {
+        S.step = requestedStep;
+        S.reached = Math.max(S.reached, STEPS.indexOf(requestedStep));
+      } else if (S.vendor && (S.vendor.status === 'active' || S.vendor.publication_status === 'published')) {
+        S.step = 'dashboard';
+      } else {
+        // ALWAYS start on the first page: Create account and login page!
+        S.step = 'login';
+      }
+
+      if (S.step === 'dashboard' && S.user) loadDash();
+      try { history.replaceState({ s: S.step }, '', '#' + S.step) } catch (e) { }
       render();
     }
     /* ---------- navigation ---------- */
@@ -3059,9 +3086,23 @@
     function vLogin() {
       const isReg = S.authTab === 'register';
       const terms = CFG.termsUrl ? `<p class="fine" style="margin-top:12px">By continuing you agree to the <a class="link" href="${esc(CFG.termsUrl)}" target="_blank" rel="noopener" style="display:inline;font-weight:500">Partner Terms</a>.</p>` : '';
+      const u = S.user;
+      const userIdent = u ? (u.email || u.phone || (u.user_metadata && (u.user_metadata.email || u.user_metadata.phone)) || 'Active Partner') : '';
       return `<section class="screen split login">
   <div class="hero">${scene(11, 'arch', 'dawn')}${brand('lg')}</div>
   <div class="login-body">
+    ${u ? `
+    <div style="background:var(--soft);border:1px solid var(--emerald);border-radius:12px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-weight:600">Currently Logged In</div>
+        <div style="font-weight:600;color:var(--emerald);font-size:13.5px">${esc(userIdent)}</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button type="button" class="btn" data-act="continueSession" style="padding:6px 12px;font-size:12px;height:auto">Continue &rarr;</button>
+        <button type="button" class="btn-o" data-act="signout" style="padding:6px 10px;font-size:12px;height:auto;border-color:var(--line);background:#fff">Sign out</button>
+      </div>
+    </div>
+    ` : ''}
     <!-- Auth Mode Switcher -->
     <div style="display:flex;background:var(--soft);padding:4px;border-radius:12px;margin-bottom:20px;border:1px solid var(--line);">
       <button type="button" data-act="setTab" data-tab="login" style="flex:1;height:40px;border-radius:9px;font-size:13.5px;font-weight:600;display:flex;align-items:center;justify-content:center;transition:all .15s;${!isReg ? 'background:var(--card);color:var(--emerald);box-shadow:0 2px 6px rgba(0,0,0,.08);' : 'color:var(--muted);'}">Vendor Log In</button>
@@ -3342,6 +3383,7 @@
     const LOCK = 'Your profile is live. Changes to a live profile need Cloche review, so they can\u2019t be edited here yet.';
     const ACT = {
       setTab(t) { S.authTab = t.dataset.tab; S.err = {}; render() },
+      continueSession() { go('category') },
       togglePw() { S.showPassword = !S.showPassword; render() },
       skipToDetails() { go('category') },
       async login(t) {
