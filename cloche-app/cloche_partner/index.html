@@ -2484,6 +2484,45 @@
       color: #082F2C;
     }
 
+    /* Partner registration uses a compact, route-specific header. */
+    #cloche-common-nav .cloche-nav-top,
+    #cloche-common-nav .cloche-nav-links,
+    #cloche-common-nav .cloche-bell-btn,
+    #cloche-common-nav .cloche-mobile-toggle,
+    #cloche-common-nav .cloche-mobile-drawer {
+      display: none !important;
+    }
+    #cloche-common-nav .cloche-nav-main {
+      min-height: 68px;
+      padding-top: 8px;
+      padding-bottom: 8px;
+    }
+    #cloche-common-nav .partner-registration-label {
+      display: inline-flex;
+      align-items: center;
+      margin-left: 10px;
+      padding: 6px 11px;
+      border: 1px solid rgba(200, 169, 106, .42);
+      border-radius: 999px;
+      color: #E8D5A7;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: .04em;
+      white-space: nowrap;
+    }
+    #cloche-common-nav a:focus-visible {
+      outline: 2px solid #D4AF37;
+      outline-offset: 4px;
+    }
+    @media (max-width: 480px) {
+      #cloche-common-nav .partner-registration-label {
+        margin-left: 4px;
+        padding: 5px 8px;
+        font-size: 10px;
+      }
+      #cloche-common-nav .cloche-nav-brand-wrap { gap: 7px; }
+    }
+
   </style>
 </head>
 
@@ -2515,6 +2554,7 @@
           <img src="/logo.png" alt="Cloche Logo" class="cloche-logo-img">
         </div>
         <span class="cloche-brand-text">Cloche</span>
+        <span class="partner-registration-label">Partner Registration</span>
       </a>
 
       <!-- Desktop Links -->
