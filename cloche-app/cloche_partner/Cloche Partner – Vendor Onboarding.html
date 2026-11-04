@@ -3048,18 +3048,40 @@
     function applyState(st, keep) {
       const u = S.user || {};
       if (!st || !st.has_vendor) {
-        S.vendor = null; S.photos = []; S.docs = {}; S.ans = {};
-        S.biz.email = S.biz.email || u.email || ''; S.biz.phone = S.biz.phone || digits10(u.phone);
-        if (!keep) { S.step = 'login'; S.reached = Math.max(S.reached, 0) }
+        S.vendor = null;
+        if (!keep) {
+          S.photos = []; S.docs = {}; S.ans = {};
+          S.biz.email = S.biz.email || u.email || ''; S.biz.phone = S.biz.phone || digits10(u.phone);
+          S.step = 'login'; S.reached = Math.max(S.reached, 0);
+        }
         return;
       }
-      S.vendor = st.vendor; S.cat = st.category_key || S.cat; S.ans = st.details || {};
+      S.vendor = st.vendor; S.cat = st.category_key || S.cat; S.ans = Object.assign({}, S.ans, st.details || {});
       const pr = st.profile || {}, ad = st.address || {}, ct = st.contact || {};
       S.slug = pr.slug || '';
-      S.biz = { name: pr.business_name || '', owner: ct.name || '', phone: digits10(ct.phone), email: ct.email || '', addr: ad.line1 || '', city: pr.city || '', state: pr.state || '', pin: pr.pincode || '', web: st.website || '', about: pr.about || '' };
-      S.photos = (st.photos || []).map(x => ({ id: x.id, path: x.path, src: x.url }));
-      S.docs = Object.assign({}, st.documents || {});
-      if (st.logo) S.docs.logo = { name: st.logo.name, path: st.logo.path };
+      S.biz = {
+        name: pr.business_name || S.biz.name || '',
+        owner: ct.name || S.biz.owner || '',
+        phone: digits10(ct.phone) || S.biz.phone || '',
+        email: ct.email || S.biz.email || '',
+        addr: ad.line1 || S.biz.addr || '',
+        city: pr.city || S.biz.city || '',
+        state: pr.state || S.biz.state || '',
+        pin: pr.pincode || S.biz.pin || '',
+        web: st.website || S.biz.web || '',
+        about: pr.about || S.biz.about || ''
+      };
+      if (st.photos && st.photos.length) {
+        S.photos = st.photos.map(x => ({ id: x.id, path: x.path, src: x.url }));
+      } else if (!keep) {
+        S.photos = [];
+      }
+      if (st.documents && Object.keys(st.documents).length) {
+        S.docs = Object.assign({}, S.docs, st.documents);
+      } else if (!keep) {
+        S.docs = {};
+      }
+      if (st.logo) S.docs.logo = { name: st.logo.name, path: st.logo.path, url: st.logo.url || S.docs.logo?.url };
       if (!keep) {
         S.confirm = false;
         const s = (st.vendor && (st.vendor.status === 'active' || st.vendor.publication_status === 'published')) ? 'dashboard' : (STEPS.includes(st.step) ? st.step : 'category');
@@ -3408,6 +3430,9 @@
         if (S.photos.length >= 20) { toast('You can add up to 20 photos'); break }
         if (!/^image\/(jpeg|png)$/.test(f.type) || f.size > MAX) { skipped++; continue }
         const path = `${uid}/${crypto.randomUUID()}.jpg`;
+        let uploaded = false;
+
+        // 1. Try direct client Supabase Storage upload
         try {
           const blob = await toJpeg(f);
           await putFile('partner-media', path, blob, 'image/jpeg');
@@ -3416,18 +3441,40 @@
             const r = await rpc('partner_register_media', { p_kind: 'gallery', p_doc_key: null, p_path: path, p_name: f.name, p_mime: 'image/jpeg', p_size: blob.size, p_url: url });
             S.photos.push({ id: (r && (r.media_id || r.id)) || ('img_' + Date.now()), path, src: url });
             if (S.vendor && r && r.completion) S.vendor.completion = r.completion;
+            uploaded = true;
             added++; render();
-          } catch (e) {
+          } catch (rpcErr) {
             S.photos.push({ id: 'img_' + Date.now() + Math.random().toString(36).slice(2, 6), path, src: url });
+            uploaded = true;
             added++; render();
           }
         } catch (e) {
-          console.error(e);
+          console.warn('Direct Supabase storage upload note, attempting server upload API:', e);
+        }
+
+        // 2. Fallback to /api/v1/vendor/upload (uploads with backend service role & saves to database)
+        if (!uploaded) {
           try {
-            const localUrl = URL.createObjectURL(f);
-            S.photos.push({ id: 'img_' + Date.now() + Math.random().toString(36).slice(2, 6), path: f.name, src: localUrl });
-            added++; render();
-          } catch (e2) { skipped++; }
+            const blob = await toJpeg(f);
+            const fd = new FormData();
+            fd.append('file', blob, f.name);
+            fd.append('kind', 'gallery');
+            if (S.user && S.user.id) fd.append('user_id', S.user.id);
+            if (S.vendor && S.vendor.id) fd.append('vendor_id', S.vendor.id);
+            const res = await fetch('/api/v1/vendor/upload', { method: 'POST', body: fd });
+            const data = await res.json();
+            if (res.ok && data.success && data.data) {
+              S.photos.push({ id: data.data.id, path: data.data.path, src: data.data.src || data.data.url });
+              uploaded = true;
+              added++; render();
+            }
+          } catch (serverErr) {
+            console.error('Server upload fallback failed:', serverErr);
+          }
+        }
+
+        if (!uploaded) {
+          skipped++;
         }
       }
       if (skipped) toast(`${skipped} file${skipped > 1 ? 's' : ''} skipped. Use JPG or PNG under 10 MB`);
@@ -3448,6 +3495,9 @@
       const ext = (f.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5) || 'bin';
       const uid = (S.user && S.user.id) || ('vendor_' + Date.now());
       const path = `${uid}/${k}-${Date.now()}.${ext}`;
+      let uploaded = false;
+
+      // 1. Try direct Supabase upload
       try {
         await putFile(bucket, path, f, f.type);
         const url = mediaUrl(bucket, path);
@@ -3455,20 +3505,44 @@
           const r = await rpc('partner_register_media', { p_kind: isLogo ? 'logo' : 'document', p_doc_key: isLogo ? null : k, p_path: path, p_name: f.name, p_mime: f.type, p_size: f.size, p_url: url });
           await dropFile(bucket, r.old_path);
           if (isLogo) S.docs.logo = { name: f.name, path, url: url };
-          else S.docs[k] = { name: f.name, path };
+          else S.docs[k] = { name: f.name, path, url: url };
           if (S.vendor && r && r.completion) S.vendor.completion = r.completion;
         } catch (e) {
           if (isLogo) S.docs.logo = { name: f.name, path, url: url };
-          else S.docs[k] = { name: f.name, path };
+          else S.docs[k] = { name: f.name, path, url: url };
         }
+        uploaded = true;
         render();
         toast(isLogo ? 'Logo uploaded' : 'Document uploaded');
       } catch (e) {
-        console.error(e);
-        if (isLogo) S.docs.logo = { name: f.name, path: f.name, url: URL.createObjectURL(f) };
-        else S.docs[k] = { name: f.name, path: f.name };
-        render();
-        toast(isLogo ? 'Logo uploaded' : 'Document uploaded');
+        console.warn('Direct document upload note, attempting server upload API:', e);
+      }
+
+      // 2. Server upload fallback
+      if (!uploaded) {
+        try {
+          const fd = new FormData();
+          fd.append('file', f);
+          fd.append('kind', isLogo ? 'logo' : 'document');
+          fd.append('doc_key', isLogo ? 'logo' : k);
+          if (S.user && S.user.id) fd.append('user_id', S.user.id);
+          if (S.vendor && S.vendor.id) fd.append('vendor_id', S.vendor.id);
+          const res = await fetch('/api/v1/vendor/upload', { method: 'POST', body: fd });
+          const data = await res.json();
+          if (res.ok && data.success && data.data) {
+            if (isLogo) S.docs.logo = { name: f.name, path: data.data.path, url: data.data.src || data.data.url };
+            else S.docs[k] = { name: f.name, path: data.data.path, url: data.data.src || data.data.url };
+            uploaded = true;
+            render();
+            toast(isLogo ? 'Logo uploaded' : 'Document uploaded');
+          }
+        } catch (err) {
+          console.error('Server doc upload failed:', err);
+        }
+      }
+
+      if (!uploaded) {
+        toast('Upload failed. Please check file format and try again.');
       }
     }
 
