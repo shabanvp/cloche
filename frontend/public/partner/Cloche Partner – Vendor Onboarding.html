@@ -2857,7 +2857,7 @@
     ];
     const sel = (id, label, ph, opts, req = true) => ({ id, label, t: 'select', ph, opts, req });
     const chk = (id, label, opts, req = false) => ({ id, label, t: 'check', opts, req });
-    const money = (id, label, ph = 'e.g. 2,50,000', req = false) => ({ id, label, t: 'money', ph, req });
+    const money = (id, label, ph = 'e.g. 2,50,000', req = true) => ({ id, label, t: 'money', ph, req: id === 'start' ? true : Boolean(req) });
     const num = (id, label, ph, req = false) => ({ id, label, t: 'num', ph, req });
     const TEAM = ['Solo', '2 – 3 members', '4 – 6 members', '7+ members'];
     const QS = {
@@ -2888,7 +2888,8 @@
       sel('events', 'Weddings per Year', 'Select range', ['Under 10', '10 – 25', '25 – 50', '50+']), money('start', 'Starting Price')],
       caterer: [chk('cuisine', 'Cuisines', ['North Indian', 'South Indian', 'Kerala', 'Continental', 'Chinese'], true),
       sel('minG', 'Minimum Guests', 'Select minimum guests', ['50', '100', '200', '500']), sel('serve', 'Menu Type', 'Select menu type', ['Veg only', 'Veg & Non-Veg', 'Jain options available']),
-      money('veg', 'Veg Price (per plate)', 'e.g. 800'), money('nonveg', 'Non-Veg Price (per plate)', 'e.g. 1,100')]
+      money('veg', 'Veg Price (per plate)', 'e.g. 800', false), money('nonveg', 'Non-Veg Price (per plate)', 'e.g. 1,100', false),
+      money('start', 'Starting Price (per plate)', 'e.g. 800', true)]
     };
     const DOCS = [
       { k: 'reg', n: 'Business Registration Certificate', req: true }, { k: 'id', n: 'Identity Proof', req: true }, { k: 'pan', n: 'PAN Card', req: true },
@@ -3537,7 +3538,20 @@
         });
       },
       async qNext(t) {
-        const e = {}; QS[S.cat].forEach(f => { if (!f.req) return; const v = S.ans[f.id]; if (f.t === 'check' ? !(v && v.length) : !v) e[f.id] = f.t === 'check' ? 'Choose at least one' : 'This field is required' });
+        $$('input[data-ans]').forEach(inp => {
+          if (inp.dataset.ans && inp.value !== undefined) S.ans[inp.dataset.ans] = inp.value.trim();
+        });
+        $$('select[data-ans]').forEach(sel => {
+          if (sel.dataset.ans && sel.value !== undefined) S.ans[sel.dataset.ans] = sel.value.trim();
+        });
+        const e = {};
+        QS[S.cat].forEach(f => {
+          if (!f.req) return;
+          const v = S.ans[f.id];
+          if (f.t === 'check' ? !(v && v.length) : !(v && String(v).trim())) {
+            e[f.id] = f.t === 'check' ? 'Choose at least one' : (f.id === 'start' ? 'Starting Price is required' : 'This field is required');
+          }
+        });
         if (Object.keys(e).length) { S.err = e; return fail(Object.values(e)[0]); }
         await withBusy(t, 'Saving\u2026', async () => {
           try {
