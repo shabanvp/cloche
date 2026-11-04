@@ -36,20 +36,6 @@ export async function POST(req: Request) {
     let isVendorAccount = false;
     let vendorRecord: any = null;
 
-<<<<<<< HEAD
-    // 1. Query custom database users table (case-insensitive lookup)
-    let userRes = await fetch(
-      `${url}/rest/v1/users?email=eq.${encodeURIComponent(cleanEmail)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status),user_roles(roles(name))`,
-      {
-        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-        cache: "no-store",
-      }
-    ).catch(() => null);
-
-    if (!userRes || !userRes.ok) {
-      userRes = await fetch(
-        `${url}/rest/v1/users?email=ilike.${encodeURIComponent(cleanEmail)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status),user_roles(roles(name))`,
-=======
     // Handle mobile number format vs email format
     const isEmail = cleanEmail.includes("@");
     if (!isEmail) {
@@ -57,7 +43,7 @@ export async function POST(req: Request) {
       if (digits.length >= 10) {
         // Query users by phone
         const phoneRes = await fetch(
-          `${url}/rest/v1/users?phone=ilike.%25${digits}%25&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status)`,
+          `${url}/rest/v1/users?phone=ilike.%25${digits}%25&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status),user_roles(roles(name))`,
           {
             headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
             cache: "no-store",
@@ -97,8 +83,7 @@ export async function POST(req: Request) {
     // 1. Query custom database users table by email (case-insensitive lookup)
     if (!customUser && cleanEmail.includes("@")) {
       let userRes = await fetch(
-        `${url}/rest/v1/users?email=eq.${encodeURIComponent(cleanEmail)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status)`,
->>>>>>> 0bf4e232b14046ab9195678d997e53607cf22fd4
+        `${url}/rest/v1/users?email=eq.${encodeURIComponent(cleanEmail)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status),user_roles(roles(name))`,
         {
           headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
           cache: "no-store",
@@ -107,7 +92,7 @@ export async function POST(req: Request) {
 
       if (!userRes || !userRes.ok) {
         userRes = await fetch(
-          `${url}/rest/v1/users?email=ilike.${encodeURIComponent(cleanEmail)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status)`,
+          `${url}/rest/v1/users?email=ilike.${encodeURIComponent(cleanEmail)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status),user_roles(roles(name))`,
           {
             headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
             cache: "no-store",
@@ -255,29 +240,12 @@ export async function POST(req: Request) {
       }
     }
 
-<<<<<<< HEAD
     // Designate Admin roles if configured in ADMIN_EMAILS or system admin
     if (isSystemAdminLogin || ADMIN_EMAILS.includes(cleanEmail)) {
       if (!userRoles.includes("super_admin")) userRoles.push("super_admin");
       if (!userRoles.includes("admin")) userRoles.push("admin");
     }
 
-    if (userRoles.length === 0) {
-      userRoles = [requestedRole === "vendor" || requestedRole === "partner" ? "vendor" : "customer"];
-    }
-
-    if (!userRoles.includes("customer") && !userRoles.includes("user")) {
-      userRoles.push("customer");
-    }
-
-    // SCENARIO 4: Role/Portal Authorization Checks
-    if (requestedRole === "vendor" || requestedRole === "partner") {
-      if (!userRoles.includes("vendor") && !isVendorAccount) {
-        return NextResponse.json(
-          { success: false, statusCode: 403, error: { code: "ROLE_MISMATCH", message: "This email is registered as a customer account. Please log in through the user portal or register as a vendor." } },
-          { status: 403 }
-        );
-=======
     // Query vendors table directly if not resolved via relation
     if (!vendorRecord && userId) {
       const vRes = await fetch(
@@ -291,8 +259,15 @@ export async function POST(req: Request) {
           isVendorAccount = true;
           if (!userRoles.includes("vendor")) userRoles.push("vendor");
         }
->>>>>>> 0bf4e232b14046ab9195678d997e53607cf22fd4
       }
+    }
+
+    // Reject customer accounts attempting to use the vendor portal.
+    if ((requestedRole === "vendor" || requestedRole === "partner") && !userRoles.includes("vendor") && !isVendorAccount) {
+      return NextResponse.json(
+        { success: false, statusCode: 403, error: { code: "ROLE_MISMATCH", message: "This email is registered as a customer account. Please log in through the user portal or register as a vendor." } },
+        { status: 403 }
+      );
     }
 
     // Partner/Vendor portal specific role assignment
