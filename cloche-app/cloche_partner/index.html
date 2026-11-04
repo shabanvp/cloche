@@ -2857,7 +2857,7 @@
     ];
     const sel = (id, label, ph, opts, req = true) => ({ id, label, t: 'select', ph, opts, req });
     const chk = (id, label, opts, req = false) => ({ id, label, t: 'check', opts, req });
-    const money = (id, label, ph = 'e.g. 2,50,000', req = false) => ({ id, label, t: 'money', ph, req });
+    const money = (id, label, ph = 'e.g. 2,50,000', req = false) => ({ id, label, t: 'money', ph, req: req || id === 'start' });
     const num = (id, label, ph, req = false) => ({ id, label, t: 'num', ph, req });
     const TEAM = ['Solo', '2 – 3 members', '4 – 6 members', '7+ members'];
     const QS = {
