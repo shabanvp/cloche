@@ -9,11 +9,10 @@ export default async function AdminOverviewPage() {
   try {
     const cookieStore = await cookies();
     token = cookieStore.get("adminToken")?.value || token;
-  } catch (e) {}
+  } catch {}
 
   const data = await getAdminAnalytics(token);
   const metrics = data?.metrics || { totalUsers: 16, totalBoutiques: 13, totalProducts: 23 };
-  const recentBoutiques = data?.recentBoutiques || [];
 
-  return <AdminOverviewClient metrics={metrics} initialBoutiques={recentBoutiques} />;
+  return <AdminOverviewClient metrics={metrics} />;
 }

@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { 
-  Bell, BriefcaseBusiness, Clock3, Hourglass, MoreVertical, RefreshCw, 
-  ShieldCheck, ShoppingBag, Store, Users, CheckCircle2, XCircle, Check, X
+  Bell, Hourglass, ShoppingBag, Store, Users, CheckCircle2, Check, X
 } from "lucide-react";
 import { logAdminAction } from "@/lib/systemStore";
 
@@ -17,55 +16,105 @@ export type ApplicationRecord = {
   partnerId?: string | number;
 };
 
-export function AdminOverviewClient({ metrics, initialBoutiques }: { metrics: any; initialBoutiques: any[] }) {
+type PendingVendorPayload = {
+  id: string | number;
+  vendorCode?: string;
+  boutique?: string;
+  email?: string;
+  origin?: string;
+  date?: string;
+};
+
+type PendingVendorsResponse = {
+  success?: boolean;
+  data?: PendingVendorPayload[];
+  error?: { message?: string };
+};
+
+export function AdminOverviewClient({ metrics }: { metrics: { totalUsers?: number; totalBoutiques?: number } }) {
   const [applications, setApplications] = useState<ApplicationRecord[]>([]);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
 
   useEffect(() => {
-    if (Array.isArray(initialBoutiques) && initialBoutiques.length > 0) {
-      const mapped: ApplicationRecord[] = initialBoutiques.map((b: any) => ({
-        id: b.id,
-        boutique: b.boutique_name || b.name || "Vendor Application",
-        email: b.email || "",
-        origin: [b.city, b.state].filter(Boolean).join(", ") || "Kerala",
-        date: b.created_at ? new Date(b.created_at).toLocaleDateString("en-IN") : new Date().toLocaleDateString("en-IN"),
-        status: b.status === "active" ? "approved" : b.status === "rejected" ? "rejected" : "pending",
-        partnerId: b.vendor_code || b.id,
-      }));
-      setApplications(mapped);
-    } else {
-      setApplications([]);
+    let isMounted = true;
+
+    async function loadPendingApplications() {
+      try {
+        const response = await fetch("/api/v1/admin/vendors?status=pending", {
+          cache: "no-store",
+          credentials: "same-origin",
+        });
+        const result: PendingVendorsResponse = await response.json();
+
+        if (!response.ok || !result.success || !Array.isArray(result.data)) {
+          throw new Error(result?.error?.message || "Unable to load pending applications.");
+        }
+
+        if (isMounted) {
+          setApplications(result.data.map((vendor): ApplicationRecord => ({
+            id: String(vendor.id),
+            boutique: vendor.boutique || "Vendor Application",
+            email: vendor.email || "",
+            origin: vendor.origin || "Kerala",
+            date: vendor.date || new Date().toLocaleDateString("en-IN"),
+            status: "pending",
+            partnerId: vendor.vendorCode || vendor.id,
+          })));
+        }
+      } catch (error) {
+        console.error("Failed to load pending vendor applications:", error);
+        if (isMounted) setApplications([]);
+      }
     }
-  }, [initialBoutiques]);
+
+    loadPendingApplications();
+    return () => { isMounted = false; };
+  }, []);
 
   const handleApprove = async (app: ApplicationRecord) => {
-    const updated = applications.map((a) => (a.id === app.id ? { ...a, status: "approved" as const } : a));
-    setApplications(updated);
     try {
-      await fetch("/api/v1/admin/vendors", {
+      const response = await fetch("/api/v1/admin/vendors", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ vendorId: app.id, action: "approve" }),
       });
-    } catch (e) {}
-    logAdminAction("Super Admin", "Super Admin", `Approved partnership application for '${app.boutique}'`, "Vendor Partnerships");
-    setActionNotice(`Partnership '${app.boutique}' APPROVED successfully!`);
-    setTimeout(() => setActionNotice(null), 3000);
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result?.error?.message || "Unable to approve the vendor application.");
+      }
+
+      setApplications((current) => current.filter((item) => item.id !== app.id));
+      logAdminAction("Super Admin", "Super Admin", `Approved partnership application for '${app.boutique}'`, "Vendor Partnerships");
+      setActionNotice(`Partnership '${app.boutique}' APPROVED successfully!`);
+      setTimeout(() => setActionNotice(null), 3000);
+    } catch (error) {
+      console.error("Failed to approve vendor application:", error);
+      setActionNotice("Unable to approve the vendor application. Please try again.");
+      setTimeout(() => setActionNotice(null), 3000);
+    }
   };
 
   const handleReject = async (app: ApplicationRecord) => {
-    const updated = applications.map((a) => (a.id === app.id ? { ...a, status: "rejected" as const } : a));
-    setApplications(updated);
     try {
-      await fetch("/api/v1/admin/vendors", {
+      const response = await fetch("/api/v1/admin/vendors", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ vendorId: app.id, action: "reject" }),
       });
-    } catch (e) {}
-    logAdminAction("Super Admin", "Super Admin", `Rejected partnership application for '${app.boutique}'`, "Vendor Partnerships");
-    setActionNotice(`Partnership '${app.boutique}' REJECTED.`);
-    setTimeout(() => setActionNotice(null), 3000);
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result?.error?.message || "Unable to reject the vendor application.");
+      }
+
+      setApplications((current) => current.filter((item) => item.id !== app.id));
+      logAdminAction("Super Admin", "Super Admin", `Rejected partnership application for '${app.boutique}'`, "Vendor Partnerships");
+      setActionNotice(`Partnership '${app.boutique}' REJECTED.`);
+      setTimeout(() => setActionNotice(null), 3000);
+    } catch (error) {
+      console.error("Failed to reject vendor application:", error);
+      setActionNotice("Unable to reject the vendor application. Please try again.");
+      setTimeout(() => setActionNotice(null), 3000);
+    }
   };
 
   const statusPills: Record<string, string> = {
