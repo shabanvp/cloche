@@ -3197,7 +3197,11 @@
     try { history.replaceState({ s: 'login' }, '', '#login') } catch (e) { }
 
     /* ---------- screens ---------- */
-    const stepbar = k => { const n = STEPNO[k]; return `<div class="stepbar"><div class="lbl">Step ${n} of 8</div><div class="track"><div class="fill" style="width:${n / 8 * 100}%"></div></div></div>` };
+    const stepbar = k => {
+      const n = STEPNO[k];
+      const back = S.ret === 'dashboard' ? `<div style="margin-bottom:12px"><button type="button" data-act="backToDash" style="background:none;border:none;color:var(--emerald);font-size:13px;font-weight:600;cursor:pointer;padding:0;display:inline-flex;align-items:center;gap:6px">&larr; Back to Dashboard</button></div>` : '';
+      return `${back}<div class="stepbar"><div class="lbl">Step ${n} of 8</div><div class="track"><div class="fill" style="width:${n / 8 * 100}%"></div></div></div>`;
+    };
     const cta = (label, act, dis = '') => `<div class="cta"><button class="btn" data-act="${act}" ${dis}>${label}${ic('arrow', 18, 'arr')}</button></div>`;
     const ferr = k => S.err[k] ? `<div class="ferr">${S.err[k]}</div>` : '';
     const bad = k => S.err[k] ? ' bad' : '';
@@ -3380,7 +3384,7 @@
   <div class="dbody">
    <div class="welcome full"><div><h1>Welcome, ${esc(first)}!</h1><p>Here's what's happening with your business today.</p></div><div class="im">${S.photos[0] ? `<img src="${esc(S.photos[0].src)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block">` : scene(41, 'arch', 'sunset')}</div></div>
    <div class="card pc full"><div class="hd"><span>Your Profile Completion</span><span>${pc}%</span></div><div class="bar"><i style="width:${pc}%"></i></div>
-     <div class="ft"><span>${note}</span>${pc < 100 && !isLive() && ps !== 'under_review' ? '<button data-act="complete">Complete now \u2192</button>' : ''}</div></div>
+     <div class="ft"><span>${note}</span>${pc < 100 && ps !== 'under_review' ? '<button data-act="complete">Complete now \u2192</button>' : ''}</div></div>
    <div class="stats full">
      <div class="stat"><b>${n(D && D.leads_week)}</b><span>New Leads<br>This Week</span>${ic('userplus', 17)}</div>
      <div class="stat"><b>${n(pend)}</b><span>Pending<br>Enquiries</span>${ic('mail', 17)}</div>
@@ -3894,6 +3898,16 @@
             if (st) applyState(st, true);
           } catch (err) {
             console.warn('partner_save_details note:', err);
+            try {
+              if (S.vendor && S.vendor.id) {
+                const sp = S.ans && S.ans.start ? parseInt(String(S.ans.start).replace(/\D/g, ''), 10) : null;
+                fetch('/api/v1/vendor/profile', {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ vendorId: S.vendor.id, profile: { startingPrice: sp }, categoryDetails: S.ans })
+                }).catch(() => {});
+              }
+            } catch (fallbackErr) {}
           }
           next('gallery');
         });
@@ -3937,7 +3951,7 @@
         });
       },
       edit(t) {
-        if (isLive()) return toast(LOCK);
+
         S.ret = (S.step === 'review') ? 'review' : (S.step === 'dashboard' ? 'dashboard' : null); go(t.dataset.to);
       },
       terms(t, e) { e.preventDefault(); if (CFG.termsUrl) window.open(CFG.termsUrl, '_blank', 'noopener'); else toast('Add termsUrl to the config') },
@@ -3970,8 +3984,12 @@
         render();
         window.scrollTo(0, 0);
       },
+      backToDash() {
+        S.ret = null;
+        go('dashboard');
+      },
       complete() {
-        if (isLive()) return toast(LOCK);
+
         S.ret = 'dashboard';
         go(DOCS.some(d => d.req && !S.docs[d.k]) ? 'docs' : (S.photos.length < 5 ? 'gallery' : 'questions'));
       },
