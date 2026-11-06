@@ -2158,37 +2158,41 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
             </div>
 
             {/* 2. FEATURED GROOM COLLECTIONS */}
-            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-gold/10 pb-2.5">
                 <div>
                   <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">{studioCategoryConfig.collectionsTitle}</h2>
                   <p className="text-xs text-charcoal/60 mt-0.5">{studioCategoryConfig.collectionsSubtitle}</p>
                 </div>
+                <span className="text-[11px] font-bold text-[#0F4C45] sm:hidden flex items-center gap-0.5 shrink-0 bg-[#0F4C45]/10 px-2 py-0.5 rounded-full">
+                  Slide →
+                </span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-4 overflow-x-auto sm:overflow-x-visible pb-2 sm:pb-0 scroll-smooth snap-x snap-mandatory hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
                 {boutiqueCollectionsList.map((col: any) => (
-                  <div key={col.id} className="bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden shadow-2xs flex flex-col justify-between">
+                  <Link
+                    key={col.id}
+                    href={`/collections/${col.id}`}
+                    className="w-[82vw] min-w-[260px] max-w-[320px] sm:w-auto shrink-0 snap-start bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden shadow-2xs hover:shadow-md hover:border-[#0F4C45] transition-all flex flex-col justify-between group cursor-pointer"
+                  >
                     <div>
                       <div className="relative aspect-[4/3] w-full overflow-hidden bg-charcoal">
-                        <img src={col.coverImage} alt={col.name} className="w-full h-full object-cover" />
+                        <img src={col.coverImage} alt={col.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         <span className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
                           {col.outfitCount || (col.outfits || []).length || 12}+ Groom Designs
                         </span>
                       </div>
                       <div className="p-4 space-y-1.5">
-                        <h3 className="font-serif font-bold text-base text-charcoal">{col.name}</h3>
+                        <h3 className="font-serif font-bold text-base text-charcoal group-hover:text-[#0F4C45] transition-colors leading-snug">{col.name}</h3>
                         <p className="text-xs text-charcoal/70 line-clamp-2">{col.description}</p>
                       </div>
                     </div>
                     <div className="p-4 pt-0">
-                      <button
-                        onClick={() => setActiveCollectionModal(col)}
-                        className="w-full py-2.5 rounded-xl bg-[#0F4C45] text-white font-bold text-xs hover:bg-[#12584E] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                      >
-                        <Eye className="w-4 h-4" /> View Outfits ({col.outfits ? col.outfits.length : 4})
-                      </button>
+                      <div className="w-full py-2.5 rounded-xl bg-[#0F4C45] group-hover:bg-[#12584E] text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-2xs">
+                        <Eye className="w-4 h-4" /> <span>View Outfits ({col.outfits ? col.outfits.length : 4})</span> <ArrowRight className="w-3.5 h-3.5" />
+                      </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -2402,37 +2406,41 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
             </div>
 
             {/* 2. BRIDAL COLLECTIONS */}
-            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-gold/10 pb-2.5">
                 <div>
                   <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Our Bridal Collections</h2>
                   <p className="text-xs text-charcoal/60 mt-0.5">Explore signature bridal zardozi lehengas, silk sarees &amp; reception trails</p>
                 </div>
+                <span className="text-[11px] font-bold text-[#0F4C45] sm:hidden flex items-center gap-0.5 shrink-0 bg-[#0F4C45]/10 px-2 py-0.5 rounded-full">
+                  Slide →
+                </span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-4 overflow-x-auto sm:overflow-x-visible pb-2 sm:pb-0 scroll-smooth snap-x snap-mandatory hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
                 {boutiqueCollectionsList.map((col: any) => (
-                  <div key={col.id} className="bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden shadow-2xs flex flex-col justify-between">
+                  <Link
+                    key={col.id}
+                    href={`/collections/${col.id}`}
+                    className="w-[82vw] min-w-[260px] max-w-[320px] sm:w-auto shrink-0 snap-start bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden shadow-2xs hover:shadow-md hover:border-[#0F4C45] transition-all flex flex-col justify-between group cursor-pointer"
+                  >
                     <div>
                       <div className="relative aspect-[4/3] w-full overflow-hidden bg-charcoal">
-                        <img src={col.coverImage} alt={col.name} className="w-full h-full object-cover" />
+                        <img src={col.coverImage} alt={col.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         <span className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
                           {col.outfitCount || (col.outfits || []).length || 18}+ Bridal Designs
                         </span>
                       </div>
                       <div className="p-4 space-y-1.5">
-                        <h3 className="font-serif font-bold text-base text-charcoal">{col.name}</h3>
+                        <h3 className="font-serif font-bold text-base text-charcoal group-hover:text-[#0F4C45] transition-colors leading-snug">{col.name}</h3>
                         <p className="text-xs text-charcoal/70 line-clamp-2">{col.description}</p>
                       </div>
                     </div>
                     <div className="p-4 pt-0">
-                      <button
-                        onClick={() => setActiveCollectionModal(col)}
-                        className="w-full py-2.5 rounded-xl bg-[#0F4C45] text-white font-bold text-xs hover:bg-[#12584E] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                      >
-                        <Eye className="w-4 h-4" /> View Outfits ({col.outfits ? col.outfits.length : 4})
-                      </button>
+                      <div className="w-full py-2.5 rounded-xl bg-[#0F4C45] group-hover:bg-[#12584E] text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-2xs">
+                        <Eye className="w-4 h-4" /> <span>View Outfits ({col.outfits ? col.outfits.length : 4})</span> <ArrowRight className="w-3.5 h-3.5" />
+                      </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -2646,37 +2654,41 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
             </div>
 
             {/* 2. WEDDING COLLECTIONS */}
-            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-gold/10 pb-2.5">
                 <div>
                   <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Our Wedding Collections</h2>
                   <p className="text-xs text-charcoal/60 mt-0.5">Explore signature bridal, groom, and ceremonial couple ensembles</p>
                 </div>
+                <span className="text-[11px] font-bold text-[#0F4C45] sm:hidden flex items-center gap-0.5 shrink-0 bg-[#0F4C45]/10 px-2 py-0.5 rounded-full">
+                  Slide →
+                </span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-4 overflow-x-auto sm:overflow-x-visible pb-2 sm:pb-0 scroll-smooth snap-x snap-mandatory hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
                 {boutiqueCollectionsList.map((col: any) => (
-                  <div key={col.id} className="bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden shadow-2xs flex flex-col justify-between">
+                  <Link
+                    key={col.id}
+                    href={`/collections/${col.id}`}
+                    className="w-[82vw] min-w-[260px] max-w-[320px] sm:w-auto shrink-0 snap-start bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden shadow-2xs hover:shadow-md hover:border-[#0F4C45] transition-all flex flex-col justify-between group cursor-pointer"
+                  >
                     <div>
                       <div className="relative aspect-[4/3] w-full overflow-hidden bg-charcoal">
-                        <img src={col.coverImage} alt={col.name} className="w-full h-full object-cover" />
+                        <img src={col.coverImage} alt={col.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         <span className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
                           {col.outfitCount || (col.outfits || []).length || 15}+ Collections
                         </span>
                       </div>
                       <div className="p-4 space-y-1.5">
-                        <h3 className="font-serif font-bold text-base text-charcoal">{col.name}</h3>
+                        <h3 className="font-serif font-bold text-base text-charcoal group-hover:text-[#0F4C45] transition-colors leading-snug">{col.name}</h3>
                         <p className="text-xs text-charcoal/70 line-clamp-2">{col.description}</p>
                       </div>
                     </div>
                     <div className="p-4 pt-0">
-                      <button
-                        onClick={() => setActiveCollectionModal(col)}
-                        className="w-full py-2.5 rounded-xl bg-[#0F4C45] text-white font-bold text-xs hover:bg-[#12584E] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                      >
-                        <Eye className="w-4 h-4" /> View Outfits ({col.outfits ? col.outfits.length : 4})
-                      </button>
+                      <div className="w-full py-2.5 rounded-xl bg-[#0F4C45] group-hover:bg-[#12584E] text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-2xs">
+                        <Eye className="w-4 h-4" /> <span>View Outfits ({col.outfits ? col.outfits.length : 4})</span> <ArrowRight className="w-3.5 h-3.5" />
+                      </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>
