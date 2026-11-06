@@ -2579,7 +2579,7 @@
         </button>
 
         <!-- Log In Button -->
-        <a href="/login" class="cloche-login-btn">Log In</a>
+        <button type="button" class="cloche-login-btn" data-act="headerLogin" id="headerLoginBtn" style="cursor:pointer;font-family:inherit;">Log In</button>
 
         <!-- Mobile Menu Toggle Button -->
         <button type="button" class="cloche-mobile-toggle" id="clocheNavToggle" aria-label="Toggle navigation">
@@ -3407,6 +3407,10 @@
     const VIEWS = { login: vLogin, category: vCategory, business: vBusiness, questions: vQuestions, gallery: vGallery, docs: vDocs, review: vReview, dashboard: vDash };
     function render() {
       app.innerHTML = VIEWS[S.step]();
+      const hBtn = $('#headerLoginBtn');
+      if (hBtn) {
+        hBtn.textContent = S.user ? 'Dashboard' : 'Log In';
+      }
     }
 
     /* ---------- uploads ---------- */
@@ -3557,13 +3561,30 @@
     const isLive = () => !!(S.vendor && (S.vendor.status === 'active' || S.vendor.publication_status === 'published'));
     const LOCK = 'Your profile is live. Changes to a live profile need Cloche review, so they can\u2019t be edited here yet.';
     const ACT = {
-      setTab(t) { S.authTab = t.dataset.tab; S.err = {}; render() },
+      setTab(t) {
+        const c = $('#contact'); if (c && c.value) S.contact = c.value.trim();
+        const p = $('#password'); if (p && p.value) S.password = p.value;
+        S.authTab = t.dataset.tab;
+        S.err = {};
+        render();
+      },
+      headerLogin() {
+        if (S.user) {
+          go(S.vendor || S.biz.name ? 'dashboard' : (S.cat ? 'business' : 'category'));
+        } else {
+          S.authTab = 'login';
+          S.step = 'login';
+          render();
+          const c = $('#contact');
+          if (c) c.focus();
+        }
+      },
       continueSession() {
-        if (isLive() || (S.vendor && (S.vendor.status === 'active' || S.vendor.publication_status === 'published'))) {
+        if (S.vendor || S.biz.name) {
           go('dashboard');
         } else if (S.step && S.step !== 'login' && STEPS.includes(S.step)) {
           go(S.step);
-        } else if (S.vendor && S.vendor.category_id) {
+        } else if (S.cat) {
           go('business');
         } else {
           go('category');
@@ -3715,11 +3736,11 @@
           toast('Welcome back!');
 
           // Navigate to appropriate screen
-          if (isLive() || (S.vendor && (S.vendor.status === 'active' || S.vendor.publication_status === 'published'))) {
+          if (S.vendor || S.biz.name) {
             go('dashboard');
           } else if (S.step && S.step !== 'login' && STEPS.includes(S.step)) {
             go(S.step);
-          } else if (S.vendor && S.vendor.category_id) {
+          } else if (S.cat) {
             go('business');
           } else {
             go('category');
@@ -3763,6 +3784,12 @@
             return fail(S.err.contact);
           }
 
+          if (!data?.session) {
+            try {
+              const signRes = await sb.auth.signInWithPassword({ email: email, password: S.password });
+              if (signRes?.data?.user) data = signRes.data;
+            } catch (e) {}
+          }
           S.user = data.user || (data.session && data.session.user);
           if (p.email) S.biz.email = p.email;
           if (phone) S.biz.phone = phone;
