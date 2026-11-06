@@ -88,7 +88,7 @@ router.get("/analytics", async (req, res) => {
     // 3. Fetch recent boutiques
     const { data: recentBoutiques, error: recBoutErr } = await supabase
       .from("boutiques")
-      .select("id, boutique_name, owner_name, email, phone, city, category, is_verified, created_at, plan, start_date")
+      .select("id, boutique_name, owner_name, email, phone, city, category, is_verified, created_at, plan")
       .order("created_at", { ascending: false })
       .limit(10);
 
@@ -133,7 +133,7 @@ router.get("/boutiques", requireAdmin, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from("boutiques")
-      .select("id, boutique_name, owner_name, email, phone, city, category, is_verified, created_at, plan, start_date")
+      .select("id, boutique_name, owner_name, email, phone, city, category, is_verified, created_at, plan")
       .order("created_at", { ascending: false });
 
     if (error) throw error;

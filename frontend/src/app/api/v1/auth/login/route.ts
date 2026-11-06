@@ -43,7 +43,7 @@ export async function POST(req: Request) {
       if (digits.length >= 10) {
         // Query users by phone
         const phoneRes = await fetch(
-          `${url}/rest/v1/users?phone=ilike.%25${digits}%25&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status)`,
+          `${url}/rest/v1/users?phone=ilike.%25${digits}%25&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status),user_roles(roles(name))`,
           {
             headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
             cache: "no-store",
@@ -83,7 +83,7 @@ export async function POST(req: Request) {
     // 1. Query custom database users table by email (case-insensitive lookup)
     if (!customUser && cleanEmail.includes("@")) {
       let userRes = await fetch(
-        `${url}/rest/v1/users?email=eq.${encodeURIComponent(cleanEmail)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status)`,
+        `${url}/rest/v1/users?email=eq.${encodeURIComponent(cleanEmail)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status),user_roles(roles(name))`,
         {
           headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
           cache: "no-store",
@@ -92,7 +92,7 @@ export async function POST(req: Request) {
 
       if (!userRes || !userRes.ok) {
         userRes = await fetch(
-          `${url}/rest/v1/users?email=ilike.${encodeURIComponent(cleanEmail)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status)`,
+          `${url}/rest/v1/users?email=ilike.${encodeURIComponent(cleanEmail)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status),user_roles(roles(name))`,
           {
             headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
             cache: "no-store",
@@ -111,9 +111,35 @@ export async function POST(req: Request) {
     // 2. Parallel check against Supabase GoTrue Auth
     authResult = await signInWithSupabaseAuth(cleanEmail, password);
 
+    // System admin fallback configuration
+    const SYSTEM_ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "admin@cloche.com").trim().toLowerCase();
+    const SYSTEM_ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
+    const rawAdminEmails = process.env.ADMIN_EMAILS ? process.env.ADMIN_EMAILS.split(",") : [];
+    const ADMIN_EMAILS = [
+      SYSTEM_ADMIN_EMAIL,
+      (process.env.GMAIL_USER || "cloche.luxury@gmail.com").trim().toLowerCase(),
+      ...rawAdminEmails.map((e) => e.trim().toLowerCase()),
+    ].filter(Boolean);
+
+    const isSystemAdminLogin = cleanEmail === SYSTEM_ADMIN_EMAIL && password === SYSTEM_ADMIN_PASSWORD;
+
     // Evaluate Password Authenticity
     let isPasswordValid = false;
-    if (customUser?.password_hash && verifyPassword(password, customUser.password_hash)) {
+    if (isSystemAdminLogin) {
+      isPasswordValid = true;
+      if (!customUser) {
+        customUser = {
+          id: "4c5fcac7-d7c1-4447-89d7-2b017c504847",
+          email: SYSTEM_ADMIN_EMAIL,
+          full_name: "Cloche Admin",
+          name: "Cloche Admin",
+          is_active: true,
+          is_verified: true,
+          vendors: [],
+          user_roles: [{ roles: { name: "super_admin" } }, { roles: { name: "admin" } }],
+        };
+      }
+    } else if (customUser?.password_hash && verifyPassword(password, customUser.password_hash)) {
       isPasswordValid = true;
 
       // Sync Supabase Auth user password if out of sync
@@ -151,7 +177,7 @@ export async function POST(req: Request) {
     }
 
     // SCENARIO 1: Account Not Found
-    if (!customUser && (authResult.error || !authResult.user)) {
+    if (!isSystemAdminLogin && !customUser && (authResult.error || !authResult.user)) {
       return NextResponse.json(
         { success: false, statusCode: 404, error: { code: "USER_NOT_FOUND", message: "No account found with this email address or mobile number. Please sign up first." } },
         { status: 404 }
@@ -169,7 +195,7 @@ export async function POST(req: Request) {
     // Refetch user record if initially absent
     if (!customUser && cleanEmail.includes("@")) {
       const reFetchRes = await fetch(
-        `${url}/rest/v1/users?email=ilike.${encodeURIComponent(cleanEmail)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status)`,
+        `${url}/rest/v1/users?email=ilike.${encodeURIComponent(cleanEmail)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status),user_roles(roles(name))`,
         { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` }, cache: "no-store" }
       ).catch(() => null);
       if (reFetchRes && reFetchRes.ok) {
@@ -189,6 +215,22 @@ export async function POST(req: Request) {
       );
     }
 
+    // Resolve Roles from DB user_roles
+    if (customUser && Array.isArray(customUser.user_roles)) {
+      for (const ur of customUser.user_roles) {
+        const roleName = ur?.roles?.name;
+        if (roleName && !userRoles.includes(roleName)) {
+          userRoles.push(roleName);
+        }
+      }
+    }
+
+    // Resolve Roles from Supabase Auth metadata
+    if (authResult?.user?.user_metadata?.role) {
+      const metaRole = authResult.user.user_metadata.role;
+      if (!userRoles.includes(metaRole)) userRoles.push(metaRole);
+    }
+
     // Role Resolution
     if (customUser) {
       if (Array.isArray(customUser.vendors) && customUser.vendors.length > 0) {
@@ -196,6 +238,12 @@ export async function POST(req: Request) {
         vendorRecord = customUser.vendors[0];
         if (!userRoles.includes("vendor")) userRoles.push("vendor");
       }
+    }
+
+    // Designate Admin roles if configured in ADMIN_EMAILS or system admin
+    if (isSystemAdminLogin || ADMIN_EMAILS.includes(cleanEmail)) {
+      if (!userRoles.includes("super_admin")) userRoles.push("super_admin");
+      if (!userRoles.includes("admin")) userRoles.push("admin");
     }
 
     // Query vendors table directly if not resolved via relation
@@ -212,6 +260,14 @@ export async function POST(req: Request) {
           if (!userRoles.includes("vendor")) userRoles.push("vendor");
         }
       }
+    }
+
+    // Reject customer accounts attempting to use the vendor portal.
+    if ((requestedRole === "vendor" || requestedRole === "partner") && !userRoles.includes("vendor") && !isVendorAccount) {
+      return NextResponse.json(
+        { success: false, statusCode: 403, error: { code: "ROLE_MISMATCH", message: "This email is registered as a customer account. Please log in through the user portal or register as a vendor." } },
+        { status: 403 }
+      );
     }
 
     // Partner/Vendor portal specific role assignment
@@ -243,9 +299,10 @@ export async function POST(req: Request) {
     }
 
     // SCENARIO 5: Successful Response & Session Cookie Generation
+    const isAdmin = userRoles.includes("admin") || userRoles.includes("super_admin");
     const primaryRole = (requestedRole === "vendor" || requestedRole === "partner")
       ? "vendor"
-      : (requestedRole === "admin" ? "admin" : "user");
+      : (requestedRole === "admin" || (isAdmin && requestedRole !== "customer") ? "admin" : "user");
 
     const jwtToken = signJwtToken({
       userId,
@@ -304,6 +361,17 @@ export async function POST(req: Request) {
       maxAge,
       path: "/",
     });
+
+    if (isAdmin) {
+      const adminTokenVal = process.env.ADMIN_TOKEN || "admin-session-secure-token";
+      response.cookies.set("adminToken", adminTokenVal, {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge,
+        path: "/",
+      });
+    }
 
     response.cookies.set(
       "user_data",

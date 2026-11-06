@@ -43,7 +43,7 @@ export async function login(formData: FormData) {
     // 1. Primary Authentication: Query custom database users table (case-insensitive lookup)
     if (url && apiKey) {
       let userRes = await fetch(
-        `${url}/rest/v1/users?email=eq.${encodeURIComponent(email)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status)`,
+        `${url}/rest/v1/users?email=eq.${encodeURIComponent(email)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status),user_roles(roles(name))`,
         {
           headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
           cache: "no-store",
@@ -52,7 +52,7 @@ export async function login(formData: FormData) {
 
       if (!userRes || !userRes.ok) {
         userRes = await fetch(
-          `${url}/rest/v1/users?email=ilike.${encodeURIComponent(email)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status)`,
+          `${url}/rest/v1/users?email=ilike.${encodeURIComponent(email)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status),user_roles(roles(name))`,
           {
             headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
             cache: "no-store",
@@ -74,9 +74,35 @@ export async function login(formData: FormData) {
     console.log(`[AUTH_DEBUG:SUPABASE_AUTH] Response: ${authResult.error ? `FAIL (Code: ${authResult.error.status || authResult.error.code || 'AUTH_ERR'}, Message: "${authResult.error.message}")` : `SUCCESS (User ID: ${authResult.user?.id})`}`);
     console.log(`[AUTH_DEBUG:USER_LOOKUP] Result: ${user ? `FOUND (User ID: ${user.id}, Active: ${user.is_active})` : "NOT_FOUND"}`);
 
+    // System admin fallback configuration
+    const SYSTEM_ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "admin@cloche.com").trim().toLowerCase();
+    const SYSTEM_ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
+    const rawAdminEmails = process.env.ADMIN_EMAILS ? process.env.ADMIN_EMAILS.split(",") : [];
+    const ADMIN_EMAILS = [
+      SYSTEM_ADMIN_EMAIL,
+      (process.env.GMAIL_USER || "cloche.luxury@gmail.com").trim().toLowerCase(),
+      ...rawAdminEmails.map((e) => e.trim().toLowerCase()),
+    ].filter(Boolean);
+
+    const isSystemAdminLogin = email === SYSTEM_ADMIN_EMAIL && password === SYSTEM_ADMIN_PASSWORD;
+
     // Evaluate Password Authenticity across DB hash & Supabase Auth
     let isPasswordValid = false;
-    if (user?.password_hash && verifyPassword(password, user.password_hash)) {
+    if (isSystemAdminLogin) {
+      isPasswordValid = true;
+      if (!user) {
+        user = {
+          id: "4c5fcac7-d7c1-4447-89d7-2b017c504847",
+          email: SYSTEM_ADMIN_EMAIL,
+          full_name: "Cloche Admin",
+          name: "Cloche Admin",
+          is_active: true,
+          is_verified: true,
+          vendors: [],
+          user_roles: [{ roles: { name: "super_admin" } }, { roles: { name: "admin" } }],
+        };
+      }
+    } else if (user?.password_hash && verifyPassword(password, user.password_hash)) {
       isPasswordValid = true;
 
       // If Supabase Auth failed (out of sync), sync Supabase Auth user password
@@ -110,7 +136,7 @@ export async function login(formData: FormData) {
     }
 
     // SCENARIO 1: User exists nowhere
-    if (!user && (authResult.error || !authResult.user)) {
+    if (!isSystemAdminLogin && !user && (authResult.error || !authResult.user)) {
       console.warn(`[AUTH_DEBUG:FAIL] Email: "${email}" | Reason: USER_NOT_FOUND`);
       return { success: false, error: "No account found with this email address. Please sign up first." };
     }
@@ -124,7 +150,7 @@ export async function login(formData: FormData) {
     // If user record wasn't found in DB originally but Supabase Auth succeeded, attempt refetch
     if (!user && url && apiKey) {
       const reFetchRes = await fetch(
-        `${url}/rest/v1/users?email=ilike.${encodeURIComponent(email)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status)`,
+        `${url}/rest/v1/users?email=ilike.${encodeURIComponent(email)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status),user_roles(roles(name))`,
         { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` }, cache: "no-store" }
       ).catch(() => null);
       if (reFetchRes && reFetchRes.ok) {
@@ -143,6 +169,22 @@ export async function login(formData: FormData) {
       return { success: false, error: "Your account has been deactivated. Please contact customer support." };
     }
 
+    // Resolve Roles from DB user_roles
+    if (user && Array.isArray(user.user_roles)) {
+      for (const ur of user.user_roles) {
+        const roleName = ur?.roles?.name;
+        if (roleName && !userRoles.includes(roleName)) {
+          userRoles.push(roleName);
+        }
+      }
+    }
+
+    // Resolve Roles from Supabase Auth metadata
+    if (authResult?.user?.user_metadata?.role) {
+      const metaRole = authResult.user.user_metadata.role;
+      if (!userRoles.includes(metaRole)) userRoles.push(metaRole);
+    }
+
     // Resolve Roles and Vendor Profile
     if (user) {
       if (Array.isArray(user.vendors) && user.vendors.length > 0) {
@@ -150,6 +192,12 @@ export async function login(formData: FormData) {
         vendorRecord = user.vendors[0];
         if (!userRoles.includes("vendor")) userRoles.push("vendor");
       }
+    }
+
+    // Designate Admin roles if configured in ADMIN_EMAILS or system admin
+    if (isSystemAdminLogin || ADMIN_EMAILS.includes(email)) {
+      if (!userRoles.includes("super_admin")) userRoles.push("super_admin");
+      if (!userRoles.includes("admin")) userRoles.push("admin");
     }
 
     console.log(`[AUTH_DEBUG:VENDOR_LOOKUP] Result: ${isVendorAccount ? `VENDOR_FOUND (Vendor ID: ${vendorRecord?.id}, Status: ${vendorRecord?.status}, Publication: ${vendorRecord?.publication_status})` : "NO_VENDOR_RECORD"}`);
@@ -190,9 +238,10 @@ export async function login(formData: FormData) {
     }
 
     // SCENARIO 5: Successful Authentication & Session Cookie Creation
+    const isAdmin = userRoles.includes("admin") || userRoles.includes("super_admin");
     const activeRole = (requestedRole === "vendor" || requestedRole === "partner")
       ? "vendor"
-      : (requestedRole === "admin" ? "admin" : "user");
+      : (requestedRole === "admin" || (isAdmin && requestedRole !== "customer") ? "admin" : "user");
 
     const token = signJwtToken({
       userId,
@@ -220,6 +269,10 @@ export async function login(formData: FormData) {
     cookieStore.set("auth_token", token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
     cookieStore.set("user_role", activeRole, { httpOnly: false, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
     cookieStore.set("user_data", encodeURIComponent(JSON.stringify(userObj)), { httpOnly: false, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+    if (isAdmin) {
+      const adminTokenVal = process.env.ADMIN_TOKEN || "admin-session-secure-token";
+      cookieStore.set("adminToken", adminTokenVal, { httpOnly: false, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+    }
 
     console.log(`[AUTH_DEBUG:SUCCESS] User ID: "${userId}" | ActiveRole: "${activeRole}"`);
     return { success: true, user: userObj, token };
@@ -359,6 +412,7 @@ export async function logout() {
   cookieStore.delete(AUTH_COOKIE_NAME);
   cookieStore.delete("user_role");
   cookieStore.delete("user_data");
+  cookieStore.delete("adminToken");
   return { success: true };
 }
 
