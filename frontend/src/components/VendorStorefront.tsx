@@ -42,6 +42,7 @@ import {
   User
 } from "lucide-react";
 import { COLOR_THEMES, ColorThemeOption } from "@/components/vendor/sections/CustomizeStoreSection";
+import { DB_CATEGORY_UUID_MAP, normalizeCategory, CategorySlug } from "@/lib/categories";
 
 export type VendorCategoryType =
   | "venue"
@@ -56,45 +57,152 @@ export type VendorCategoryType =
   | "invitation"
   | "other";
 
+export function mapSlugToCategoryType(slug: CategorySlug | string): VendorCategoryType {
+  switch (slug) {
+    case "venues":
+      return "venue";
+    case "bridal-studio":
+      return "bridalStudio";
+    case "groom-studio":
+      return "groomStudio";
+    case "wedding-studio":
+      return "weddingStudio";
+    case "photographers":
+    case "videographers":
+      return "photographer";
+    case "makeup":
+    case "mehendi":
+      return "makeupArtist";
+    case "caterers":
+    case "cakes-desserts":
+      return "caterer";
+    case "decor-planning":
+    case "wedding-planners":
+    case "flower-decoration":
+      return "decorator";
+    case "jewellery":
+      return "jewellery";
+    case "invitation-designers":
+      return "invitation";
+    default:
+      return "other";
+  }
+}
+
+export function getCategoryListingHref(categoryType: VendorCategoryType): string {
+  switch (categoryType) {
+    case "venue":
+      return "/venues";
+    case "photographer":
+      return "/photographers";
+    case "makeupArtist":
+      return "/makeup-artists";
+    case "caterer":
+      return "/categories/catering";
+    case "decorator":
+      return "/decor-planning";
+    case "groomStudio":
+      return "/groom-wear";
+    case "bridalStudio":
+      return "/bridal-wear";
+    case "weddingStudio":
+      return "/wedding-story";
+    case "jewellery":
+      return "/jewellery";
+    case "invitation":
+      return "/invitations";
+    default:
+      return "/boutiques";
+  }
+}
+
+export function getRouteForSlug(slug: string, id: string): string {
+  switch (slug) {
+    case "venues":
+      return `/venues/${id}`;
+    case "photographers":
+    case "videographers":
+      return `/photographers/${id}`;
+    case "makeup":
+      return `/makeup-artists/${id}`;
+    case "mehendi":
+      return `/mehendi-artists/${id}`;
+    case "caterers":
+    case "cakes-desserts":
+      return `/catering/${id}`;
+    case "decor-planning":
+    case "wedding-planners":
+    case "flower-decoration":
+      return `/decor-planning/${id}`;
+    case "bridal-studio":
+      return `/bridal-wear/${id}`;
+    case "groom-studio":
+      return `/groom-wear/${id}`;
+    case "wedding-studio":
+      return `/wedding-story/${id}`;
+    case "jewellery":
+      return `/jewellery/${id}`;
+    case "invitation-designers":
+      return `/invitations/${id}`;
+    default:
+      return `/vendors/${slug}/${id}`;
+  }
+}
 
 export function getSimilarVendorHref(item: any, currentCategorySlug?: string): string {
   if (!item) return "#";
   const idVal = item.id || item.slug || item.vendor_id || item.vendorCode;
   if (!idVal) return "#";
 
-  const rawCat = (item.categorySlug || item.category || item.categoryLabel || currentCategorySlug || "").toString().toLowerCase().trim();
+  // 1. Authoritative DB UUID check
+  const catId = item?.category_id || item?.vendor_categories?.id;
+  if (catId) {
+    const slug = DB_CATEGORY_UUID_MAP[String(catId).trim().toLowerCase()];
+    if (slug) {
+      return getRouteForSlug(slug, idVal);
+    }
+  }
 
-  if (rawCat.includes("venue") || rawCat.includes("hall") || rawCat.includes("lawn") || rawCat.includes("resort") || rawCat.includes("convention") || rawCat.includes("auditorium") || rawCat.includes("banquet")) {
+  // 2. Canonical normalization
+  const rawCat = (item.categorySlug || item.category || item.categoryLabel || item.vendor_categories?.name || currentCategorySlug || "").toString();
+  const canonical = normalizeCategory(rawCat);
+  if (canonical?.slug) {
+    return getRouteForSlug(canonical.slug, idVal);
+  }
+
+  // 3. Clean fallback patterns (category strings only, never business name)
+  const c = rawCat.toLowerCase().trim();
+  if (c.includes("venue") || c.includes("hall") || c.includes("lawn") || c.includes("resort") || c.includes("convention") || c.includes("auditorium") || c.includes("banquet")) {
     return `/venues/${idVal}`;
   }
-  if (rawCat.includes("groom")) {
+  if (c.includes("groom")) {
     return `/groom-wear/${idVal}`;
   }
-  if (rawCat.includes("bridal") || rawCat.includes("lehenga") || rawCat.includes("gown")) {
+  if (c.includes("bridal") || c.includes("lehenga") || c.includes("gown") || c.includes("bride")) {
     return `/bridal-wear/${idVal}`;
   }
-  if (rawCat.includes("wedding-story") || rawCat.includes("wedding-studio") || rawCat.includes("boutique")) {
+  if (c.includes("wedding-story") || c.includes("wedding-studio") || c.includes("boutique")) {
     return `/wedding-story/${idVal}`;
   }
-  if (rawCat.includes("photo") || rawCat.includes("video") || rawCat.includes("film") || rawCat.includes("camera")) {
+  if (c.includes("photo") || c.includes("video") || c.includes("film") || c.includes("camera")) {
     return `/photographers/${idVal}`;
   }
-  if (rawCat.includes("makeup") || rawCat.includes("beauty")) {
+  if (c.includes("makeup") || c.includes("beauty")) {
     return `/makeup-artists/${idVal}`;
   }
-  if (rawCat.includes("mehendi") || rawCat.includes("henna") || rawCat.includes("mehndi")) {
+  if (c.includes("mehendi") || c.includes("henna") || c.includes("mehndi")) {
     return `/mehendi-artists/${idVal}`;
   }
-  if (rawCat.includes("cater") || rawCat.includes("food") || rawCat.includes("sadya")) {
+  if (c.includes("cater") || c.includes("food") || c.includes("sadya")) {
     return `/catering/${idVal}`;
   }
-  if (rawCat.includes("decor") || rawCat.includes("stage") || rawCat.includes("flower") || rawCat.includes("planner")) {
+  if (c.includes("decor") || c.includes("stage") || c.includes("flower") || c.includes("planner")) {
     return `/decor-planning/${idVal}`;
   }
-  if (rawCat.includes("jewel") || rawCat.includes("gold") || rawCat.includes("diamond") || rawCat.includes("polki")) {
+  if (c.includes("jewel") || c.includes("gold") || c.includes("diamond") || c.includes("polki")) {
     return `/jewellery/${idVal}`;
   }
-  if (rawCat.includes("invit") || rawCat.includes("card") || rawCat.includes("print")) {
+  if (c.includes("invit") || c.includes("card") || c.includes("print")) {
     return `/invitations/${idVal}`;
   }
 
@@ -102,17 +210,39 @@ export function getSimilarVendorHref(item: any, currentCategorySlug?: string): s
 }
 
 export function getVendorCategoryType(vendor: any): VendorCategoryType {
-  const cat = (vendor?.categorySlug || vendor?.categoryLabel || vendor?.category || "").toLowerCase();
+  if (!vendor) return "other";
+
+  // 1. Authoritative registered vendor category UUID lookup (Supabase DB source of truth)
+  const catId = vendor?.category_id || vendor?.categoryId || vendor?.vendor_categories?.id;
+  if (catId) {
+    const cleanId = String(catId).trim().toLowerCase();
+    const slug = DB_CATEGORY_UUID_MAP[cleanId];
+    if (slug) {
+      return mapSlugToCategoryType(slug);
+    }
+  }
+
+  // 2. Canonical normalization via category slug, label, or category
+  const rawCat = vendor?.categorySlug || vendor?.categoryLabel || vendor?.category || vendor?.vendor_categories?.name || vendor?.vendor_categories?.slug || "";
+  const canonical = normalizeCategory(rawCat);
+  if (canonical?.slug) {
+    return mapSlugToCategoryType(canonical.slug);
+  }
+
+  // 3. Fallback string matching on category strings ONLY (never infer from business name!)
+  const cat = String(rawCat).toLowerCase();
   if (cat.includes("venue") || cat.includes("hall") || cat.includes("lawn") || cat.includes("resort") || cat.includes("convention") || cat.includes("auditorium") || cat.includes("banquet")) return "venue";
   if (cat.includes("groom")) return "groomStudio";
-  if (cat.includes("bridal") || cat.includes("lehenga") || cat.includes("gown")) return "bridalStudio";
-  if (cat.includes("studio") || cat.includes("boutique") || cat.includes("couture") || cat.includes("wear")) return "weddingStudio";
-  if (cat.includes("photo") || cat.includes("video") || cat.includes("film") || cat.includes("camera")) return "photographer";
-  if (cat.includes("cater") || cat.includes("food") || cat.includes("sadya")) return "caterer";
-  if (cat.includes("decor") || cat.includes("stage") || cat.includes("flower") || cat.includes("light")) return "decorator";
-  if (cat.includes("makeup") || cat.includes("beauty") || cat.includes("artist") || cat.includes("hair")) return "makeupArtist";
-  if (cat.includes("jewel") || cat.includes("gold") || cat.includes("diamond")) return "jewellery";
-  if (cat.includes("invit") || cat.includes("card") || cat.includes("print")) return "invitation";
+  if (cat.includes("bridal") || cat.includes("lehenga") || cat.includes("gown") || cat.includes("bride")) return "bridalStudio";
+  if (cat.includes("boutique") || cat.includes("couture") || cat.includes("wear") || cat.includes("wedding-studio") || cat.includes("wedding-story")) return "weddingStudio";
+  if (cat.includes("photo") || cat.includes("video") || cat.includes("film") || cat.includes("camera") || cat.includes("cinemat")) return "photographer";
+  if (cat.includes("cater") || cat.includes("food") || cat.includes("sadya") || cat.includes("dining")) return "caterer";
+  if (cat.includes("decor") || cat.includes("stage") || cat.includes("flower") || cat.includes("mandap") || cat.includes("planner")) return "decorator";
+  if (cat.includes("makeup") || cat.includes("beauty") || cat.includes("glam") || cat.includes("hair")) return "makeupArtist";
+  if (cat.includes("mehendi") || cat.includes("henna") || cat.includes("mehndi")) return "makeupArtist";
+  if (cat.includes("jewel") || cat.includes("gold") || cat.includes("diamond") || cat.includes("polki")) return "jewellery";
+  if (cat.includes("invit") || cat.includes("card") || cat.includes("print") || cat.includes("stationery")) return "invitation";
+
   return "other";
 }
 
@@ -354,20 +484,17 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
     let isMounted = true;
     setSimilarStudiosLoading(true);
 
-    const rawCat = (vendor?.categorySlug || vendor?.categoryLabel || vendor?.category || "").toLowerCase();
+    // Authoritative category resolution for recommendations
     let searchCategory = "wedding-studio";
-    if (rawCat.includes("bridal")) searchCategory = "bridal-studio";
-    else if (rawCat.includes("groom")) searchCategory = "groom-studio";
-    else if (rawCat.includes("venue")) searchCategory = "venues";
-    else if (rawCat.includes("photo") || rawCat.includes("camera") || rawCat.includes("video")) searchCategory = "photographers";
-    else if (rawCat.includes("makeup") || rawCat.includes("beauty")) searchCategory = "makeup";
-    else if (rawCat.includes("mehendi") || rawCat.includes("henna") || rawCat.includes("mehndi")) searchCategory = "mehendi";
-    else if (rawCat.includes("cater") || rawCat.includes("food")) searchCategory = "catering";
-    else if (rawCat.includes("decor") || rawCat.includes("planner")) searchCategory = "decor-planning";
-    else if (rawCat.includes("jewel") || rawCat.includes("gold") || rawCat.includes("polki")) searchCategory = "jewellery";
-    else if (rawCat.includes("invite") || rawCat.includes("card")) searchCategory = "invitations";
-    else if (rawCat) searchCategory = rawCat;
-
+    const catId = vendor?.category_id || vendor?.categoryId || vendor?.vendor_categories?.id;
+    if (catId && DB_CATEGORY_UUID_MAP[String(catId).trim().toLowerCase()]) {
+      searchCategory = DB_CATEGORY_UUID_MAP[String(catId).trim().toLowerCase()];
+    } else {
+      const canonical = normalizeCategory(vendor?.categorySlug || vendor?.categoryLabel || vendor?.category || vendor?.vendor_categories?.name || vendor?.vendor_categories?.slug);
+      if (canonical?.slug) {
+        searchCategory = canonical.slug;
+      }
+    }
     fetch(`/api/v1/public/vendors?category=${searchCategory}&limit=12&t=${Date.now()}`)
       .then((r) => r.json())
       .then((res) => {
@@ -1581,7 +1708,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
       </div>
 
       {/* MOBILE COMPACT HERO LAYOUT (100% TRUE FULL-BLEED EDGE-TO-EDGE AT THE VERY TOP) */}
-      <div className="lg:hidden relative w-full h-[45vh] min-h-[320px] max-h-[440px] overflow-hidden bg-charcoal rounded-none">
+      <div className="lg:hidden relative w-full h-[36vh] min-h-[250px] max-h-[360px] overflow-hidden bg-charcoal rounded-none">
         {/* Cover Photo */}
         <div className="relative h-full w-full overflow-hidden">
           <img src={coverUrl} alt={displayName} className="w-full h-full object-cover" />
@@ -1593,12 +1720,21 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
         {/* Top Action Bar */}
         <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
-          <Link
-            href={previewMode ? "#" : "/boutiques"}
-            className="bg-black/50 hover:bg-black/70 backdrop-blur-md text-white p-2 rounded-full border border-white/20 flex items-center justify-center transition-all"
+          <button
+            type="button"
+            onClick={() => {
+              if (previewMode) return;
+              if (typeof window !== "undefined" && window.history.length > 1) {
+                router.back();
+              } else {
+                router.push(getCategoryListingHref(categoryType));
+              }
+            }}
+            aria-label="Back"
+            className="bg-black/50 hover:bg-black/70 backdrop-blur-md text-white p-2 rounded-full border border-white/20 flex items-center justify-center transition-all cursor-pointer"
           >
             <ArrowRight className="w-5 h-5 rotate-180" />
-          </Link>
+          </button>
 
           <div className="flex items-center gap-2">
             <button
@@ -1620,10 +1756,10 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
       </div>
 
       {/* ── MOBILE OVERLAPPING HEADER CARD (WEDMEGOOD STYLE REFERENCE) ── */}
-      <div className="lg:hidden relative -mt-8 mx-4 z-20">
-        <div className="bg-white rounded-2xl p-4.5 shadow-lg border border-gold/15 space-y-2">
+      <div className="lg:hidden relative -mt-7 mx-3.5 sm:mx-4 z-20">
+        <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-lg border border-gold/15 space-y-2.5">
           <div className="flex items-start justify-between gap-2">
-            <h1 className="font-serif font-bold text-xl text-charcoal leading-snug">{displayName}</h1>
+            <h1 className="font-serif font-bold text-lg sm:text-xl text-charcoal leading-snug break-words">{displayName}</h1>
             <button
               onClick={() => setIsWishlisted(!isWishlisted)}
               className="text-charcoal/40 hover:text-rose-500 transition-colors p-1 cursor-pointer shrink-0"
@@ -1633,18 +1769,18 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
             </button>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-bold">
-            <div className="flex items-center gap-1 text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200/60">
-              <Star className="w-3.5 h-3.5 fill-emerald-600 text-emerald-600" />
-              <span>{rating || "4.7"}</span>
-              <span className="font-medium text-emerald-900/70">({reviewsCount || 24} Reviews)</span>
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs font-bold">
+            <div className="flex items-center gap-1 text-emerald-800 bg-emerald-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md border border-emerald-200/60">
+              <Star className="w-3.5 h-3.5 fill-emerald-600 text-emerald-600 shrink-0" />
+              <span>{rating || "4.8"}</span>
+              <span className="font-medium text-emerald-900/70">({reviewsCount || reviewsList.length || 24} Reviews)</span>
             </div>
             <span className="text-charcoal/30">•</span>
-            <span className="text-emerald-700 bg-emerald-50/80 px-2 py-0.5 rounded text-[11px]">✓ Verified Partner</span>
+            <span className="text-emerald-700 bg-emerald-50/80 px-2 py-0.5 rounded text-[11px] font-semibold">✓ Verified Partner</span>
           </div>
 
-          <div className="flex items-center justify-between text-xs text-charcoal/70 pt-1 border-t border-gold/10">
-            <div className="flex items-center gap-1.5 truncate">
+          <div className="flex items-center justify-between text-xs text-charcoal/70 pt-2 border-t border-gold/10 gap-2">
+            <div className="flex items-center gap-1.5 min-w-0">
               <MapPin className="w-3.5 h-3.5 text-[#0F4C45] shrink-0" />
               <span className="truncate font-medium">{location || "Kerala, India"}</span>
             </div>
@@ -1652,16 +1788,16 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
               href={previewMode ? "#" : (googleMaps || `https://maps.google.com/?q=${encodeURIComponent(address || location)}`)}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-2.5 py-1 rounded-lg bg-[#FAF7F2] border border-gold/20 text-[#0F4C45] font-extrabold text-[11px] flex items-center gap-1 hover:bg-gold/15 transition-colors shrink-0"
+              className="px-2.5 py-1 rounded-lg bg-[#FAF7F2] border border-gold/20 text-[#0F4C45] font-extrabold text-[10px] sm:text-[11px] flex items-center gap-1 hover:bg-gold/15 transition-colors shrink-0 whitespace-nowrap"
             >
-              <Compass className="w-3 h-3 text-[#0F4C45]" /> Get Directions
+              <Compass className="w-3 h-3 text-[#0F4C45]" /> Directions
             </a>
           </div>
         </div>
       </div>
 
-      {/* ── MOBILE & DESKTOP SECTIONS CONTAINER ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 sm:mt-6 space-y-4 sm:space-y-5">
+{/* ── MOBILE & DESKTOP SECTIONS CONTAINER ── */}
+      <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 mt-4 sm:mt-6 space-y-4 sm:space-y-5 pb-24 sm:pb-28 lg:pb-12">
 
         {/* ════════════════════════════════════════════════════════════════ */}
         {/* 1. VENUE STOREFRONT SECTIONS                                    */}
@@ -2800,7 +2936,18 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 4. PRICING */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal border-b border-gold/10 pb-2.5">Photography &amp; Film Pricing</h2>
+              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal flex flex-wrap items-center justify-between gap-2 border-b border-gold/10 pb-2.5">
+                <span>Photography &amp; Film Pricing</span>
+                {Boolean(vendor?.contactForPricing ?? vendor?.contact_for_pricing ?? sf?.contactForPricing ?? false) ? (
+                  <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20">
+                    Contact for Pricing
+                  </span>
+                ) : (vendor?.startingPrice || vendor?.starting_price || vendor?.startingPriceLabel) ? (
+                  <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20">
+                    Starting from {vendor?.startingPriceLabel || (typeof (vendor?.startingPrice ?? vendor?.starting_price) === "number" ? `₹${Number(vendor?.startingPrice ?? vendor?.starting_price).toLocaleString("en-IN")}` : (vendor?.startingPrice || vendor?.starting_price))}
+                  </span>
+                ) : null}
+              </h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
                   <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Candid Photography</span>
@@ -3033,7 +3180,18 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 3. PRICING */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal border-b border-gold/10 pb-2.5">Makeup Pricing Summary</h2>
+              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal flex flex-wrap items-center justify-between gap-2 border-b border-gold/10 pb-2.5">
+                <span>Makeup Pricing Summary</span>
+                {Boolean(vendor?.contactForPricing ?? vendor?.contact_for_pricing ?? sf?.contactForPricing ?? false) ? (
+                  <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20">
+                    Contact for Pricing
+                  </span>
+                ) : (vendor?.startingPrice || vendor?.starting_price || vendor?.startingPriceLabel) ? (
+                  <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20">
+                    Starting from {vendor?.startingPriceLabel || (typeof (vendor?.startingPrice ?? vendor?.starting_price) === "number" ? `₹${Number(vendor?.startingPrice ?? vendor?.starting_price).toLocaleString("en-IN")}` : (vendor?.startingPrice || vendor?.starting_price))}
+                  </span>
+                ) : null}
+              </h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
                   <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Bridal HD Makeup</span>
@@ -3269,7 +3427,18 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 4. PRICING */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal border-b border-gold/10 pb-2.5">Catering Per-Plate Pricing</h2>
+              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal flex flex-wrap items-center justify-between gap-2 border-b border-gold/10 pb-2.5">
+                <span>Catering Per-Plate Pricing</span>
+                {Boolean(vendor?.contactForPricing ?? vendor?.contact_for_pricing ?? sf?.contactForPricing ?? false) ? (
+                  <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20">
+                    Contact for Pricing
+                  </span>
+                ) : (vendor?.startingPrice || vendor?.starting_price || vendor?.startingPriceLabel) ? (
+                  <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20">
+                    Starting from {vendor?.startingPriceLabel || (typeof (vendor?.startingPrice ?? vendor?.starting_price) === "number" ? `₹${Number(vendor?.startingPrice ?? vendor?.starting_price).toLocaleString("en-IN")}` : (vendor?.startingPrice || vendor?.starting_price))}
+                  </span>
+                ) : null}
+              </h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
                   <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Veg Plate Price</span>
@@ -3493,7 +3662,18 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 4. PRICING */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal border-b border-gold/10 pb-2.5">Decoration Package Rates</h2>
+              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal flex flex-wrap items-center justify-between gap-2 border-b border-gold/10 pb-2.5">
+                <span>Decoration Package Rates</span>
+                {Boolean(vendor?.contactForPricing ?? vendor?.contact_for_pricing ?? sf?.contactForPricing ?? false) ? (
+                  <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20">
+                    Contact for Pricing
+                  </span>
+                ) : (vendor?.decorStartingPrice || vendor?.startingPrice || vendor?.starting_price || vendor?.startingPriceLabel) ? (
+                  <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20">
+                    Starting from {vendor?.startingPriceLabel || `₹${Number(vendor?.decorStartingPrice || vendor?.startingPrice || vendor?.starting_price).toLocaleString("en-IN")}`}
+                  </span>
+                ) : null}
+              </h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
                   <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Stage Decor</span>
@@ -4008,12 +4188,12 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
       </div>
       {/* ── WEDMEGOOD-STYLE STICKY MOBILE ACTION BAR ── */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/98 backdrop-blur-md border-t border-gold/20 px-3 py-2.5 pb-safe shadow-2xl space-y-1">
-        <div className="flex items-center gap-2">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/98 backdrop-blur-md border-t border-gold/20 px-3 py-2 pb-[max(env(safe-area-inset-bottom),10px)] shadow-2xl">
+        <div className="flex items-center gap-2 max-w-lg mx-auto">
           {/* Message Primary Button */}
           <button
             onClick={() => handleOpenMessage()}
-            className="flex-1 min-h-[48px] py-3 rounded-2xl bg-[#0F4C45] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all text-center cursor-pointer hover:bg-[#09312d]"
+            className="flex-1 min-h-[44px] h-[44px] sm:h-[48px] px-3 rounded-2xl bg-[#0F4C45] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all text-center cursor-pointer hover:bg-[#09312d]"
           >
             <MessageSquare className="w-4 h-4 shrink-0" /> <span>Message</span>
           </button>
@@ -4023,7 +4203,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
             href={`https://wa.me/${(whatsapp || phone || "").replace(/[^0-9]/g, "") || "919000000000"}?text=Hi%20${encodeURIComponent(displayName)},%20I%20saw%20your%20profile%20on%20Cloche!`}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-12 min-h-[48px] rounded-2xl bg-[#25D366] text-white font-bold flex items-center justify-center shadow-md active:scale-95 transition-all shrink-0 hover:bg-emerald-600"
+            className="w-11 sm:w-12 min-h-[44px] h-[44px] sm:h-[48px] rounded-2xl bg-[#25D366] text-white font-bold flex items-center justify-center shadow-md active:scale-95 transition-all shrink-0 hover:bg-emerald-600"
             title="WhatsApp Chat"
           >
             <MessageCircle className="w-5 h-5" />
@@ -4032,15 +4212,14 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
           {/* Phone Dialer Call Button */}
           <a
             href={`tel:${(phone || whatsapp || "").replace(/[^0-9]/g, "") || "+919000000000"}`}
-            className="w-12 min-h-[48px] rounded-2xl bg-white border border-[#0F4C45] text-[#0F4C45] font-bold flex items-center justify-center shadow-xs active:scale-95 transition-all shrink-0 hover:bg-emerald-50"
+            className="w-11 sm:w-12 min-h-[44px] h-[44px] sm:h-[48px] rounded-2xl bg-white border border-[#0F4C45] text-[#0F4C45] font-bold flex items-center justify-center shadow-xs active:scale-95 transition-all shrink-0 hover:bg-emerald-50"
             title="Call Vendor"
           >
             <Phone className="w-5 h-5" />
           </a>
         </div>
-
-        
       </div>
+
 {/* ── COLLECTION OUTFITS LIGHTBOX MODAL ── */}
       {activeCollectionModal && (
         <div
