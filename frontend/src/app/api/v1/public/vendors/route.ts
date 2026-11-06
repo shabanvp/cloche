@@ -103,7 +103,7 @@ export async function GET(req: Request) {
     }
 
     // Build PostgREST query: Active vendors are visible on public pages
-    let filter = `deleted_at=is.null&status=eq.active`;
+    let filter = `deleted_at=is.null&or=(status.eq.active,publication_status.eq.published)`;
     
     // Add category filter if provided
     if (categorySlug && categorySlug.toLowerCase() !== "all") {
@@ -172,9 +172,9 @@ export async function GET(req: Request) {
       const catTitle = vNorm?.title || v.vendor_categories?.name || "Vendor";
       const catSlug = vNorm?.slug || v.vendor_categories?.slug || "general";
 
-      const logoImg = profile.logo_media?.cdn_url || profile.logo_url || "";
-      // Never turn category artwork or an arbitrary gallery item into a vendor cover.
-      const coverImg = profile.cover_media?.cdn_url || profile.cover_image || "";
+      const galleryCover = gallery.length > 0 ? (gallery[0]?.media?.cdn_url || "") : "";
+      const coverImg = profile.cover_media?.cdn_url || profile.cover_image || galleryCover || "";
+      const logoImg = profile.logo_media?.cdn_url || profile.logo_url || coverImg || "";
       const startingPrice = services.length > 0 ? Math.min(...services.map((s: any) => Number(s.base_price || 0)).filter((p: number) => p > 0)) : (profile.starting_price || 0);
 
       const instagram = socialList.find((s: any) => s.platform === "instagram")?.url || contact.instagram || "";

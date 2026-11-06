@@ -3813,7 +3813,37 @@
       cat(t) { if (S.cat !== t.dataset.k) { S.cat = t.dataset.k; S.ans = {}; S.ret = null } $$('.cat').forEach(c => c.setAttribute('aria-pressed', c.dataset.k === S.cat)) },
       async catNext(t) {
         await withBusy(t, 'Saving\u2026', async () => {
-          if (S.vendor) applyState(await rpc('partner_set_category', { p_key: S.cat }), true);
+          const CAT_MAP = {
+            venue: 'c48253f9-f7e8-4cea-b296-22a4cf8890dc',
+            photographer: '5ea30983-409d-4263-b059-0061c3e583d3',
+            videographer: '04b8ec8d-547b-4496-8f19-29e5a1266cc3',
+            bridal: '2c7e34e1-5945-473b-95ea-a1db34c6c01b',
+            groom: '83d80c46-baae-464a-865e-5a5601890401',
+            studio: '3c71464e-89cd-4ffe-aaeb-ae6e95bcacff',
+            decorator: '697350dd-7410-461f-a8de-d0c44c315411',
+            makeup: '06260436-4efe-488f-afe2-4f41e3d9d0f1',
+            jewellery: '5466a413-0225-4622-833f-ef71edc2331a',
+            invitation: 'f00cf9ac-0f5b-4703-8806-4d25103ecf9b',
+            planner: '0a02500f-575a-4730-8f04-826048891db6',
+            caterer: 'a4332a96-8f1f-4a64-bf96-2a9ad53d40b7'
+          };
+          const catId = CAT_MAP[S.cat];
+          try {
+            if (S.vendor) applyState(await rpc('partner_set_category', { p_key: S.cat }), true);
+          } catch (e) {}
+          if (S.vendor && S.vendor.id && catId) {
+            try {
+              const sess = (await sb.auth.getSession()).data?.session;
+              const headers = { 'Content-Type': 'application/json', apikey: CFG.supabaseAnonKey };
+              if (sess?.access_token) headers['Authorization'] = 'Bearer ' + sess.access_token;
+              await fetch(`${CFG.supabaseUrl}/rest/v1/vendors?id=eq.${encodeURIComponent(S.vendor.id)}`, {
+                method: 'PATCH',
+                headers,
+                body: JSON.stringify({ category_id: catId })
+              });
+              S.vendor.category_id = catId;
+            } catch (_) {}
+          }
           next('business');
         });
       },
@@ -3984,21 +4014,104 @@
       terms(t, e) { e.preventDefault(); if (CFG.termsUrl) window.open(CFG.termsUrl, '_blank', 'noopener'); else toast('Add termsUrl to the config') },
       async publish(t) {
         if (!S.confirm) return;
-        await withBusy(t, 'Submitting\u2026', async () => {
+        await withBusy(t, 'Publishing Profile\u2026', async () => {
+          const CAT_MAP = {
+            venue: 'c48253f9-f7e8-4cea-b296-22a4cf8890dc',
+            photographer: '5ea30983-409d-4263-b059-0061c3e583d3',
+            videographer: '04b8ec8d-547b-4496-8f19-29e5a1266cc3',
+            bridal: '2c7e34e1-5945-473b-95ea-a1db34c6c01b',
+            groom: '83d80c46-baae-464a-865e-5a5601890401',
+            studio: '3c71464e-89cd-4ffe-aaeb-ae6e95bcacff',
+            decorator: '697350dd-7410-461f-a8de-d0c44c315411',
+            makeup: '06260436-4efe-488f-afe2-4f41e3d9d0f1',
+            jewellery: '5466a413-0225-4622-833f-ef71edc2331a',
+            invitation: 'f00cf9ac-0f5b-4703-8806-4d25103ecf9b',
+            planner: '0a02500f-575a-4730-8f04-826048891db6',
+            caterer: 'a4332a96-8f1f-4a64-bf96-2a9ad53d40b7'
+          };
+          const targetCatId = CAT_MAP[S.cat] || (S.vendor && S.vendor.category_id);
+          const targetVendorId = S.vendor && S.vendor.id;
+          const userEmail = (S.biz.email || (S.user && S.user.email) || '').trim().toLowerCase();
+          const parsedPrice = S.ans && S.ans.start ? parseInt(String(S.ans.start).replace(/\D/g, ''), 10) : null;
+
+          // 1. Stored procedure call
           try {
             const st = await rpc('partner_submit');
             if (st) applyState(st, true);
           } catch (err) {
             console.warn('partner_submit note:', err);
-            try {
-              await fetch('/api/v1/vendor/onboarding/update', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ stage: 'submitted_for_review', completionPercentage: 100 })
-              });
-            } catch (e2) {}
           }
-          S.ret = null; S.dash = null; toast('Submitted. We\u2019ll review your profile and let you know when it\u2019s live.'); go('dashboard');
+
+          // 2. Dedicated publish API call
+          try {
+            const sess = (await sb.auth.getSession()).data?.session;
+            const headers = { 'Content-Type': 'application/json' };
+            if (sess?.access_token) headers['Authorization'] = 'Bearer ' + sess.access_token;
+            if (S.user?.id) headers['x-user-id'] = S.user.id;
+            if (userEmail) headers['x-user-email'] = userEmail;
+
+            const res = await fetch('/api/v1/vendor/publish', {
+              method: 'POST',
+              headers,
+              body: JSON.stringify({
+                vendorId: targetVendorId,
+                userId: S.user?.id,
+                email: userEmail,
+                categoryKey: S.cat,
+                categoryId: targetCatId,
+                businessName: S.biz.name,
+                ownerName: S.biz.owner,
+                phone: S.biz.phone,
+                city: S.biz.city,
+                state: S.biz.state,
+                pincode: S.biz.pin,
+                about: S.biz.about,
+                startingPrice: parsedPrice,
+                photosCount: S.photos.length,
+                details: S.ans
+              })
+            });
+            if (res.ok) {
+              const resData = await res.json();
+              if (resData?.data?.slug) S.slug = resData.data.slug;
+            }
+          } catch (e2) {
+            console.warn('Backend publish note:', e2);
+          }
+
+          // 3. Fallback direct PostgREST update if vendor has session
+          if (targetVendorId) {
+            try {
+              const sess = (await sb.auth.getSession()).data?.session;
+              const headers = { 'Content-Type': 'application/json', apikey: CFG.supabaseAnonKey };
+              if (sess?.access_token) headers['Authorization'] = 'Bearer ' + sess.access_token;
+              await fetch(`${CFG.supabaseUrl}/rest/v1/vendors?id=eq.${encodeURIComponent(targetVendorId)}`, {
+                method: 'PATCH',
+                headers,
+                body: JSON.stringify({
+                  status: 'active',
+                  publication_status: 'published',
+                  onboarding_stage: 'completed',
+                  profile_completion_percentage: 100,
+                  ...(targetCatId ? { category_id: targetCatId } : {})
+                })
+              });
+            } catch (_) {}
+          }
+
+          // 4. Update memory state to live
+          if (S.vendor) {
+            S.vendor.status = 'active';
+            S.vendor.publication_status = 'published';
+            S.vendor.onboarding_stage = 'completed';
+            S.vendor.completion = 100;
+            if (targetCatId) S.vendor.category_id = targetCatId;
+          }
+
+          S.ret = null;
+          S.dash = null;
+          toast('\uD83C\uDF89 Congratulations! Your profile is published and live on Cloche.');
+          go('dashboard');
         });
       },
       menu(t, e) { e.stopPropagation(); $('#menu').classList.toggle('open') },
@@ -4022,8 +4135,8 @@
       },
       async share() {
         const V = S.vendor || {};
-        if (V.status !== 'active' || !S.slug) return toast('Your public link is available once your profile is live');
-        const path = (CFG.vendorUrl || '/vendors/{slug}').replace('{slug}', S.slug);
+        if (V.status !== 'active' && V.publication_status !== 'published') return toast('Your public link is available once your profile is live');
+        const path = S.slug ? ('/v/' + S.slug) : ('/vendors/' + (S.cat || 'vendors') + '/' + (V.id || ''));
         const url = /^https?:/.test(path) ? path : (CFG.siteUrl || location.origin).replace(/\/$/, '') + path;
         try { await navigator.clipboard.writeText(url); toast('Profile link copied') } catch (e) { window.prompt('Copy your profile link', url) }
       },

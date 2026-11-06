@@ -105,30 +105,36 @@ export async function GET() {
 
     // 3. Query Supabase 'vendors' & 'vendor_profiles' for registered vendor accounts using select=*
     const { data: vendors, error: vErr } = await supabaseFetch(
-      "vendors?status=eq.active&deleted_at=is.null&select=*,vendor_categories(id,name,slug),vendor_profiles(*),vendor_addresses(*)"
+      "vendors?deleted_at=is.null&or=(status.eq.active,publication_status.eq.published)&select=*,vendor_categories(id,name,slug),vendor_profiles(*),vendor_addresses(*),vendor_gallery(media(cdn_url))"
     );
 
     if (!vErr && Array.isArray(vendors) && vendors.length > 0) {
       vendors.forEach((v: any) => {
-        if (v.status && v.status !== "active") return;
+        if (v.status && v.status !== "active" && v.publication_status !== "published") return;
         if (v.deleted_at) return;
         const vId = String(v.id);
         if (seenIds.has(vId)) return;
 
-        const p = Array.isArray(v.vendor_profiles) && v.vendor_profiles.length > 0 ? v.vendor_profiles[0] : {};
-        const a = Array.isArray(v.vendor_addresses) && v.vendor_addresses.length > 0 ? v.vendor_addresses[0] : {};
+        const p = Array.isArray(v.vendor_profiles) && v.vendor_profiles.length > 0 ? v.vendor_profiles[0] : (v.vendor_profiles && typeof v.vendor_profiles === "object" ? v.vendor_profiles : {});
+        const a = Array.isArray(v.vendor_addresses) && v.vendor_addresses.length > 0 ? v.vendor_addresses[0] : (v.vendor_addresses && typeof v.vendor_addresses === "object" ? v.vendor_addresses : {});
         const norm = normalizeCategory(v.vendor_categories?.slug || v.vendor_categories?.name || v.category_id || v.category);
         const catName = norm?.title || v.vendor_categories?.name || v.category || "Wedding Vendor";
         const catSlug = norm?.slug || v.vendor_categories?.slug || "vendors";
         const bName = p.business_name || v.boutique_name || v.name;
 
         if (bName) {
+          const firstGalleryUrl = Array.isArray(v.vendor_gallery) && v.vendor_gallery.length > 0
+            ? (v.vendor_gallery[0]?.media?.cdn_url || "")
+            : "";
           const rawLogoPic =
             p.logo_url ||
             v.logo_url ||
             v.logo ||
+            p.cover_image ||
+            firstGalleryUrl ||
             logoMediaMap.get(vId) ||
             (v.user_id ? logoMediaMap.get(String(v.user_id)) : "") ||
+            norm?.image ||
             "";
 
           const logoPic = normalizeImageUrl(rawLogoPic);
@@ -148,7 +154,9 @@ export async function GET() {
             categorySlug: catSlug,
             tags: catName,
             rating: 4.9,
-            starting_price: p.starting_price || "₹50,000",
+            starting_price: (typeof p.starting_price === "number" && p.starting_price > 0)
+            ? ("₹" + p.starting_price.toLocaleString("en-IN"))
+            : (p.starting_price || "₹50,000"),
             plan: v.plan || "Verified Vendor",
             is_verified: Boolean(v.is_verified || v.is_kyc_verified),
           });

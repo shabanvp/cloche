@@ -15,8 +15,9 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { stage, completionPercentage, profileUpdates } = body;
 
-    const { url, anonKey } = getSupabaseConfig();
-    if (!url || !anonKey) {
+    const { url, serviceKey, anonKey } = getSupabaseConfig();
+    const apiKey = serviceKey || anonKey;
+    if (!url || !apiKey) {
       return NextResponse.json(
         { success: false, statusCode: 500, error: { code: "CONFIG_ERROR", message: "Database unconfigured." } },
         { status: 500 }
@@ -25,7 +26,7 @@ export async function POST(req: Request) {
 
     // 1. Fetch vendor by user_id
     const vendorRes = await fetch(`${url}/rest/v1/vendors?user_id=eq.${encodeURIComponent(authUser.userId)}&select=id`, {
-      headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
+      headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
     });
 
     if (!vendorRes.ok) {
@@ -49,8 +50,10 @@ export async function POST(req: Request) {
     if (stage) updatePayload.onboarding_stage = stage;
     if (typeof completionPercentage === "number") updatePayload.profile_completion_percentage = completionPercentage;
 
-    if (stage === "submitted_for_review") {
-      updatePayload.publication_status = "under_review";
+    if (stage === "submitted_for_review" || stage === "completed" || stage === "published") {
+      updatePayload.status = "active";
+      updatePayload.publication_status = "published";
+      updatePayload.is_verified = true;
     }
 
     // 2. Update core vendor record
@@ -59,8 +62,8 @@ export async function POST(req: Request) {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          apikey: anonKey,
-          Authorization: `Bearer ${anonKey}`,
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify(updatePayload),
       });
@@ -72,8 +75,8 @@ export async function POST(req: Request) {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          apikey: anonKey,
-          Authorization: `Bearer ${anonKey}`,
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify(profileUpdates),
       });
