@@ -90,7 +90,7 @@ const STATIC_PAGES: Record<string, { title: string; category: string; excerpt: s
   }
 };
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   if (STATIC_PAGES[slug]) {
     const page = STATIC_PAGES[slug];
@@ -123,7 +123,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default async function ArticlePage({ params }: { params: { slug: string } }) {
+export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   let article = STATIC_PAGES[slug];
 
