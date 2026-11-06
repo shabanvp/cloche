@@ -39,10 +39,59 @@ import {
   Sparkle,
   PenSquare,
   MessageSquare,
-  User
+  User,
+  Package,
+  Camera,
+  Film,
+  ShoppingBag,
+  Utensils,
+  Palette,
+  Gem,
+  DollarSign
 } from "lucide-react";
 import { COLOR_THEMES, ColorThemeOption } from "@/components/vendor/sections/CustomizeStoreSection";
 import { DB_CATEGORY_UUID_MAP, normalizeCategory, CategorySlug } from "@/lib/categories";
+
+export interface SectionEmptyStateProps {
+  icon?: React.ElementType;
+  title: string;
+  message: string;
+  actionLabel?: string;
+  onAction?: () => void;
+  className?: string;
+}
+
+export function SectionEmptyState({
+  icon: Icon,
+  title,
+  message,
+  actionLabel,
+  onAction,
+  className = "",
+}: SectionEmptyStateProps) {
+  return (
+    <div
+      className={`py-7 px-4 rounded-xl bg-[#FAF7F2] border border-gold/15 text-center flex flex-col items-center justify-center space-y-2 transition-all ${className}`}
+    >
+      {Icon && (
+        <div className="w-10 h-10 rounded-full bg-[#0F4C45]/5 border border-gold/15 flex items-center justify-center text-[#C8A96A] mb-0.5">
+          <Icon className="w-5 h-5 text-[#C8A96A]" />
+        </div>
+      )}
+      <p className="font-serif font-bold text-sm text-charcoal">{title}</p>
+      <p className="text-xs text-charcoal/60 max-w-md mx-auto leading-relaxed">{message}</p>
+      {actionLabel && onAction && (
+        <button
+          type="button"
+          onClick={onAction}
+          className="mt-2 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#0F4C45] text-white text-xs font-semibold hover:bg-emerald-800 transition-colors shadow-2xs cursor-pointer"
+        >
+          {actionLabel}
+        </button>
+      )}
+    </div>
+  );
+}
 
 export type VendorCategoryType =
   | "venue"
@@ -375,7 +424,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
   const [quoteSubmitted, setQuoteSubmitted] = useState(false);
   const [quoteLoading, setQuoteLoading] = useState(false);
 
-  // Customer Reviews State
+  // Customer Reviews State (Genuine vendor reviews from DB / session only; no fabricated reviews)
   const [reviewsList, setReviewsList] = useState<any[]>(() => {
     const initial = Array.isArray(vendor?.reviews) && vendor.reviews.length > 0 ? vendor.reviews : [];
     const storedKey = `cloche_studio_reviews_${vendor?.id || 'default'}`;
@@ -388,37 +437,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
         }
       } catch (e) {}
     }
-    return initial.length > 0
-      ? initial
-      : [
-          {
-            id: "rev-1",
-            customerName: "Ananya & Rahul Nair",
-            avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop",
-            rating: 5,
-            date: "February 2026",
-            verified: true,
-            text: "We rented both the bridal maroon zardozi lehenga and the matching groom velvet sherwani from here for our reception. The outfit quality was pristine, alterations were 100% spot-on, and the security deposit return was seamless!",
-          },
-          {
-            id: "rev-2",
-            customerName: "Dr. Siddharth Varma",
-            avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop",
-            rating: 5,
-            date: "January 2026",
-            verified: true,
-            text: "Outstanding selection of groom wear! The Indo-Western suit fitting was custom done in just 2 days. The staff was warm, patient, and guided us through whole ceremonial combinations.",
-          },
-          {
-            id: "rev-3",
-            customerName: "Meera Krishnan",
-            avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop",
-            rating: 5,
-            date: "December 2025",
-            verified: true,
-            text: "Rented my Nikah gown and lehenga. High-end designer looks at a fraction of purchase cost. Everything arrived steam-ironed and beautifully packed. Highly recommend this studio to all brides!",
-          },
-        ];
+    return initial;
   });
 
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
@@ -435,11 +454,9 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
   const [activeCollectionModal, setActiveCollectionModal] = useState<any | null>(null);
   const [wishlistOutfits, setWishlistOutfits] = useState<Set<string>>(new Set());
 
-
-
-  // Average Rating Calculation
+  // Average Rating Calculation (Live genuine score; 0 indicates new partner without reviews)
   const averageRatingScore = useMemo(() => {
-    if (reviewsList.length === 0) return Number(vendor?.rating || 4.8);
+    if (reviewsList.length === 0) return Number(vendor?.rating || 0);
     const sum = reviewsList.reduce((acc, r) => acc + Number(r.rating || 5), 0);
     return Number((sum / reviewsList.length).toFixed(1));
   }, [reviewsList, vendor?.rating]);
@@ -620,265 +637,57 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
     return isBridal || isGroom || isWeddingStudio;
   }, [vendor]);
 
-  // Canonical Collections created by this Specific Studio
+  // Canonical Collections created by this Specific Studio / Boutique (Genuine vendor items only)
   const boutiqueCollectionsList = useMemo(() => {
-    if (!shouldShowCollections) return [];
-
     if (Array.isArray(vendor?.collections) && vendor.collections.length > 0) return vendor.collections;
     if (Array.isArray(sf?.collections) && sf.collections.length > 0) return sf.collections;
+    if (Array.isArray(vendor?.catalog) && vendor.catalog.length > 0) return vendor.catalog;
+    if (Array.isArray(vendor?.catalog_items) && vendor.catalog_items.length > 0) return vendor.catalog_items;
+    return [];
+  }, [vendor?.collections, sf?.collections, vendor?.catalog, vendor?.catalog_items]);
 
-    // BRIDAL STUDIO COLLECTIONS (100% Bridal & Bride Outfits)
-    if (studioCategoryConfig.type === "bridal") {
-      return [
-        {
-          id: "col-b1",
-          name: "Royal Zardozi Bridal Lehenga Collection",
-          category: "Bridal",
-          description: "Hand-embroidered zardozi maroon & crimson lehengas with pure silk dupattas for ceremonial weddings.",
-          coverImage: "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop",
-          outfitCount: 18,
-          outfits: [
-            {
-              id: "out-b101",
-              name: "Crimson Velvet Zardozi Lehenga",
-              price: "₹18,500 / 3 Days",
-              category: "Bride",
-              sizes: ["S", "M", "L", "XL"],
-              image: "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop",
-            },
-            {
-              id: "out-b102",
-              name: "Emerald & Gold Raw Silk Lehenga",
-              price: "₹16,000 / 3 Days",
-              category: "Bride",
-              sizes: ["M", "L"],
-              image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?q=80&w=800&auto=format&fit=crop",
-            },
-            {
-              id: "out-b103",
-              name: "Deep Maroon Royal Bridal Gown",
-              price: "₹21,000 / 3 Days",
-              category: "Bride",
-              sizes: ["S", "M", "L"],
-              image: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop",
-            },
-            {
-              id: "out-b104",
-              name: "Pastel Pink Designer Wedding Lehenga",
-              price: "₹15,500 / 3 Days",
-              category: "Bride",
-              sizes: ["M", "L", "XL"],
-              image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=800&auto=format&fit=crop",
-            },
-          ],
-        },
-        {
-          id: "col-b2",
-          name: "Kanjeevaram & Heritage Silk Sarees",
-          category: "Saree",
-          description: "Pure Kanjeevaram silk sarees woven with gold zari borders for muhurtham and temple ceremonies.",
-          coverImage: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800&auto=format&fit=crop",
-          outfitCount: 15,
-          outfits: [
-            {
-              id: "out-b201",
-              name: "Royal Red Kanjeevaram Zari Saree",
-              price: "₹12,500 / 3 Days",
-              category: "Bride",
-              sizes: ["Free Size"],
-              image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800&auto=format&fit=crop",
-            },
-            {
-              id: "out-b202",
-              name: "Golden Yellow Temple Silk Saree",
-              price: "₹11,000 / 3 Days",
-              category: "Bride",
-              sizes: ["Free Size"],
-              image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?q=80&w=800&auto=format&fit=crop",
-            },
-          ],
-        },
-        {
-          id: "col-b3",
-          name: "Reception Gowns & Fusion Indo-Western",
-          category: "Reception",
-          description: "Modern trails, ball gowns, glitter sequin lehengas, and cocktail ensembles for reception & sangeet.",
-          coverImage: "https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=800&auto=format&fit=crop",
-          outfitCount: 16,
-          outfits: [
-            {
-              id: "out-b301",
-              name: "Emerald Green Satin Reception Ball Gown",
-              price: "₹17,500 / 3 Days",
-              category: "Bride",
-              sizes: ["S", "M", "L"],
-              image: "https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=800&auto=format&fit=crop",
-            },
-            {
-              id: "out-b302",
-              name: "Rose Gold Sequin Trail Gown",
-              price: "₹19,000 / 3 Days",
-              category: "Bride",
-              sizes: ["S", "M"],
-              image: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop",
-            },
-          ],
-        },
-        {
-          id: "col-b4",
-          name: "Sangeet & Mehendi Anarkali Suits",
-          category: "Mehendi",
-          description: "Vibrant yellow, mint green, and pastel floral heavy embroidered anarkali sets and sharara suits.",
-          coverImage: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=800&auto=format&fit=crop",
-          outfitCount: 12,
-          outfits: [
-            {
-              id: "out-b401",
-              name: "Mustard Yellow Silk Sharara Set",
-              price: "₹9,500 / 3 Days",
-              category: "Bride",
-              sizes: ["S", "M", "L"],
-              image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=800&auto=format&fit=crop",
-            },
-          ],
-        },
-      ];
+  // Dynamic Genuine Vendor Packages
+  const vendorPackagesList = useMemo(() => {
+    const raw = vendor?.packages || vendor?.vendor_packages || vendor?.vendor_service_packages || vendor?.servicePackages || sf?.packages;
+    if (Array.isArray(raw) && raw.length > 0) return raw;
+    return [];
+  }, [vendor, sf]);
+
+  // Dynamic Genuine Vendor Services
+  const vendorServicesList = useMemo(() => {
+    const raw = vendor?.services || vendor?.vendor_services || sf?.services;
+    if (Array.isArray(raw) && raw.length > 0) return raw;
+    return [];
+  }, [vendor, sf]);
+
+  // Dynamic Genuine Vendor Films / Videos
+  const videoFilmsList = useMemo(() => {
+    const raw = vendor?.films || vendor?.videos || vendor?.wedding_films || vendor?.weddingFilms || sf?.films || sf?.videos;
+    if (Array.isArray(raw) && raw.length > 0) {
+      return raw.map((item: any, idx: number) => {
+        if (typeof item === "string") return { title: `Wedding Film ${idx + 1}`, url: item };
+        return {
+          title: item.title || item.name || `Wedding Film ${idx + 1}`,
+          url: item.url || item.video_url || item.videoUrl,
+          thumbnail: item.thumbnail || item.cover_image || item.cover,
+          duration: item.duration,
+        };
+      });
     }
+    return [];
+  }, [vendor, sf]);
 
-    // GROOM STUDIO COLLECTIONS (100% Groom Outfits)
-    if (studioCategoryConfig.type === "groom") {
-      return [
-        {
-          id: "col-g1",
-          name: "Luxe Groom Velvet Sherwani Collection",
-          category: "Sherwani",
-          description: "Royal velvet & raw silk sherwanis complete with embroidered safa, stolen dupatta, and ceremonial footwear.",
-          coverImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop",
-          outfitCount: 14,
-          outfits: [
-            {
-              id: "out-g101",
-              name: "Ivory & Gold Raw Silk Sherwani",
-              price: "₹14,500 / 3 Days",
-              category: "Groom",
-              sizes: ["38", "40", "42", "44"],
-              image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop",
-            },
-            {
-              id: "out-g102",
-              name: "Maroon Velvet Royal Zardozi Sherwani",
-              price: "₹16,500 / 3 Days",
-              category: "Groom",
-              sizes: ["40", "42", "44"],
-              image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=800&auto=format&fit=crop",
-            },
-          ],
-        },
-        {
-          id: "col-g2",
-          name: "Royal Jodhpuri & Bandhgala Suits",
-          category: "Jodhpuri",
-          description: "Handcrafted bandhgala jackets, jodhpuri suits, and structured velvet coats for sangeet & reception.",
-          coverImage: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=800&auto=format&fit=crop",
-          outfitCount: 12,
-          outfits: [
-            {
-              id: "out-g201",
-              name: "Black Velvet Embellished Jodhpuri Set",
-              price: "₹12,500 / 3 Days",
-              category: "Groom",
-              sizes: ["38", "40", "42"],
-              image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=800&auto=format&fit=crop",
-            },
-          ],
-        },
-        {
-          id: "col-g3",
-          name: "Reception Tuxedos & Indo-Western Couture",
-          category: "Tuxedo",
-          description: "Tailored Italian fabric tuxedos, double-breasted suits, and velvet lapel blazers for evening receptions.",
-          coverImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop",
-          outfitCount: 16,
-          outfits: [
-            {
-              id: "out-g301",
-              name: "Midnight Tuxedo Suit with Velvet Lapel",
-              price: "₹11,000 / 3 Days",
-              category: "Groom",
-              sizes: ["38", "40", "42", "44"],
-              image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop",
-            },
-          ],
-        },
-      ];
+  // Dynamic Genuine Vendor FAQs
+  const vendorFaqsList = useMemo(() => {
+    const raw = vendor?.faqs || vendor?.faq || vendor?.faqList || sf?.faqs || sf?.faq;
+    if (Array.isArray(raw) && raw.length > 0) {
+      return raw.map((f: any) => ({
+        q: f.q || f.question || f.title || "",
+        a: f.a || f.answer || f.content || "",
+      })).filter((f: any) => f.q);
     }
-
-    // WEDDING STUDIO COMBINED COLLECTIONS
-    return [
-      {
-        id: "col-1",
-        name: "Royal Zardozi Bridal Collection",
-        category: "Bridal",
-        description: "Hand-embroidered zardozi maroon & crimson lehengas with pure silk dupattas for ceremonial weddings.",
-        coverImage: "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop",
-        outfitCount: 18,
-        outfits: [
-          {
-            id: "out-101",
-            name: "Crimson Velvet Zardozi Lehenga",
-            price: "₹18,500 / 3 Days",
-            category: "Bride",
-            sizes: ["S", "M", "L", "XL"],
-            image: "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop",
-          },
-          {
-            id: "out-102",
-            name: "Emerald & Gold Raw Silk Lehenga",
-            price: "₹16,000 / 3 Days",
-            category: "Bride",
-            sizes: ["M", "L"],
-            image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?q=80&w=800&auto=format&fit=crop",
-          },
-        ],
-      },
-      {
-        id: "col-2",
-        name: "Luxe Groom Velvet Sherwani Collection",
-        category: "Groom",
-        description: "Royal velvet & raw silk sherwanis complete with embroidered safa, stolen dupatta, and ceremonial footwear.",
-        coverImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop",
-        outfitCount: 14,
-        outfits: [
-          {
-            id: "out-201",
-            name: "Ivory & Gold Raw Silk Sherwani",
-            price: "₹14,500 / 3 Days",
-            category: "Groom",
-            sizes: ["38", "40", "42", "44"],
-            image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop",
-          },
-        ],
-      },
-      {
-        id: "col-3",
-        name: "Ceremonial Couple Matching Ensemble",
-        category: "Couple",
-        description: "Coordinated bride and groom ceremonial outfits styled with matching embroidery motifs and color palettes.",
-        coverImage: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop",
-        outfitCount: 10,
-        outfits: [
-          {
-            id: "out-301",
-            name: "Crimson & Gold Coordinated Couple Set",
-            price: "₹28,000 / 3 Days (Pair)",
-            category: "Couple",
-            sizes: ["Bride M / Groom 40", "Bride L / Groom 42"],
-            image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop",
-          },
-        ],
-      },
-    ];
-  }, [vendor, sf, studioCategoryConfig.type]);
+    return [];
+  }, [vendor, sf]);
 
   // Color Theme Resolution
   const themeId = sf.theme || vendor?.colorTheme || vendor?.color_theme || "emerald";
@@ -1076,35 +885,25 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
       ? vendor.facilities || vendor.amenities
       : Array.isArray(sf?.facilities) && sf.facilities.length > 0
       ? sf.facilities
-      : ["Air Conditioned", "Parking", "Generator Backup", "Bridal Room", "Lift", "Catering Service", "Decoration Service", "Sound System", "Power Backup"];
+      : [];
 
     const rawHigh = Array.isArray(vendor?.venueHighlights || vendor?.highlights) && (vendor.venueHighlights || vendor.highlights).length > 0
       ? vendor.venueHighlights || vendor.highlights
       : Array.isArray(sf?.storeHighlights) && sf.storeHighlights.length > 0
       ? sf.storeHighlights
-      : ["Air Conditioned", "Bridal Room", "Valet Parking", "Outdoor Lawn", "Indoor Hall", "Wheelchair Accessible", "Generator Backup", "Catering Available"];
+      : [];
 
-    const faqsList = Array.isArray(vendor?.faqs) && vendor.faqs.length > 0
-      ? vendor.faqs
-      : Array.isArray(sf?.faqs) && sf.faqs.length > 0
-      ? sf.faqs
-      : [
-          { q: "Is outside catering allowed at the venue?", a: "Yes, outside catering is permitted. We also provide an optional in-house gourmet catering panel." },
-          { q: "Is decoration included or can we bring our own decorator?", a: "You can choose from our empanelled luxury decorators or bring your own verified decorator." },
-          { q: "What is the advance booking deposit required?", a: "A 25% advance deposit secures your date. Balance payment is due 7 days prior to event." },
-          { q: "Is alcohol allowed on premises?", a: "Alcohol serving is permitted with a valid temporary state license permit." },
-          { q: "What is your cancellation and date change policy?", a: "Date modifications are complimentary up to 60 days prior to event, subject to calendar availability." },
-        ];
+    const faqsList = vendorFaqsList;
 
     const cd = vendor?.categoryDetails || {};
     const rawCap = vendor?.guestCapacity || cd?.guest_capacity || (cd?.max_capacity ? `${cd.max_capacity} Guests` : "") || vendor?.capacity || sf?.guestCapacity || sf?.capacity;
-    const resolvedCap = rawCap ? (typeof rawCap === "number" || /^\d+$/.test(String(rawCap).trim()) ? `${rawCap} Guests` : rawCap) : "1,200 Guests";
+    const resolvedCap = rawCap ? (typeof rawCap === "number" || /^\d+$/.test(String(rawCap).trim()) ? `${rawCap} Guests` : rawCap) : "";
 
     const rawRooms = vendor?.roomsCount || (cd?.guest_rooms ? `${cd.guest_rooms} Rooms` : "") || cd?.rooms_count || vendor?.numberOfRooms || vendor?.guestRooms || vendor?.rooms || sf?.roomsCount || sf?.guestRooms;
-    const resolvedRooms = rawRooms ? (typeof rawRooms === "number" || /^\d+$/.test(String(rawRooms).trim()) ? `${rawRooms} Rooms` : rawRooms) : "20 Rooms";
+    const resolvedRooms = rawRooms ? (typeof rawRooms === "number" || /^\d+$/.test(String(rawRooms).trim()) ? `${rawRooms} Rooms` : rawRooms) : "";
 
     const rawParking = vendor?.parkingCapacity || (cd?.parking_capacity ? (String(cd.parking_capacity).includes("Car") ? cd.parking_capacity : `${cd.parking_capacity} Cars`) : "") || cd?.parking_capacity || vendor?.parking || sf?.parkingCapacity || sf?.parking;
-    const resolvedParking = rawParking ? (typeof rawParking === "number" || /^\d+$/.test(String(rawParking).trim()) ? `Parking: ${rawParking} Cars` : String(rawParking).replace(/^Parking:\s*/i, "")) : "300 Cars";
+    const resolvedParking = rawParking ? (typeof rawParking === "number" || /^\d+$/.test(String(rawParking).trim()) ? `Parking: ${rawParking} Cars` : String(rawParking).replace(/^Parking:\s*/i, "")) : "";
 
     const resolvedType = vendor?.venueType || cd?.venue_type || sf?.venueType || vendor?.type || "Luxury Wedding Venue";
 
@@ -1113,29 +912,27 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
       guestRooms: resolvedRooms,
       parking: resolvedParking,
       type: resolvedType,
-      establishedYear: vendor?.yearStarted || vendor?.establishedYear || vendor?.established_year || vendor?.yearsInBusiness || vendor?.years_in_business || cd?.years_in_business || sf?.yearStarted || "2014",
-      weddingsHosted: vendor?.weddingsHosted || vendor?.weddings_hosted || vendor?.eventsCatered || "500+",
+      establishedYear: vendor?.yearStarted || vendor?.establishedYear || vendor?.established_year || vendor?.yearsInBusiness || vendor?.years_in_business || cd?.years_in_business || sf?.yearStarted || "",
+      weddingsHosted: vendor?.weddingsHosted || vendor?.weddings_hosted || vendor?.eventsCatered || "",
       halls: hList,
       numberOfHalls: hList.length,
       amenities: rawAmen,
       highlights: rawHigh,
-      airportDistance: vendor?.airportDistance || "25 km from Calicut International Airport",
-      stationDistance: vendor?.stationDistance || "5 km from Railway Station",
-      nearbyLandmark: vendor?.nearbyLandmark || "Near City Center Junction",
-      idealEvents: vendor?.idealEvents || "Weddings, Receptions, Engagements, Sangeet & Corporate Galas",
+      airportDistance: vendor?.airportDistance || "",
+      stationDistance: vendor?.stationDistance || "",
+      nearbyLandmark: vendor?.nearbyLandmark || "",
+      idealEvents: vendor?.idealEvents || "",
       whyChooseUsLeft: [
-        "500+ Weddings Hosted Successfully",
         "Cloche Certified Premium Partner",
-        "98% Customer Recommendation Rate",
+        "Verified & Inspected Facility",
       ],
       whyChooseUsRight: [
-        "12+ Years of Hospitality Experience",
-        "Dedicated Manager Response <30 Mins",
-        "Verified & Inspected Venue Facility",
+        "Dedicated Manager Fast Response",
+        "Transparent Booking Terms",
       ],
       faqs: faqsList
     };
-  }, [vendor, sf]);
+  }, [vendor, sf, vendorFaqsList]);
 
   const galleryCategories = useMemo(() => {
     const base = [
@@ -1714,7 +1511,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
           <img src={coverUrl} alt={displayName} className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
           <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md text-white text-xs font-bold px-3 py-1 rounded-full border border-white/20 flex items-center gap-1.5 z-10">
-            <ImageIcon className="w-3.5 h-3.5" /> 1/{galleryPhotos.length || 24}
+            <ImageIcon className="w-3.5 h-3.5" /> {galleryPhotos.length > 0 ? `1/${galleryPhotos.length}` : "0 Photos"}
           </div>
         </div>
 
@@ -1770,11 +1567,18 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs font-bold">
-            <div className="flex items-center gap-1 text-emerald-800 bg-emerald-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md border border-emerald-200/60">
-              <Star className="w-3.5 h-3.5 fill-emerald-600 text-emerald-600 shrink-0" />
-              <span>{rating || "4.8"}</span>
-              <span className="font-medium text-emerald-900/70">({reviewsCount || reviewsList.length || 24} Reviews)</span>
-            </div>
+            {reviewsList.length > 0 ? (
+              <div className="flex items-center gap-1 text-emerald-800 bg-emerald-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md border border-emerald-200/60">
+                <Star className="w-3.5 h-3.5 fill-emerald-600 text-emerald-600 shrink-0" />
+                <span>{averageRatingScore.toFixed(1)}</span>
+                <span className="font-medium text-emerald-900/70">({reviewsList.length} {reviewsList.length === 1 ? "Review" : "Reviews"})</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1 text-emerald-800 bg-emerald-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md border border-emerald-200/60">
+                <Sparkles className="w-3.5 h-3.5 text-[#C8A96A] shrink-0" />
+                <span className="font-semibold text-emerald-900/80">New Partner</span>
+              </div>
+            )}
             <span className="text-charcoal/30">•</span>
             <span className="text-emerald-700 bg-emerald-50/80 px-2 py-0.5 rounded text-[11px] font-semibold">✓ Verified Partner</span>
           </div>
@@ -1813,19 +1617,19 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
                 <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
                   <Users className="w-4 h-4 text-[#0F4C45] shrink-0" />
-                  <span className="truncate">{venueDetails.capacity}</span>
+                  <span className="truncate">{venueDetails.capacity || "Capacity on Request"}</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
                   <Bed className="w-4 h-4 text-[#0F4C45] shrink-0" />
-                  <span className="truncate">{venueDetails.guestRooms}</span>
+                  <span className="truncate">{venueDetails.guestRooms || "Rooms on Request"}</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
                   <Car className="w-4 h-4 text-[#0F4C45] shrink-0" />
-                  <span className="truncate">Parking: {venueDetails.parking}</span>
+                  <span className="truncate">{venueDetails.parking || "Parking Available"}</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
                   <Building className="w-4 h-4 text-[#0F4C45] shrink-0" />
-                  <span className="truncate">{venueDetails.type}</span>
+                  <span className="truncate">{venueDetails.type || "Wedding Venue"}</span>
                 </div>
               </div>
             </div>
@@ -1837,88 +1641,95 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                 <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20">
                   {Boolean(vendor?.contactForPricing ?? vendor?.contact_for_pricing ?? sf?.contactForPricing ?? false)
                     ? "Contact for Pricing"
-                    : vendor?.startingPriceLabel || vendor?.startingPrice || "Price on Request"}
+                    : vendor?.startingPriceLabel || (vendor?.startingPrice ? (typeof vendor.startingPrice === "number" ? `₹${Number(vendor.startingPrice).toLocaleString("en-IN")}` : vendor.startingPrice) : "Contact for Pricing")}
                 </span>
               </h2>
 
-              {Boolean(vendor?.contactForPricing ?? vendor?.contact_for_pricing ?? sf?.contactForPricing ?? false) ? (
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 text-center space-y-1">
-                  <p className="font-serif font-bold text-sm text-[#0F4C45]">Custom Pricing Available Upon Request</p>
-                  <p className="text-xs text-charcoal/60">Contact the venue manager directly for custom dates, seasonal discounts, and guest package rates.</p>
+              {(vendor?.vegPrice || vendor?.veg_price || sf?.vegPrice || vendor?.nonVegPrice || vendor?.non_veg_price || sf?.nonVegPrice || vendor?.decorStartingPrice || vendor?.decor_starting_price || sf?.decorStartingPrice) ? (
+                <div className="space-y-3 text-xs">
+                  {(vendor?.vegPrice || vendor?.veg_price || sf?.vegPrice) && (
+                    <div className="flex items-center justify-between py-2 border-b border-dashed border-gold/20">
+                      <div className="space-y-0.5">
+                        <div className="font-bold text-charcoal flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 inline-block" /> Veg Price (Taxes Extra)
+                        </div>
+                        <div className="text-[11px] text-charcoal/50">Starting price per plate</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-serif font-bold text-sm text-[#0F4C45]">
+                          ₹{Number(vendor?.vegPrice || vendor?.veg_price || sf?.vegPrice).toLocaleString("en-IN")}
+                        </div>
+                        <div className="text-[10px] text-charcoal/50">per plate</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {(vendor?.nonVegPrice || vendor?.non_veg_price || sf?.nonVegPrice) && (
+                    <div className="flex items-center justify-between py-2 border-b border-dashed border-gold/20">
+                      <div className="space-y-0.5">
+                        <div className="font-bold text-charcoal flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full bg-rose-600 inline-block" /> Non-Veg Price (Taxes Extra)
+                        </div>
+                        <div className="text-[11px] text-charcoal/50">Starting price per plate</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-serif font-bold text-sm text-[#0F4C45]">
+                          ₹{Number(vendor?.nonVegPrice || vendor?.non_veg_price || sf?.nonVegPrice).toLocaleString("en-IN")}
+                        </div>
+                        <div className="text-[10px] text-charcoal/50">per plate</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {(vendor?.decorStartingPrice || vendor?.decor_starting_price || sf?.decorStartingPrice) && (
+                    <div className="flex items-center justify-between py-2">
+                      <div className="space-y-0.5">
+                        <div className="font-bold text-charcoal flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-[#C8A96A]" /> Starting Price of Decor
+                        </div>
+                        <div className="text-[11px] text-charcoal/50">Custom decoration setup</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-serif font-bold text-sm text-[#0F4C45]">
+                          ₹{Number(vendor?.decorStartingPrice || vendor?.decor_starting_price || sf?.decorStartingPrice).toLocaleString("en-IN")}
+                        </div>
+                        <div className="text-[10px] text-charcoal/50">starting decor package</div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
-                <div className="space-y-3 text-xs">
-                  <div className="flex items-center justify-between py-2 border-b border-dashed border-gold/20">
-                    <div className="space-y-0.5">
-                      <div className="font-bold text-charcoal flex items-center gap-1.5">
-                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 inline-block" /> Veg Price (Taxes Extra)
-                      </div>
-                      <div className="text-[11px] text-charcoal/50">Starting price per plate</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-serif font-bold text-sm text-[#0F4C45]">
-                        {vendor?.vegPrice || vendor?.veg_price || sf?.vegPrice
-                          ? `₹ ${Number(vendor?.vegPrice || vendor?.veg_price || sf?.vegPrice).toLocaleString("en-IN")}`
-                          : "₹ 1,200"}
-                      </div>
-                      <div className="text-[10px] text-charcoal/50">per plate</div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between py-2 border-b border-dashed border-gold/20">
-                    <div className="space-y-0.5">
-                      <div className="font-bold text-charcoal flex items-center gap-1.5">
-                        <span className="w-2.5 h-2.5 rounded-full bg-rose-600 inline-block" /> Non-Veg Price (Taxes Extra)
-                      </div>
-                      <div className="text-[11px] text-charcoal/50">Starting price per plate</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-serif font-bold text-sm text-[#0F4C45]">
-                        {vendor?.nonVegPrice || vendor?.non_veg_price || sf?.nonVegPrice
-                          ? `₹ ${Number(vendor?.nonVegPrice || vendor?.non_veg_price || sf?.nonVegPrice).toLocaleString("en-IN")}`
-                          : "₹ 1,500"}
-                      </div>
-                      <div className="text-[10px] text-charcoal/50">per plate</div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between py-2">
-                    <div className="space-y-0.5">
-                      <div className="font-bold text-charcoal flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-[#C8A96A]" /> Starting Price of Decor
-                      </div>
-                      <div className="text-[11px] text-charcoal/50">Custom decoration setup</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-serif font-bold text-sm text-[#0F4C45]">
-                        {vendor?.decorStartingPrice || vendor?.decor_starting_price || sf?.decorStartingPrice
-                          ? `₹ ${Number(vendor?.decorStartingPrice || vendor?.decor_starting_price || sf?.decorStartingPrice).toLocaleString("en-IN")}`
-                          : "₹ 50,000"}
-                      </div>
-                      <div className="text-[10px] text-charcoal/50">starting decor package</div>
-                    </div>
-                  </div>
-                </div>
+                <SectionEmptyState
+                  icon={Tag}
+                  title="Contact for pricing"
+                  message="Per-plate catering rates and venue rental fees are provided upon consultation with the venue manager."
+                  actionLabel="Inquire Venue Pricing"
+                  onAction={() => handleOpenMessage()}
+                />
               )}
             </div>
 
             {/* 3. GALLERY / PORTFOLIO */}
-            {galleryPhotos.length > 0 && (
-              <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-                <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-                  <div className="flex items-center gap-2">
-                    <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Gallery &amp; Venue Spaces</h2>
+            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
+              <div className="flex items-center justify-between border-b border-gold/10 pb-3">
+                <div className="flex items-center gap-2">
+                  <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Gallery &amp; Venue Spaces</h2>
+                  {galleryPhotos.length > 0 && (
                     <span className="px-2.5 py-0.5 rounded-full bg-gold/15 text-[#0F4C45] text-xs font-extrabold">
                       {galleryPhotos.length} photos
                     </span>
-                  </div>
+                  )}
+                </div>
+                {galleryPhotos.length > 0 && (
                   <button
                     onClick={() => setShowAllPhotosModal(true)}
                     className="text-xs font-extrabold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer"
                   >
                     View All Photos <ChevronRight className="w-3.5 h-3.5" />
                   </button>
-                </div>
+                )}
+              </div>
+              {galleryPhotos.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 sm:gap-3">
                   {galleryPhotos.slice(0, 4).map((photo, i) => (
                     <div
@@ -1939,10 +1750,18 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <SectionEmptyState
+                  icon={Camera}
+                  title="No portfolio images uploaded yet"
+                  message="Venue photography and space previews will appear here once uploaded."
+                  actionLabel="Request Venue Photos"
+                  onAction={() => handleOpenMessage()}
+                />
+              )}
+            </div>
 
-            {/* 4. ABOUT & OFFERS */}
+            {/* 4. ABOUT */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <div className="border-b border-gold/10 pb-3 space-y-1">
                 <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">About</h2>
@@ -1950,25 +1769,35 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                   {venueDetails.establishedYear ? `Established in ${venueDetails.establishedYear}` : "Cloche Verified Partner"}
                 </div>
               </div>
-              <div className="space-y-2">
-                <p className={`text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans transition-all duration-300 ${!isAboutExpanded ? "line-clamp-4 max-h-[90px] overflow-hidden" : ""}`}>
-                  {about || `Situated in a prime location, ${displayName} is a premier venue offering world-class hospitality for weddings, grand receptions, and celebrations.`}
-                </p>
-                {about && about.length > 180 && (
-                  <button onClick={() => setIsAboutExpanded(!isAboutExpanded)} className="text-xs font-extrabold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer">
-                    {isAboutExpanded ? "Read Less ▲" : "Read More >"}
-                  </button>
-                )}
-              </div>
-              <div className="pt-3 border-t border-gold/10 space-y-2.5">
-                <div className="font-bold text-xs text-charcoal flex items-center gap-1.5"><span>😊</span> Offers &amp; Facilities</div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-charcoal/80 font-medium">
-                  <div className="flex items-center gap-2"><Bed className="w-3.5 h-3.5 text-[#0F4C45]" /> {venueDetails.guestRooms} Guest Rooms</div>
-                  <div className="flex items-center gap-2"><Building className="w-3.5 h-3.5 text-[#0F4C45]" /> Indoor Climate-Controlled Hall</div>
-                  <div className="flex items-center gap-2"><Building2 className="w-3.5 h-3.5 text-[#0F4C45]" /> Outdoor Lawn &amp; Garden Space</div>
-                  <div className="flex items-center gap-2"><Sparkles className="w-3.5 h-3.5 text-[#0F4C45]" /> AC Bridal Suite &amp; Groom Room</div>
+              {about ? (
+                <div className="space-y-2">
+                  <p className={`text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans transition-all duration-300 ${!isAboutExpanded ? "line-clamp-4 max-h-[90px] overflow-hidden" : ""}`}>
+                    {about}
+                  </p>
+                  {about.length > 180 && (
+                    <button onClick={() => setIsAboutExpanded(!isAboutExpanded)} className="text-xs font-extrabold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer">
+                      {isAboutExpanded ? "Read Less ▲" : "Read More >"}
+                    </button>
+                  )}
                 </div>
-              </div>
+              ) : (
+                <SectionEmptyState
+                  icon={Building}
+                  title="Business information not added yet"
+                  message="The venue has not published a detailed description yet."
+                />
+              )}
+              {venueDetails.guestRooms && (
+                <div className="pt-3 border-t border-gold/10 space-y-2.5">
+                  <div className="font-bold text-xs text-charcoal flex items-center gap-1.5"><span>🏛</span> Facilities</div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-charcoal/80 font-medium">
+                    <div className="flex items-center gap-2"><Bed className="w-3.5 h-3.5 text-[#0F4C45]" /> {venueDetails.guestRooms}</div>
+                    <div className="flex items-center gap-2"><Building className="w-3.5 h-3.5 text-[#0F4C45]" /> Indoor Climate-Controlled Hall</div>
+                    <div className="flex items-center gap-2"><Building2 className="w-3.5 h-3.5 text-[#0F4C45]" /> Outdoor Lawn &amp; Garden Space</div>
+                    <div className="flex items-center gap-2"><Sparkles className="w-3.5 h-3.5 text-[#0F4C45]" /> AC Bridal Suite &amp; Groom Room</div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* 5. POLICIES */}
@@ -1986,9 +1815,9 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
             </div>
 
             {/* 6. AMENITIES */}
-            {venueDetails.amenities.length > 0 && (
-              <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
-                <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Amenities</h2>
+            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Amenities</h2>
+              {venueDetails.amenities.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
                   {venueDetails.amenities.map((amen: string, idx: number) => (
                     <div key={idx} className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
@@ -1997,67 +1826,119 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <SectionEmptyState
+                  icon={Building}
+                  title="No amenities listed yet"
+                  message="Contact the venue for details on air-conditioning, generator backup, and bridal suites."
+                />
+              )}
+            </div>
 
             {/* 7. PACKAGES / EVENT SPACES */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal border-b border-gold/10 pb-2.5">Packages &amp; Halls</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full">Indoor Grand Ballroom</span>
-                  <h3 className="font-serif font-bold text-base text-charcoal">Main Air-Conditioned Convention Hall</h3>
-                  <p className="text-xs text-charcoal/70">Ideal for 500 to 1,500 guests. Includes stage lighting, generator backup, and bridal suite access.</p>
-                  <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
-                    <span>Capacity: 1,500 Pax</span>
-                    <button onClick={() => handleCheckAvailability()} className="underline hover:text-emerald-800">Inquire Date</button>
-                  </div>
+              {vendorPackagesList.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {vendorPackagesList.map((pkg: any, idx: number) => {
+                    const pkgPrice = pkg.discount_price || pkg.price;
+                    const originalPrice = pkg.discount_price && pkg.price ? pkg.price : null;
+                    const formattedPrice = typeof pkgPrice === "number" ? `₹${pkgPrice.toLocaleString("en-IN")}` : pkgPrice || "Custom Quote";
+                    const formattedOriginal = originalPrice && typeof originalPrice === "number" ? `₹${originalPrice.toLocaleString("en-IN")}` : null;
+                    return (
+                      <div key={pkg.id || idx} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2 flex flex-col justify-between">
+                        <div className="space-y-1.5">
+                          {pkg.is_popular && (
+                            <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full inline-block">
+                              Most Popular
+                            </span>
+                          )}
+                          <h3 className="font-serif font-bold text-base text-charcoal">{pkg.name}</h3>
+                          {pkg.description && <p className="text-xs text-charcoal/70 leading-relaxed">{pkg.description}</p>}
+                          {Array.isArray(pkg.features) && pkg.features.length > 0 && (
+                            <ul className="text-xs text-charcoal/75 space-y-1 pt-1">
+                              {pkg.features.map((feat: string, fIdx: number) => (
+                                <li key={fIdx} className="flex items-center gap-1.5">
+                                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                  <span>{feat}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                        <div className="pt-3 border-t border-gold/10 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
+                          <div className="flex items-baseline gap-2">
+                            <span>{formattedPrice}</span>
+                            {formattedOriginal && (
+                              <span className="text-[11px] line-through text-charcoal/40 font-normal">{formattedOriginal}</span>
+                            )}
+                          </div>
+                          <button onClick={() => handleCheckAvailability()} className="underline hover:text-emerald-800 cursor-pointer">
+                            Inquire Date
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full">Outdoor Royal Lawn</span>
-                  <h3 className="font-serif font-bold text-base text-charcoal">Lush Green Sunset Garden Lawn</h3>
-                  <p className="text-xs text-charcoal/70">Ideal for 300 to 1,000 guests. Open-air starlight receptions, sangeet, and mandap ceremonies.</p>
-                  <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
-                    <span>Capacity: 1,000 Pax</span>
-                    <button onClick={() => handleCheckAvailability()} className="underline hover:text-emerald-800">Inquire Date</button>
-                  </div>
-                </div>
-              </div>
+              ) : (
+                <SectionEmptyState
+                  icon={Package}
+                  title="No packages available yet"
+                  message="The venue has not published preset packages. Inquire directly for hall rates and customized date quotations."
+                  actionLabel="Inquire Date & Pricing"
+                  onAction={() => handleCheckAvailability()}
+                />
+              )}
             </div>
 
             {/* 8. REVIEWS */}
             <section className="bg-white p-4.5 sm:p-6 rounded-2xl border border-gold/15 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Reviews</h2>
+                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">
+                  Customer Reviews {reviewsList.length > 0 ? `(${reviewsList.length})` : ""}
+                </h2>
                 <button onClick={() => setIsReviewModalOpen(true)} className="px-3.5 py-1.5 rounded-xl border border-rose-500 text-rose-600 font-extrabold text-xs hover:bg-rose-50 transition-colors shrink-0 cursor-pointer">
                   Write a Review
                 </button>
               </div>
-              <div className="flex items-center gap-2 text-sm font-bold text-charcoal">
-                <Star className="w-4 h-4 fill-emerald-600 text-emerald-600" />
-                <span>4.8 Excellent</span>
-                <span className="text-charcoal/50 font-normal">({reviewsList.length || 38} Reviews)</span>
-              </div>
-              <div className="space-y-3 pt-2">
-                {reviewsList.map((rev) => (
-                  <div key={rev.id} className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs text-charcoal">{rev.customerName}</span>
-                      <span className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Verified Host
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-0.5 text-amber-500 text-xs">{"★".repeat(rev.rating || 5)}</div>
-                    <p className="text-xs text-charcoal/80 leading-relaxed font-normal">"{rev.text}"</p>
+              {reviewsList.length > 0 ? (
+                <>
+                  <div className="flex items-center gap-2 text-sm font-bold text-charcoal">
+                    <Star className="w-4 h-4 fill-emerald-600 text-emerald-600" />
+                    <span>{averageRatingScore.toFixed(1)}</span>
+                    <span className="text-charcoal/50 font-normal">({reviewsList.length} {reviewsList.length === 1 ? "Review" : "Reviews"})</span>
                   </div>
-                ))}
-              </div>
+                  <div className="space-y-3 pt-2">
+                    {reviewsList.map((rev) => (
+                      <div key={rev.id} className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-xs text-charcoal">{rev.customerName}</span>
+                          <span className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Verified Host
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-0.5 text-amber-500 text-xs">{"★".repeat(rev.rating || 5)}</div>
+                        <p className="text-xs text-charcoal/80 leading-relaxed font-normal">"{rev.text}"</p>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <SectionEmptyState
+                  icon={MessageSquare}
+                  title="No reviews yet"
+                  message={`Be the first couple to leave a review for ${displayName}.`}
+                  actionLabel="Write a Review"
+                  onAction={() => setIsReviewModalOpen(true)}
+                />
+              )}
             </section>
 
             {/* 9. FAQS */}
-            {venueDetails.faqs.length > 0 && (
-              <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
-                <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Frequently Asked Questions</h2>
+            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Frequently Asked Questions</h2>
+              {venueDetails.faqs.length > 0 ? (
                 <div className="space-y-3">
                   {venueDetails.faqs.map((faq: any, idx: number) => (
                     <div key={idx} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
@@ -2066,58 +1947,53 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <SectionEmptyState
+                  icon={HelpCircle}
+                  title="No FAQs added yet"
+                  message="Frequently asked questions about venue policies, catering rules, and timings have not been published yet."
+                />
+              )}
+            </div>
 
             {/* 10. SIMILAR VENUES */}
             <section className="bg-white p-4.5 sm:p-6 rounded-2xl border border-gold/15 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-gold/10 pb-2.5">
                 <h2 className="font-serif font-bold text-lg sm:text-xl text-charcoal">Similar Venues</h2>
-                <Link href="/venues" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
+                <Link href="/categories/venues" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-                
-                {similarStudios.slice(0, 3).map((item: any) => (
+                {similarStudios.slice(0, 3).map((item, idx) => (
                   <Link
-                    key={item.id}
-                    href={getSimilarVendorHref(item, "venue")}
-                    className="group block rounded-2xl border border-gold/15 bg-white overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all p-3 space-y-2.5 cursor-pointer"
+                    key={item.id || idx}
+                    href={getSimilarVendorHref(item, "venues")}
+                    className="group bg-white rounded-2xl overflow-hidden border border-gold/15 shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col"
                   >
-                    <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-gray-200">
+                    <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
                       <img
-                        src={item.image || item.coverImage || item.logo || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80"}
-                        alt={item.name}
+                        src={item.coverImage || item.cover_image || item.image || item.image_url}
+                        alt={item.name || item.business_name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      <span className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-xs text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
-                        <CheckCircle2 className="w-3 h-3 text-[#0F4C45] fill-[#0F4C45] text-white" /> Verified
-                      </span>
+                      <div className="absolute top-2.5 right-2.5 bg-black/60 backdrop-blur-md text-white text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                        <span>{Number(item.rating || 5).toFixed(1)}</span>
+                      </div>
                     </div>
-
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-xs text-charcoal/70">
-                        <span className="font-medium flex items-center gap-1">
+                    <div className="p-3.5 space-y-1.5 flex-1 flex flex-col justify-between">
+                      <div>
+                        <h3 className="font-serif font-bold text-base text-charcoal leading-snug group-hover:text-[#0F4C45] transition-colors truncate">
+                          {item.name || item.business_name}
+                        </h3>
+                        <p className="text-xs text-charcoal/60 truncate flex items-center gap-1 mt-0.5">
                           <MapPin className="w-3 h-3 text-[#0F4C45] shrink-0" />
-                          <span className="truncate">{item.location || item.city || "Kerala, India"}</span>
-                        </span>
-                        <span className="font-bold text-amber-600 flex items-center gap-1 shrink-0">
-                          <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                          {item.rating ? Number(item.rating).toFixed(1) : "4.8"}
-                        </span>
+                          <span>{item.city || item.location || "Kerala"}</span>
+                        </p>
                       </div>
-
-                      <h3 className="font-serif font-bold text-base text-charcoal leading-snug group-hover:text-[#0F4C45] transition-colors truncate">
-                        {item.name}
-                      </h3>
-
-                      <div className="text-xs font-bold text-[#0F4C45]">
-                        {item.startingPrice || item.starting_price || "Contact for Pricing"}
+                      <div className="pt-2 border-t border-gold/10 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
+                        <span>View Venue</span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                       </div>
-                    </div>
-
-                    <div className="w-full py-2.5 rounded-xl bg-[#0F4C45] group-hover:bg-[#12584E] text-white font-bold text-xs transition-all text-center flex items-center justify-center gap-1.5 shadow-2xs">
-                      <span>View Profile</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
                     </div>
                   </Link>
                 ))}
@@ -2131,126 +2007,136 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
         {/* ════════════════════════════════════════════════════════════════ */}
         {categoryType === "groomStudio" && (
           <>
-            {/* 1. STUDIO OVERVIEW */}
+            {/* 1. OVERVIEW */}
             <div className="bg-white rounded-2xl p-4 border border-gold/15 shadow-2xs space-y-2.5">
               <div>
                 <h3 className="font-serif font-bold text-base text-charcoal">Groom Wear Couture &amp; Rental Studio</h3>
-                <p className="text-xs text-charcoal/60 font-medium">Bespoke velvet sherwanis, bandhgalas, jodhpuri suits &amp; tuxedos</p>
+                <p className="text-xs text-charcoal/60 font-medium">Designer sherwanis, jodhpuri suits, tuxedos &amp; ceremonial ensembles</p>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
-                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
-                  <Award className="w-4 h-4 text-[#0F4C45] shrink-0" />
-                  <span className="truncate">Rental &amp; Purchase</span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs font-bold text-charcoal">
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-[#0F4C45]" /> Bespoke Tailoring
                 </div>
-                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-[#0F4C45] shrink-0" />
-                  <span className="truncate">48-Hour Rush Fitting</span>
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-[#0F4C45]" /> 3-Day Rental
                 </div>
-                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-[#0F4C45] shrink-0" />
-                  <span className="truncate">3-Day Rental Duration</span>
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#0F4C45]" /> Accessories Match
                 </div>
-                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#0F4C45] shrink-0" />
-                  <span className="truncate">Matching Safa &amp; Stole</span>
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Building className="w-4 h-4 text-[#0F4C45]" /> Fitting Trial
                 </div>
               </div>
             </div>
 
-            {/* 2. FEATURED GROOM COLLECTIONS */}
-            <div className="bg-white rounded-2xl p-4 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
+            {/* 2. COLLECTIONS (HORIZONTAL SLIDER) */}
+            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-gold/10 pb-2.5">
                 <div>
                   <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">{studioCategoryConfig.collectionsTitle}</h2>
                   <p className="text-xs text-charcoal/60 mt-0.5">{studioCategoryConfig.collectionsSubtitle}</p>
                 </div>
-                <span className="text-[11px] font-bold text-[#0F4C45] sm:hidden flex items-center gap-0.5 shrink-0 bg-[#0F4C45]/10 px-2.5 py-1 rounded-full">
+                <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold text-charcoal/40 bg-[#FAF7F2] px-2.5 py-1 rounded-full border border-gold/15">
                   Slide →
                 </span>
               </div>
-              <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-4 overflow-x-auto sm:overflow-x-visible pb-3 sm:pb-0 scroll-smooth snap-x snap-mandatory hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
-                {boutiqueCollectionsList.map((col: any) => (
-                  <Link
-                    key={col.id}
-                    href={`/collections/${col.id}`}
-                    className="relative w-[76vw] min-w-[250px] max-w-[310px] sm:w-auto aspect-[3/4] shrink-0 snap-start rounded-2xl sm:rounded-3xl overflow-hidden border border-gold/25 shadow-md hover:shadow-xl hover:border-gold transition-all duration-300 group cursor-pointer bg-charcoal flex flex-col justify-end"
-                  >
-                    {/* Full-bleed background image */}
-                    <img
-                      src={col.coverImage}
-                      alt={col.name}
-                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                    />
 
-                    {/* Top Designs Badge */}
-                    <div className="absolute top-3 left-3 z-10">
-                      <span className="bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/20">
-                        {col.outfitCount || (col.outfits || []).length || 12}+ Designs
-                      </span>
-                    </div>
-
-                    {/* Gradient Overlay (Like Cloche Featured Collections in Image 2) */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-transparent z-10" />
-
-                    {/* Overlaid Card Info (No Description, Mentions Price) */}
-                    <div className="relative z-20 p-4 sm:p-5 space-y-1.5">
-                      <div className="text-[10px] sm:text-[11px] font-bold tracking-widest text-[#C8A96A] uppercase">
-                        {col.location || col.category || "GROOM COUTURE"}
-                      </div>
-
-                      <h3 className="font-serif font-bold text-lg sm:text-xl text-white leading-snug group-hover:text-[#E8D4B0] transition-colors drop-shadow-sm line-clamp-2">
-                        {col.name}
-                      </h3>
-
-                      <div className="pt-2 flex items-center justify-between border-t border-white/15">
-                        <div>
-                          <div className="text-[9px] uppercase tracking-wider text-white/60 font-semibold">Starting at</div>
-                          <div className="text-xs sm:text-sm font-bold text-emerald-300">
-                            {col.priceRange || (col.outfits && col.outfits[0]?.price ? col.outfits[0].price : "₹14,500 / 3 Days")}
+              {boutiqueCollectionsList.length > 0 ? (
+                <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 overflow-x-auto sm:overflow-visible pb-2 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory scroll-smooth hide-scrollbar">
+                  {boutiqueCollectionsList.map((col: any) => {
+                    const startingPrice = col.outfits && col.outfits.length > 0 ? col.outfits[0].price : col.price || col.startingPrice;
+                    const targetUrl = col.id ? `/collections/${col.id}` : "/collections";
+                    return (
+                      <Link
+                        key={col.id}
+                        href={targetUrl}
+                        className="group shrink-0 w-[240px] sm:w-auto snap-start block"
+                      >
+                        <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-md group-hover:shadow-xl transition-all duration-500 bg-charcoal border border-gold/20 flex flex-col justify-end p-4">
+                          <img
+                            src={col.coverImage || col.image || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop"}
+                            alt={col.name}
+                            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent pointer-events-none" />
+                          <div className="relative z-10 space-y-1.5">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-[#C8A96A] bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-full border border-[#C8A96A]/30">
+                                {col.category || "Groom"}
+                              </span>
+                              {startingPrice && (
+                                <span className="text-[10px] font-medium text-white/80 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20">
+                                  {startingPrice}
+                                </span>
+                              )}
+                            </div>
+                            <h3 className="font-serif font-bold text-base sm:text-lg text-white leading-snug group-hover:text-[#E8D4B0] transition-colors drop-shadow-sm line-clamp-2">
+                              {col.name}
+                            </h3>
+                            <div className="pt-1 flex items-center justify-between text-xs font-bold text-white/90">
+                              <span className="text-[11px] font-semibold text-[#E8D4B0] flex items-center gap-1">
+                                View Collection <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                              </span>
+                              <span className="text-[10px] text-white/60">
+                                {(col.outfits || []).length || col.outfitCount || 0} designs
+                              </span>
+                            </div>
                           </div>
                         </div>
-
-                        <span className="text-[11px] text-white font-bold bg-white/15 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/25 group-hover:bg-[#0F4C45] group-hover:border-[#0F4C45] transition-all flex items-center gap-1">
-                          Explore <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              ) : (
+                <SectionEmptyState
+                  icon={ShoppingBag}
+                  title="No collections added yet"
+                  message="Groom velvet sherwanis, jodhpuri suits, and tuxedo collections will appear here once published."
+                  actionLabel="Inquire Collections"
+                  onAction={() => handleOpenMessage()}
+                />
+              )}
             </div>
 
             {/* 3. PRICING */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal border-b border-gold/10 pb-2.5">Groom Wear Rental &amp; Custom Pricing</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Royal Sherwanis</span>
-                  <div className="font-serif font-bold text-lg text-[#0F4C45]">From ₹14,500 / 3 Days</div>
-                  <p className="text-charcoal/60">Includes zardozi velvet sherwani, safa turban, stole &amp; footwear matching.</p>
+              {vendorServicesList.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  {vendorServicesList.map((svc: any, idx: number) => {
+                    const price = svc.base_price || svc.price;
+                    const formatted = typeof price === "number" ? `₹${price.toLocaleString("en-IN")}` : price || "Custom Quote";
+                    return (
+                      <div key={svc.id || idx} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
+                        <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">{svc.name}</span>
+                        <div className="font-serif font-bold text-lg text-[#0F4C45]">{formatted}</div>
+                        {svc.description && <p className="text-charcoal/60 leading-relaxed">{svc.description}</p>}
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Jodhpuri &amp; Bandhgala</span>
-                  <div className="font-serif font-bold text-lg text-[#0F4C45]">From ₹12,500 / 3 Days</div>
-                  <p className="text-charcoal/60">Structured velvet jackets, jodhpuri suits for sangeet &amp; engagement.</p>
-                </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Reception Tuxedos</span>
-                  <div className="font-serif font-bold text-lg text-[#0F4C45]">From ₹11,000 / 3 Days</div>
-                  <p className="text-charcoal/60">Italian fabric tuxedos, velvet lapel blazers &amp; double-breasted suits.</p>
-                </div>
-              </div>
+              ) : (
+                <SectionEmptyState
+                  icon={Tag}
+                  title="Contact for pricing"
+                  message="Rental rates, security deposits, and custom tailoring charges are provided upon inquiry."
+                  actionLabel="Request Price List"
+                  onAction={() => handleOpenMessage()}
+                />
+              )}
             </div>
 
             {/* 4. GALLERY / PORTFOLIO */}
-            {galleryPhotos.length > 0 && (
-              <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-                <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-                  <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Portfolio &amp; Real Grooms</h2>
+            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
+              <div className="flex items-center justify-between border-b border-gold/10 pb-3">
+                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Portfolio &amp; Real Grooms</h2>
+                {galleryPhotos.length > 0 && (
                   <button onClick={() => setShowAllPhotosModal(true)} className="text-xs font-extrabold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer">
                     View All Photos ({galleryPhotos.length}) <ChevronRight className="w-3.5 h-3.5" />
                   </button>
-                </div>
+                )}
+              </div>
+              {galleryPhotos.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   {galleryPhotos.slice(0, 4).map((photo, i) => (
                     <div key={i} onClick={() => setLightboxIndex(i)} className="relative aspect-[3/4] rounded-xl overflow-hidden border border-gold/20 shadow-2xs cursor-pointer group bg-gray-100">
@@ -2258,40 +2144,62 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <SectionEmptyState
+                  icon={Camera}
+                  title="No portfolio images uploaded yet"
+                  message="Real groom looks and studio collection photos will appear here once uploaded."
+                  actionLabel="Request Portfolio Photos"
+                  onAction={() => handleOpenMessage()}
+                />
+              )}
+            </div>
 
             {/* 5. ABOUT */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3">
               <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2">About Studio &amp; Craftsmen</h2>
-              <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">
-                {about || `Crafting regal attire for the modern groom, ${displayName} specializes in handcrafted velvet sherwanis, silk jodhpuri suits, and sleek reception tuxedos. Our master tailors ensure immaculate custom fits with 48-hour rush alterations.`}
-              </p>
+              {about ? (
+                <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">{about}</p>
+              ) : (
+                <SectionEmptyState
+                  icon={User}
+                  title="Business information not added yet"
+                  message="Studio background, master tailoring experience, and crafting philosophy will appear here once added."
+                />
+              )}
             </div>
 
             {/* 6. PACKAGES */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Groom Packages</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full">Ceremonial 2-Function Combo</span>
-                  <h3 className="font-serif font-bold text-base text-charcoal">Wedding Sherwani + Reception Tuxedo Package</h3>
-                  <p className="text-xs text-charcoal/70">Includes 1 Luxe Zardozi Sherwani + 1 Italian Tuxedo + Safa, Stole, Cufflinks &amp; Footwear.</p>
-                  <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
-                    <span>₹22,500 / 3 Days</span>
-                    <button onClick={() => handleCheckAvailability()} className="underline">Reserve Package</button>
-                  </div>
+              {vendorPackagesList.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {vendorPackagesList.map((pkg: any, idx: number) => {
+                    const price = pkg.discount_price || pkg.price;
+                    const formatted = typeof price === "number" ? `₹${price.toLocaleString("en-IN")}` : price || "Custom Quote";
+                    return (
+                      <div key={pkg.id || idx} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2 flex flex-col justify-between">
+                        <div className="space-y-1">
+                          <h3 className="font-serif font-bold text-base text-charcoal">{pkg.name}</h3>
+                          {pkg.description && <p className="text-xs text-charcoal/70">{pkg.description}</p>}
+                        </div>
+                        <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
+                          <span>{formatted}</span>
+                          <button onClick={() => handleCheckAvailability()} className="underline">Reserve Package</button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full">Full Wedding Suite</span>
-                  <h3 className="font-serif font-bold text-base text-charcoal">Complete Groom 3-Event Package</h3>
-                  <p className="text-xs text-charcoal/70">Includes Sangeet Jodhpuri + Wedding Sherwani + Reception Tuxedo with custom alterations.</p>
-                  <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
-                    <span>₹32,000 / 4 Days</span>
-                    <button onClick={() => handleCheckAvailability()} className="underline">Reserve Package</button>
-                  </div>
-                </div>
-              </div>
+              ) : (
+                <SectionEmptyState
+                  icon={Package}
+                  title="No packages available yet"
+                  message="Preset groom packages have not been added yet. Inquire directly for custom wedding combinations."
+                  actionLabel="Inquire for Custom Package"
+                  onAction={() => handleCheckAvailability()}
+                />
+              )}
             </div>
 
             {/* 7. POLICIES */}
@@ -2302,9 +2210,9 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
               </div>
               <div className="space-y-2 text-xs font-semibold text-charcoal/80">
                 <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> 3 Days Rental Period (Pickup day before, Return day after event)</div>
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Refundable Security Deposit (₹10,000 per outfit)</div>
+                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Refundable Security Deposit per outfit</div>
                 <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Free Master Tailor Alteration &amp; Fitting</div>
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> 100% Medical-Grade Dry Cleaning &amp; Steam Ironing</div>
+                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Professional Dry Cleaning &amp; Steam Ironing</div>
               </div>
             </div>
 
@@ -2322,22 +2230,34 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
             {/* 9. REVIEWS */}
             <section className="bg-white p-4.5 sm:p-6 rounded-2xl border border-gold/15 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Reviews</h2>
+                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">
+                  Reviews {reviewsList.length > 0 ? `(${reviewsList.length})` : ""}
+                </h2>
                 <button onClick={() => setIsReviewModalOpen(true)} className="px-3.5 py-1.5 rounded-xl border border-rose-500 text-rose-600 font-extrabold text-xs hover:bg-rose-50 transition-colors cursor-pointer">
                   Write a Review
                 </button>
               </div>
-              <div className="space-y-3 pt-2">
-                {reviewsList.map((rev) => (
-                  <div key={rev.id} className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs text-charcoal">{rev.customerName}</span>
-                      <span className="text-[10px] text-emerald-700 font-semibold">★ {rev.rating || 5}.0 Verified Groom</span>
+              {reviewsList.length > 0 ? (
+                <div className="space-y-3 pt-2">
+                  {reviewsList.map((rev) => (
+                    <div key={rev.id} className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-xs text-charcoal">{rev.customerName}</span>
+                        <span className="text-[10px] text-emerald-700 font-semibold">★ {rev.rating || 5}.0 Verified Groom</span>
+                      </div>
+                      <p className="text-xs text-charcoal/80">"{rev.text}"</p>
                     </div>
-                    <p className="text-xs text-charcoal/80">"{rev.text}"</p>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <SectionEmptyState
+                  icon={MessageSquare}
+                  title="No reviews yet"
+                  message={`Be the first groom to leave a review for ${displayName}.`}
+                  actionLabel="Write a Review"
+                  onAction={() => setIsReviewModalOpen(true)}
+                />
+              )}
             </section>
 
             {/* 10. SIMILAR GROOM STUDIOS */}
@@ -2347,48 +2267,27 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                 <Link href="/categories/groom-studio" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-                
-                {similarStudios.slice(0, 3).map((item: any) => (
+                {similarStudios.slice(0, 3).map((item, idx) => (
                   <Link
-                    key={item.id}
-                    href={getSimilarVendorHref(item, "groomStudio")}
-                    className="group block rounded-2xl border border-gold/15 bg-white overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all p-3 space-y-2.5 cursor-pointer"
+                    key={item.id || idx}
+                    href={getSimilarVendorHref(item, "groom-studio")}
+                    className="group bg-white rounded-2xl overflow-hidden border border-gold/15 shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col"
                   >
-                    <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-gray-200">
+                    <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
                       <img
-                        src={item.image || item.coverImage || item.logo || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80"}
-                        alt={item.name}
+                        src={item.coverImage || item.cover_image || item.image || item.image_url}
+                        alt={item.name || item.business_name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      <span className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-xs text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
-                        <CheckCircle2 className="w-3 h-3 text-[#0F4C45] fill-[#0F4C45] text-white" /> Verified
-                      </span>
                     </div>
-
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-xs text-charcoal/70">
-                        <span className="font-medium flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-[#0F4C45] shrink-0" />
-                          <span className="truncate">{item.location || item.city || "Kerala, India"}</span>
-                        </span>
-                        <span className="font-bold text-amber-600 flex items-center gap-1 shrink-0">
-                          <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                          {item.rating ? Number(item.rating).toFixed(1) : "4.8"}
-                        </span>
-                      </div>
-
+                    <div className="p-3.5 space-y-1.5 flex-1 flex flex-col justify-between">
                       <h3 className="font-serif font-bold text-base text-charcoal leading-snug group-hover:text-[#0F4C45] transition-colors truncate">
-                        {item.name}
+                        {item.name || item.business_name}
                       </h3>
-
-                      <div className="text-xs font-bold text-[#0F4C45]">
-                        {item.startingPrice || item.starting_price || "Contact for Pricing"}
+                      <div className="pt-2 border-t border-gold/10 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
+                        <span>View Studio</span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                       </div>
-                    </div>
-
-                    <div className="w-full py-2.5 rounded-xl bg-[#0F4C45] group-hover:bg-[#12584E] text-white font-bold text-xs transition-all text-center flex items-center justify-center gap-1.5 shadow-2xs">
-                      <span>View Profile</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
                     </div>
                   </Link>
                 ))}
@@ -2402,126 +2301,136 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
         {/* ════════════════════════════════════════════════════════════════ */}
         {categoryType === "bridalStudio" && (
           <>
-            {/* 1. STUDIO OVERVIEW */}
+            {/* 1. OVERVIEW */}
             <div className="bg-white rounded-2xl p-4 border border-gold/15 shadow-2xs space-y-2.5">
               <div>
                 <h3 className="font-serif font-bold text-base text-charcoal">Bridal Wear Couture &amp; Rental Studio</h3>
-                <p className="text-xs text-charcoal/60 font-medium">Designer bridal zardozi lehengas, Kanjeevaram silk sarees &amp; reception gowns</p>
+                <p className="text-xs text-charcoal/60 font-medium">Designer bridal lehengas, silk sarees, reception gowns &amp; anarkalis</p>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
-                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
-                  <Award className="w-4 h-4 text-[#0F4C45] shrink-0" />
-                  <span className="truncate">Rental &amp; Couture</span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs font-bold text-charcoal">
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-[#0F4C45]" /> Custom Alterations
                 </div>
-                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#0F4C45] shrink-0" />
-                  <span className="truncate">Custom Blouse Alterations</span>
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-[#0F4C45]" /> 3-Day Rental
                 </div>
-                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-[#0F4C45] shrink-0" />
-                  <span className="truncate">3-Day Rental Period</span>
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#0F4C45]" /> Jewellery Pairing
                 </div>
-                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
-                  <Heart className="w-4 h-4 text-[#0F4C45] shrink-0" />
-                  <span className="truncate">Pristine Dry Cleaning</span>
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Building className="w-4 h-4 text-[#0F4C45]" /> Private Suite
                 </div>
               </div>
             </div>
 
-            {/* 2. BRIDAL COLLECTIONS */}
-            <div className="bg-white rounded-2xl p-4 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
+            {/* 2. COLLECTIONS (HORIZONTAL SLIDER) */}
+            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-gold/10 pb-2.5">
                 <div>
-                  <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Our Bridal Collections</h2>
-                  <p className="text-xs text-charcoal/60 mt-0.5">Explore signature bridal zardozi lehengas, silk sarees &amp; reception trails</p>
+                  <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">{studioCategoryConfig.collectionsTitle}</h2>
+                  <p className="text-xs text-charcoal/60 mt-0.5">{studioCategoryConfig.collectionsSubtitle}</p>
                 </div>
-                <span className="text-[11px] font-bold text-[#0F4C45] sm:hidden flex items-center gap-0.5 shrink-0 bg-[#0F4C45]/10 px-2.5 py-1 rounded-full">
+                <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold text-charcoal/40 bg-[#FAF7F2] px-2.5 py-1 rounded-full border border-gold/15">
                   Slide →
                 </span>
               </div>
-              <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-4 overflow-x-auto sm:overflow-x-visible pb-3 sm:pb-0 scroll-smooth snap-x snap-mandatory hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
-                {boutiqueCollectionsList.map((col: any) => (
-                  <Link
-                    key={col.id}
-                    href={`/collections/${col.id}`}
-                    className="relative w-[76vw] min-w-[250px] max-w-[310px] sm:w-auto aspect-[3/4] shrink-0 snap-start rounded-2xl sm:rounded-3xl overflow-hidden border border-gold/25 shadow-md hover:shadow-xl hover:border-gold transition-all duration-300 group cursor-pointer bg-charcoal flex flex-col justify-end"
-                  >
-                    {/* Full-bleed background image */}
-                    <img
-                      src={col.coverImage}
-                      alt={col.name}
-                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                    />
 
-                    {/* Top Designs Badge */}
-                    <div className="absolute top-3 left-3 z-10">
-                      <span className="bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/20">
-                        {col.outfitCount || (col.outfits || []).length || 18}+ Designs
-                      </span>
-                    </div>
-
-                    {/* Gradient Overlay (Like Cloche Featured Collections in Image 2) */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-transparent z-10" />
-
-                    {/* Overlaid Card Info (No Description, Mentions Price) */}
-                    <div className="relative z-20 p-4 sm:p-5 space-y-1.5">
-                      <div className="text-[10px] sm:text-[11px] font-bold tracking-widest text-[#C8A96A] uppercase">
-                        {col.location || col.category || "BRIDAL COUTURE"}
-                      </div>
-
-                      <h3 className="font-serif font-bold text-lg sm:text-xl text-white leading-snug group-hover:text-[#E8D4B0] transition-colors drop-shadow-sm line-clamp-2">
-                        {col.name}
-                      </h3>
-
-                      <div className="pt-2 flex items-center justify-between border-t border-white/15">
-                        <div>
-                          <div className="text-[9px] uppercase tracking-wider text-white/60 font-semibold">Starting at</div>
-                          <div className="text-xs sm:text-sm font-bold text-emerald-300">
-                            {col.priceRange || (col.outfits && col.outfits[0]?.price ? col.outfits[0].price : "₹18,500 / 3 Days")}
+              {boutiqueCollectionsList.length > 0 ? (
+                <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 overflow-x-auto sm:overflow-visible pb-2 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory scroll-smooth hide-scrollbar">
+                  {boutiqueCollectionsList.map((col: any) => {
+                    const startingPrice = col.outfits && col.outfits.length > 0 ? col.outfits[0].price : col.price || col.startingPrice;
+                    const targetUrl = col.id ? `/collections/${col.id}` : "/collections";
+                    return (
+                      <Link
+                        key={col.id}
+                        href={targetUrl}
+                        className="group shrink-0 w-[240px] sm:w-auto snap-start block"
+                      >
+                        <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-md group-hover:shadow-xl transition-all duration-500 bg-charcoal border border-gold/20 flex flex-col justify-end p-4">
+                          <img
+                            src={col.coverImage || col.image || "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop"}
+                            alt={col.name}
+                            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent pointer-events-none" />
+                          <div className="relative z-10 space-y-1.5">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-[#C8A96A] bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-full border border-[#C8A96A]/30">
+                                {col.category || "Bridal"}
+                              </span>
+                              {startingPrice && (
+                                <span className="text-[10px] font-medium text-white/80 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20">
+                                  {startingPrice}
+                                </span>
+                              )}
+                            </div>
+                            <h3 className="font-serif font-bold text-base sm:text-lg text-white leading-snug group-hover:text-[#E8D4B0] transition-colors drop-shadow-sm line-clamp-2">
+                              {col.name}
+                            </h3>
+                            <div className="pt-1 flex items-center justify-between text-xs font-bold text-white/90">
+                              <span className="text-[11px] font-semibold text-[#E8D4B0] flex items-center gap-1">
+                                View Collection <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                              </span>
+                              <span className="text-[10px] text-white/60">
+                                {(col.outfits || []).length || col.outfitCount || 0} designs
+                              </span>
+                            </div>
                           </div>
                         </div>
-
-                        <span className="text-[11px] text-white font-bold bg-white/15 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/25 group-hover:bg-[#0F4C45] group-hover:border-[#0F4C45] transition-all flex items-center gap-1">
-                          Explore <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              ) : (
+                <SectionEmptyState
+                  icon={ShoppingBag}
+                  title="No collections added yet"
+                  message="Bridal lehengas, silk sarees, and reception gown collections will appear here once published."
+                  actionLabel="Inquire Collections"
+                  onAction={() => handleOpenMessage()}
+                />
+              )}
             </div>
 
             {/* 3. PRICING */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal border-b border-gold/10 pb-2.5">Bridal Rental &amp; Couture Pricing</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Bridal Lehengas</span>
-                  <div className="font-serif font-bold text-lg text-[#0F4C45]">From ₹18,500 / 3 Days</div>
-                  <p className="text-charcoal/60">Heavy zardozi embroidery, pure silk dupattas &amp; custom waist fittings.</p>
+              {vendorServicesList.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  {vendorServicesList.map((svc: any, idx: number) => {
+                    const price = svc.base_price || svc.price;
+                    const formatted = typeof price === "number" ? `₹${price.toLocaleString("en-IN")}` : price || "Custom Quote";
+                    return (
+                      <div key={svc.id || idx} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
+                        <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">{svc.name}</span>
+                        <div className="font-serif font-bold text-lg text-[#0F4C45]">{formatted}</div>
+                        {svc.description && <p className="text-charcoal/60 leading-relaxed">{svc.description}</p>}
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Kanjeevaram Sarees</span>
-                  <div className="font-serif font-bold text-lg text-[#0F4C45]">From ₹12,500 / 3 Days</div>
-                  <p className="text-charcoal/60">Pure silk muhurtham sarees woven with real gold zari borders.</p>
-                </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Reception Ball Gowns</span>
-                  <div className="font-serif font-bold text-lg text-[#0F4C45]">From ₹16,000 / 3 Days</div>
-                  <p className="text-charcoal/60">Sequin trail gowns, satin ball gowns &amp; cocktail ensembles.</p>
-                </div>
-              </div>
+              ) : (
+                <SectionEmptyState
+                  icon={Tag}
+                  title="Contact for pricing"
+                  message="Bridal rental rates and purchase prices are provided upon inquiry and consultation."
+                  actionLabel="Request Price List"
+                  onAction={() => handleOpenMessage()}
+                />
+              )}
             </div>
 
             {/* 4. GALLERY / PORTFOLIO */}
-            {galleryPhotos.length > 0 && (
-              <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-                <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-                  <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Portfolio &amp; Real Brides</h2>
+            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
+              <div className="flex items-center justify-between border-b border-gold/10 pb-3">
+                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Portfolio &amp; Real Brides</h2>
+                {galleryPhotos.length > 0 && (
                   <button onClick={() => setShowAllPhotosModal(true)} className="text-xs font-extrabold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer">
                     View All Photos ({galleryPhotos.length}) <ChevronRight className="w-3.5 h-3.5" />
                   </button>
-                </div>
+                )}
+              </div>
+              {galleryPhotos.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   {galleryPhotos.slice(0, 4).map((photo, i) => (
                     <div key={i} onClick={() => setLightboxIndex(i)} className="relative aspect-[3/4] rounded-xl overflow-hidden border border-gold/20 shadow-2xs cursor-pointer group bg-gray-100">
@@ -2529,86 +2438,120 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <SectionEmptyState
+                  icon={Camera}
+                  title="No portfolio images uploaded yet"
+                  message="Real bride lookbooks and editorial photos will appear here once uploaded."
+                  actionLabel="Request Portfolio Photos"
+                  onAction={() => handleOpenMessage()}
+                />
+              )}
+            </div>
 
             {/* 5. ABOUT */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3">
               <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2">About Studio &amp; Bridal Heritage</h2>
-              <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">
-                {about || `Curating dream bridal wardrobes, ${displayName} offers an exquisite collection of zardozi bridal lehengas, heritage silk sarees, and reception ball gowns. Every outfit undergoes pristine medical-grade sanitization and custom alterations for the perfect silhouette.`}
-              </p>
+              {about ? (
+                <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">{about}</p>
+              ) : (
+                <SectionEmptyState
+                  icon={User}
+                  title="Business information not added yet"
+                  message="Bridal studio history, heritage, and designer information will appear here once added."
+                />
+              )}
             </div>
 
             {/* 6. PACKAGES */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Bridal Combo Packages</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full">Wedding + Reception Bundle</span>
-                  <h3 className="font-serif font-bold text-base text-charcoal">Complete 2-Function Bridal Outfit Set</h3>
-                  <p className="text-xs text-charcoal/70">Includes 1 Heavy Bridal Lehenga + 1 Reception Ball Gown with custom blouse stitching.</p>
-                  <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
-                    <span>₹29,500 / 3 Days</span>
-                    <button onClick={() => handleCheckAvailability()} className="underline">Inquire Package</button>
-                  </div>
+              {vendorPackagesList.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {vendorPackagesList.map((pkg: any, idx: number) => {
+                    const price = pkg.discount_price || pkg.price;
+                    const formatted = typeof price === "number" ? `₹${price.toLocaleString("en-IN")}` : price || "Custom Quote";
+                    return (
+                      <div key={pkg.id || idx} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2 flex flex-col justify-between">
+                        <div className="space-y-1">
+                          <h3 className="font-serif font-bold text-base text-charcoal">{pkg.name}</h3>
+                          {pkg.description && <p className="text-xs text-charcoal/70">{pkg.description}</p>}
+                        </div>
+                        <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
+                          <span>{formatted}</span>
+                          <button onClick={() => handleCheckAvailability()} className="underline">Reserve Package</button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full">Full Wedding Suite</span>
-                  <h3 className="font-serif font-bold text-base text-charcoal">Complete 3-Function Bridal Wardrobe</h3>
-                  <p className="text-xs text-charcoal/70">Includes Sangeet Anarkali + Wedding Lehenga + Reception Gown with matching jewelry consultation.</p>
-                  <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
-                    <span>₹38,000 / 4 Days</span>
-                    <button onClick={() => handleCheckAvailability()} className="underline">Inquire Package</button>
-                  </div>
-                </div>
-              </div>
+              ) : (
+                <SectionEmptyState
+                  icon={Package}
+                  title="No packages available yet"
+                  message="Bridal combo packages have not been added yet. Inquire directly for custom bridal suites."
+                  actionLabel="Inquire for Custom Package"
+                  onAction={() => handleCheckAvailability()}
+                />
+              )}
             </div>
 
             {/* 7. POLICIES */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
               <div className="flex items-center gap-2 border-b border-gold/10 pb-2.5">
                 <FileText className="w-4.5 h-4.5 text-[#C8A96A]" />
-                <h2 className="font-serif text-lg font-bold text-charcoal">Rental &amp; Fitting Policies</h2>
+                <h2 className="font-serif text-lg font-bold text-charcoal">Bridal Trial &amp; Fitting Policies</h2>
               </div>
               <div className="space-y-2 text-xs font-semibold text-charcoal/80">
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> 3 Days Rental Period (Pickup day before event, Return day after)</div>
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Refundable Security Deposit (₹10,000 per outfit)</div>
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Complimentary In-House Custom Blouse &amp; Lehenga Alterations</div>
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Medical-Grade Sanitization &amp; Steam Ironing Guarantee</div>
+                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> 3-Day Rental Window (Pickup day before, Return day after wedding)</div>
+                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Refundable Security Deposit per outfit</div>
+                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Free Blouse &amp; Lehenga Custom Fitting Alterations</div>
+                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Sanitized Dry Cleaning &amp; Safe Preservation Packaging</div>
               </div>
             </div>
 
             {/* 8. AMENITIES / SERVICES */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
-              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Studio Amenities &amp; Services</h2>
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Bridal Amenities &amp; Services</h2>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-bold text-charcoal">
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-[#0F4C45]" /> Private VIP Bridal Fitting Suite</div>
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><User className="w-4 h-4 text-[#0F4C45]" /> Personal Stylist Assistance</div>
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Sparkles className="w-4 h-4 text-[#0F4C45]" /> Dupatta Draping Trial</div>
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Heart className="w-4 h-4 text-[#0F4C45]" /> Jewelry &amp; Footwear Matching</div>
+                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-[#0F4C45]" /> Private Bridal Trial Lounge</div>
+                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><User className="w-4 h-4 text-[#0F4C45]" /> Master Tailor Custom Fitting</div>
+                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Sparkles className="w-4 h-4 text-[#0F4C45]" /> Matching Dupatta &amp; Veil Styling</div>
+                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Car className="w-4 h-4 text-[#0F4C45]" /> Doorstep Delivery &amp; Pickup</div>
               </div>
             </div>
 
             {/* 9. REVIEWS */}
             <section className="bg-white p-4.5 sm:p-6 rounded-2xl border border-gold/15 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Reviews</h2>
+                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">
+                  Reviews {reviewsList.length > 0 ? `(${reviewsList.length})` : ""}
+                </h2>
                 <button onClick={() => setIsReviewModalOpen(true)} className="px-3.5 py-1.5 rounded-xl border border-rose-500 text-rose-600 font-extrabold text-xs hover:bg-rose-50 transition-colors cursor-pointer">
                   Write a Review
                 </button>
               </div>
-              <div className="space-y-3 pt-2">
-                {reviewsList.map((rev) => (
-                  <div key={rev.id} className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs text-charcoal">{rev.customerName}</span>
-                      <span className="text-[10px] text-emerald-700 font-semibold">★ {rev.rating || 5}.0 Verified Bride</span>
+              {reviewsList.length > 0 ? (
+                <div className="space-y-3 pt-2">
+                  {reviewsList.map((rev) => (
+                    <div key={rev.id} className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-xs text-charcoal">{rev.customerName}</span>
+                        <span className="text-[10px] text-emerald-700 font-semibold">★ {rev.rating || 5}.0 Verified Bride</span>
+                      </div>
+                      <p className="text-xs text-charcoal/80">"{rev.text}"</p>
                     </div>
-                    <p className="text-xs text-charcoal/80">"{rev.text}"</p>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <SectionEmptyState
+                  icon={MessageSquare}
+                  title="No reviews yet"
+                  message={`Be the first bride to leave a review for ${displayName}.`}
+                  actionLabel="Write a Review"
+                  onAction={() => setIsReviewModalOpen(true)}
+                />
+              )}
             </section>
 
             {/* 10. SIMILAR BRIDAL STUDIOS */}
@@ -2618,48 +2561,27 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                 <Link href="/categories/bridal-studio" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-                
-                {similarStudios.slice(0, 3).map((item: any) => (
+                {similarStudios.slice(0, 3).map((item, idx) => (
                   <Link
-                    key={item.id}
-                    href={getSimilarVendorHref(item, "bridalStudio")}
-                    className="group block rounded-2xl border border-gold/15 bg-white overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all p-3 space-y-2.5 cursor-pointer"
+                    key={item.id || idx}
+                    href={getSimilarVendorHref(item, "bridal-studio")}
+                    className="group bg-white rounded-2xl overflow-hidden border border-gold/15 shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col"
                   >
-                    <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-gray-200">
+                    <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
                       <img
-                        src={item.image || item.coverImage || item.logo || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80"}
-                        alt={item.name}
+                        src={item.coverImage || item.cover_image || item.image || item.image_url}
+                        alt={item.name || item.business_name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      <span className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-xs text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
-                        <CheckCircle2 className="w-3 h-3 text-[#0F4C45] fill-[#0F4C45] text-white" /> Verified
-                      </span>
                     </div>
-
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-xs text-charcoal/70">
-                        <span className="font-medium flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-[#0F4C45] shrink-0" />
-                          <span className="truncate">{item.location || item.city || "Kerala, India"}</span>
-                        </span>
-                        <span className="font-bold text-amber-600 flex items-center gap-1 shrink-0">
-                          <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                          {item.rating ? Number(item.rating).toFixed(1) : "4.8"}
-                        </span>
-                      </div>
-
+                    <div className="p-3.5 space-y-1.5 flex-1 flex flex-col justify-between">
                       <h3 className="font-serif font-bold text-base text-charcoal leading-snug group-hover:text-[#0F4C45] transition-colors truncate">
-                        {item.name}
+                        {item.name || item.business_name}
                       </h3>
-
-                      <div className="text-xs font-bold text-[#0F4C45]">
-                        {item.startingPrice || item.starting_price || "Contact for Pricing"}
+                      <div className="pt-2 border-t border-gold/10 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
+                        <span>View Studio</span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                       </div>
-                    </div>
-
-                    <div className="w-full py-2.5 rounded-xl bg-[#0F4C45] group-hover:bg-[#12584E] text-white font-bold text-xs transition-all text-center flex items-center justify-center gap-1.5 shadow-2xs">
-                      <span>View Profile</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
                     </div>
                   </Link>
                 ))}
@@ -2673,126 +2595,136 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
         {/* ════════════════════════════════════════════════════════════════ */}
         {categoryType === "weddingStudio" && (
           <>
-            {/* 1. STUDIO OVERVIEW */}
+            {/* 1. OVERVIEW */}
             <div className="bg-white rounded-2xl p-4 border border-gold/15 shadow-2xs space-y-2.5">
               <div>
-                <h3 className="font-serif font-bold text-base text-charcoal">Couple Couture &amp; Wedding Rental Studio</h3>
-                <p className="text-xs text-charcoal/60 font-medium">Coordinated bridal &amp; groom outfits for traditional and fusion weddings</p>
+                <h3 className="font-serif font-bold text-base text-charcoal">Complete Wedding Wardrobe Studio</h3>
+                <p className="text-xs text-charcoal/60 font-medium">Coordinated bridal lehengas, groom sherwanis &amp; ceremonial couple ensembles</p>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
-                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
-                  <Award className="w-4 h-4 text-[#0F4C45] shrink-0" />
-                  <span className="truncate">Bride &amp; Groom Sets</span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs font-bold text-charcoal">
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-[#0F4C45]" /> Couple Styling
                 </div>
-                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#0F4C45] shrink-0" />
-                  <span className="truncate">Matching Color Palettes</span>
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-[#0F4C45]" /> 3-Day Rental
                 </div>
-                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-[#0F4C45] shrink-0" />
-                  <span className="truncate">3-Day Rental Duration</span>
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#0F4C45]" /> Custom Alterations
                 </div>
-                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
-                  <User className="w-4 h-4 text-[#0F4C45] shrink-0" />
-                  <span className="truncate">Couple Fitting Suite</span>
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Building className="w-4 h-4 text-[#0F4C45]" /> Private Lounge
                 </div>
               </div>
             </div>
 
-            {/* 2. WEDDING COLLECTIONS */}
-            <div className="bg-white rounded-2xl p-4 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
+            {/* 2. COLLECTIONS (HORIZONTAL SLIDER) */}
+            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-gold/10 pb-2.5">
                 <div>
-                  <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Our Wedding Collections</h2>
-                  <p className="text-xs text-charcoal/60 mt-0.5">Explore signature bridal, groom, and ceremonial couple ensembles</p>
+                  <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">{studioCategoryConfig.collectionsTitle}</h2>
+                  <p className="text-xs text-charcoal/60 mt-0.5">{studioCategoryConfig.collectionsSubtitle}</p>
                 </div>
-                <span className="text-[11px] font-bold text-[#0F4C45] sm:hidden flex items-center gap-0.5 shrink-0 bg-[#0F4C45]/10 px-2.5 py-1 rounded-full">
+                <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold text-charcoal/40 bg-[#FAF7F2] px-2.5 py-1 rounded-full border border-gold/15">
                   Slide →
                 </span>
               </div>
-              <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-4 overflow-x-auto sm:overflow-x-visible pb-3 sm:pb-0 scroll-smooth snap-x snap-mandatory hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
-                {boutiqueCollectionsList.map((col: any) => (
-                  <Link
-                    key={col.id}
-                    href={`/collections/${col.id}`}
-                    className="relative w-[76vw] min-w-[250px] max-w-[310px] sm:w-auto aspect-[3/4] shrink-0 snap-start rounded-2xl sm:rounded-3xl overflow-hidden border border-gold/25 shadow-md hover:shadow-xl hover:border-gold transition-all duration-300 group cursor-pointer bg-charcoal flex flex-col justify-end"
-                  >
-                    {/* Full-bleed background image */}
-                    <img
-                      src={col.coverImage}
-                      alt={col.name}
-                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                    />
 
-                    {/* Top Collections Badge */}
-                    <div className="absolute top-3 left-3 z-10">
-                      <span className="bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/20">
-                        {col.outfitCount || (col.outfits || []).length || 15}+ Collections
-                      </span>
-                    </div>
-
-                    {/* Gradient Overlay (Like Cloche Featured Collections in Image 2) */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-transparent z-10" />
-
-                    {/* Overlaid Card Info (No Description, Mentions Price) */}
-                    <div className="relative z-20 p-4 sm:p-5 space-y-1.5">
-                      <div className="text-[10px] sm:text-[11px] font-bold tracking-widest text-[#C8A96A] uppercase">
-                        {col.location || col.category || "WEDDING COUTURE"}
-                      </div>
-
-                      <h3 className="font-serif font-bold text-lg sm:text-xl text-white leading-snug group-hover:text-[#E8D4B0] transition-colors drop-shadow-sm line-clamp-2">
-                        {col.name}
-                      </h3>
-
-                      <div className="pt-2 flex items-center justify-between border-t border-white/15">
-                        <div>
-                          <div className="text-[9px] uppercase tracking-wider text-white/60 font-semibold">Starting at</div>
-                          <div className="text-xs sm:text-sm font-bold text-emerald-300">
-                            {col.priceRange || (col.outfits && col.outfits[0]?.price ? col.outfits[0].price : "₹22,500 / 3 Days")}
+              {boutiqueCollectionsList.length > 0 ? (
+                <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 overflow-x-auto sm:overflow-visible pb-2 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory scroll-smooth hide-scrollbar">
+                  {boutiqueCollectionsList.map((col: any) => {
+                    const startingPrice = col.outfits && col.outfits.length > 0 ? col.outfits[0].price : col.price || col.startingPrice;
+                    const targetUrl = col.id ? `/collections/${col.id}` : "/collections";
+                    return (
+                      <Link
+                        key={col.id}
+                        href={targetUrl}
+                        className="group shrink-0 w-[240px] sm:w-auto snap-start block"
+                      >
+                        <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-md group-hover:shadow-xl transition-all duration-500 bg-charcoal border border-gold/20 flex flex-col justify-end p-4">
+                          <img
+                            src={col.coverImage || col.image || "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop"}
+                            alt={col.name}
+                            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent pointer-events-none" />
+                          <div className="relative z-10 space-y-1.5">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-[#C8A96A] bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-full border border-[#C8A96A]/30">
+                                {col.category || "Couple"}
+                              </span>
+                              {startingPrice && (
+                                <span className="text-[10px] font-medium text-white/80 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20">
+                                  {startingPrice}
+                                </span>
+                              )}
+                            </div>
+                            <h3 className="font-serif font-bold text-base sm:text-lg text-white leading-snug group-hover:text-[#E8D4B0] transition-colors drop-shadow-sm line-clamp-2">
+                              {col.name}
+                            </h3>
+                            <div className="pt-1 flex items-center justify-between text-xs font-bold text-white/90">
+                              <span className="text-[11px] font-semibold text-[#E8D4B0] flex items-center gap-1">
+                                View Collection <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                              </span>
+                              <span className="text-[10px] text-white/60">
+                                {(col.outfits || []).length || col.outfitCount || 0} designs
+                              </span>
+                            </div>
                           </div>
                         </div>
-
-                        <span className="text-[11px] text-white font-bold bg-white/15 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/25 group-hover:bg-[#0F4C45] group-hover:border-[#0F4C45] transition-all flex items-center gap-1">
-                          Explore <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              ) : (
+                <SectionEmptyState
+                  icon={ShoppingBag}
+                  title="No collections added yet"
+                  message="Coordinated couple ensembles and wedding collections will appear here once added."
+                  actionLabel="Inquire Collections"
+                  onAction={() => handleOpenMessage()}
+                />
+              )}
             </div>
 
             {/* 3. PRICING */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal border-b border-gold/10 pb-2.5">Couple Ensemble &amp; Individual Pricing</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Couple Pair Package</span>
-                  <div className="font-serif font-bold text-lg text-[#0F4C45]">From ₹28,000 / 3 Days</div>
-                  <p className="text-charcoal/60">Coordinated Crimson &amp; Gold Bride Lehenga + Groom Sherwani Set.</p>
+              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal border-b border-gold/10 pb-2.5">Couple Rental &amp; Couture Pricing</h2>
+              {vendorServicesList.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  {vendorServicesList.map((svc: any, idx: number) => {
+                    const price = svc.base_price || svc.price;
+                    const formatted = typeof price === "number" ? `₹${price.toLocaleString("en-IN")}` : price || "Custom Quote";
+                    return (
+                      <div key={svc.id || idx} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
+                        <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">{svc.name}</span>
+                        <div className="font-serif font-bold text-lg text-[#0F4C45]">{formatted}</div>
+                        {svc.description && <p className="text-charcoal/60 leading-relaxed">{svc.description}</p>}
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Bridal Lehenga</span>
-                  <div className="font-serif font-bold text-lg text-[#0F4C45]">From ₹18,500 / 3 Days</div>
-                  <p className="text-charcoal/60">Zardozi bridal lehenga with dual dupattas &amp; custom fitting.</p>
-                </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Groom Sherwani</span>
-                  <div className="font-serif font-bold text-lg text-[#0F4C45]">From ₹14,500 / 3 Days</div>
-                  <p className="text-charcoal/60">Raw silk sherwani with safa, stole &amp; ceremonial footwear.</p>
-                </div>
-              </div>
+              ) : (
+                <SectionEmptyState
+                  icon={Tag}
+                  title="Contact for pricing"
+                  message="Coordinated couple rental and tailoring rates are available upon inquiry."
+                  actionLabel="Request Price List"
+                  onAction={() => handleOpenMessage()}
+                />
+              )}
             </div>
 
             {/* 4. GALLERY / PORTFOLIO */}
-            {galleryPhotos.length > 0 && (
-              <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-                <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-                  <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Portfolio &amp; Real Couples</h2>
+            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
+              <div className="flex items-center justify-between border-b border-gold/10 pb-3">
+                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Portfolio &amp; Real Couples</h2>
+                {galleryPhotos.length > 0 && (
                   <button onClick={() => setShowAllPhotosModal(true)} className="text-xs font-extrabold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer">
                     View All Photos ({galleryPhotos.length}) <ChevronRight className="w-3.5 h-3.5" />
                   </button>
-                </div>
+                )}
+              </div>
+              {galleryPhotos.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   {galleryPhotos.slice(0, 4).map((photo, i) => (
                     <div key={i} onClick={() => setLightboxIndex(i)} className="relative aspect-[3/4] rounded-xl overflow-hidden border border-gold/20 shadow-2xs cursor-pointer group bg-gray-100">
@@ -2800,52 +2732,75 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <SectionEmptyState
+                  icon={Camera}
+                  title="No portfolio images uploaded yet"
+                  message="Wedding studio portfolio photos will appear here once uploaded."
+                  actionLabel="Request Portfolio Photos"
+                  onAction={() => handleOpenMessage()}
+                />
+              )}
+            </div>
 
             {/* 5. ABOUT */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3">
-              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2">About Wedding Studio</h2>
-              <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">
-                {about || `Providing complete ceremonial wardrobe solutions for couples, ${displayName} specializes in synchronized bride and groom couture. We craft matching embroidery motifs and color palettes for memorable wedding photos.`}
-              </p>
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2">About Studio &amp; Master Craftsmen</h2>
+              {about ? (
+                <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">{about}</p>
+              ) : (
+                <SectionEmptyState
+                  icon={User}
+                  title="Business information not added yet"
+                  message="Studio background, fabrics, and crafting techniques will appear here once added."
+                />
+              )}
             </div>
 
             {/* 6. PACKAGES */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Couple Packages</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full">Wedding Day Couple Set</span>
-                  <h3 className="font-serif font-bold text-base text-charcoal">Synchronized Bride &amp; Groom Ceremonial Pair</h3>
-                  <p className="text-xs text-charcoal/70">Includes 1 Bridal Lehenga + 1 Groom Sherwani with matching safa, stole, and veil.</p>
-                  <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
-                    <span>₹28,000 / 3 Days</span>
-                    <button onClick={() => handleCheckAvailability()} className="underline">Inquire Pair</button>
-                  </div>
+              {vendorPackagesList.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {vendorPackagesList.map((pkg: any, idx: number) => {
+                    const price = pkg.discount_price || pkg.price;
+                    const formatted = typeof price === "number" ? `₹${price.toLocaleString("en-IN")}` : price || "Custom Quote";
+                    return (
+                      <div key={pkg.id || idx} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2 flex flex-col justify-between">
+                        <div className="space-y-1">
+                          <h3 className="font-serif font-bold text-base text-charcoal">{pkg.name}</h3>
+                          {pkg.description && <p className="text-xs text-charcoal/70">{pkg.description}</p>}
+                        </div>
+                        <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
+                          <span>{formatted}</span>
+                          <button onClick={() => handleCheckAvailability()} className="underline">Reserve Package</button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full">Full Wedding + Reception Pair</span>
-                  <h3 className="font-serif font-bold text-base text-charcoal">Complete 2-Event Couple Wardrobe Package</h3>
-                  <p className="text-xs text-charcoal/70">Includes Wedding Pair (Lehenga + Sherwani) + Reception Pair (Gown + Tuxedo) with custom alterations.</p>
-                  <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
-                    <span>₹48,000 / 4 Days</span>
-                    <button onClick={() => handleCheckAvailability()} className="underline">Inquire Pair</button>
-                  </div>
-                </div>
-              </div>
+              ) : (
+                <SectionEmptyState
+                  icon={Package}
+                  title="No packages available yet"
+                  message="Couple combo packages have not been published yet. Inquire for custom pricing."
+                  actionLabel="Inquire for Custom Package"
+                  onAction={() => handleCheckAvailability()}
+                />
+              )}
             </div>
 
             {/* 7. POLICIES */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
               <div className="flex items-center gap-2 border-b border-gold/10 pb-2.5">
                 <FileText className="w-4.5 h-4.5 text-[#C8A96A]" />
-                <h2 className="font-serif text-lg font-bold text-charcoal">Rental &amp; Deposit Policies</h2>
+                <h2 className="font-serif text-lg font-bold text-charcoal">Fitting &amp; Rental Policies</h2>
               </div>
               <div className="space-y-2 text-xs font-semibold text-charcoal/80">
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> 3 Days Rental Period (Pickup day before, Return day after)</div>
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Refundable Security Deposit (₹15,000 per couple set)</div>
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Master Tailor Custom Fitting for both Bride &amp; Groom</div>
+                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> 3-Day Rental Duration (Pickup day before, Return day after)</div>
+                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Refundable Security Deposit per ensemble</div>
+                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Free Master Tailor Fitting Alterations for Bride &amp; Groom</div>
+                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Sanitized Dry Cleaning &amp; Garment Care Included</div>
               </div>
             </div>
 
@@ -2853,32 +2808,44 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
               <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Studio Amenities &amp; Services</h2>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-bold text-charcoal">
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><User className="w-4 h-4 text-[#0F4C45]" /> Private Couple Fitting Suite</div>
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Sparkles className="w-4 h-4 text-[#0F4C45]" /> Color-Matching Consultation</div>
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-[#0F4C45]" /> In-House Master Tailors</div>
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Car className="w-4 h-4 text-[#0F4C45]" /> Doorstep Pickup &amp; Delivery</div>
+                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-[#0F4C45]" /> Private Couple Fitting Lounge</div>
+                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><User className="w-4 h-4 text-[#0F4C45]" /> Master Tailor Custom Alterations</div>
+                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Sparkles className="w-4 h-4 text-[#0F4C45]" /> Safa &amp; Dupatta Styling</div>
+                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Car className="w-4 h-4 text-[#0F4C45]" /> Doorstep Delivery &amp; Pickup</div>
               </div>
             </div>
 
             {/* 9. REVIEWS */}
             <section className="bg-white p-4.5 sm:p-6 rounded-2xl border border-gold/15 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Reviews</h2>
+                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">
+                  Reviews {reviewsList.length > 0 ? `(${reviewsList.length})` : ""}
+                </h2>
                 <button onClick={() => setIsReviewModalOpen(true)} className="px-3.5 py-1.5 rounded-xl border border-rose-500 text-rose-600 font-extrabold text-xs hover:bg-rose-50 transition-colors cursor-pointer">
                   Write a Review
                 </button>
               </div>
-              <div className="space-y-3 pt-2">
-                {reviewsList.map((rev) => (
-                  <div key={rev.id} className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs text-charcoal">{rev.customerName}</span>
-                      <span className="text-[10px] text-emerald-700 font-semibold">★ {rev.rating || 5}.0 Verified Couple</span>
+              {reviewsList.length > 0 ? (
+                <div className="space-y-3 pt-2">
+                  {reviewsList.map((rev) => (
+                    <div key={rev.id} className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-xs text-charcoal">{rev.customerName}</span>
+                        <span className="text-[10px] text-emerald-700 font-semibold">★ {rev.rating || 5}.0 Verified Couple</span>
+                      </div>
+                      <p className="text-xs text-charcoal/80">"{rev.text}"</p>
                     </div>
-                    <p className="text-xs text-charcoal/80">"{rev.text}"</p>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <SectionEmptyState
+                  icon={MessageSquare}
+                  title="No reviews yet"
+                  message={`Be the first couple to leave a review for ${displayName}.`}
+                  actionLabel="Write a Review"
+                  onAction={() => setIsReviewModalOpen(true)}
+                />
+              )}
             </section>
 
             {/* 10. SIMILAR WEDDING STUDIOS */}
@@ -2888,48 +2855,27 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                 <Link href="/categories/wedding-studio" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-                
-                {similarStudios.slice(0, 3).map((item: any) => (
+                {similarStudios.slice(0, 3).map((item, idx) => (
                   <Link
-                    key={item.id}
-                    href={getSimilarVendorHref(item, "weddingStudio")}
-                    className="group block rounded-2xl border border-gold/15 bg-white overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all p-3 space-y-2.5 cursor-pointer"
+                    key={item.id || idx}
+                    href={getSimilarVendorHref(item, "wedding-studio")}
+                    className="group bg-white rounded-2xl overflow-hidden border border-gold/15 shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col"
                   >
-                    <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-gray-200">
+                    <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
                       <img
-                        src={item.image || item.coverImage || item.logo || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80"}
-                        alt={item.name}
+                        src={item.coverImage || item.cover_image || item.image || item.image_url}
+                        alt={item.name || item.business_name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      <span className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-xs text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
-                        <CheckCircle2 className="w-3 h-3 text-[#0F4C45] fill-[#0F4C45] text-white" /> Verified
-                      </span>
                     </div>
-
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-xs text-charcoal/70">
-                        <span className="font-medium flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-[#0F4C45] shrink-0" />
-                          <span className="truncate">{item.location || item.city || "Kerala, India"}</span>
-                        </span>
-                        <span className="font-bold text-amber-600 flex items-center gap-1 shrink-0">
-                          <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                          {item.rating ? Number(item.rating).toFixed(1) : "4.8"}
-                        </span>
-                      </div>
-
+                    <div className="p-3.5 space-y-1.5 flex-1 flex flex-col justify-between">
                       <h3 className="font-serif font-bold text-base text-charcoal leading-snug group-hover:text-[#0F4C45] transition-colors truncate">
-                        {item.name}
+                        {item.name || item.business_name}
                       </h3>
-
-                      <div className="text-xs font-bold text-[#0F4C45]">
-                        {item.startingPrice || item.starting_price || "Contact for Pricing"}
+                      <div className="pt-2 border-t border-gold/10 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
+                        <span>View Studio</span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                       </div>
-                    </div>
-
-                    <div className="w-full py-2.5 rounded-xl bg-[#0F4C45] group-hover:bg-[#12584E] text-white font-bold text-xs transition-all text-center flex items-center justify-center gap-1.5 shadow-2xs">
-                      <span>View Profile</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
                     </div>
                   </Link>
                 ))}
@@ -2943,244 +2889,285 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
         {/* ════════════════════════════════════════════════════════════════ */}
         {categoryType === "photographer" && (
           <>
-            {/* 1. PORTFOLIO SHOWCASE GRID */}
-            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-                <div>
-                  <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Photography Portfolio</h2>
-                  <p className="text-xs text-charcoal/60 mt-0.5">Candid shots, pre-wedding stories, and ritual documentation</p>
-                </div>
-                <button onClick={() => setShowAllPhotosModal(true)} className="text-xs font-extrabold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer">
-                  View Full Gallery ({galleryPhotos.length}) <ChevronRight className="w-3.5 h-3.5" />
-                </button>
+            {/* 1. OVERVIEW */}
+            <div className="bg-white rounded-2xl p-4 border border-gold/15 shadow-2xs space-y-2.5">
+              <div>
+                <h3 className="font-serif font-bold text-base text-charcoal">Wedding Photography &amp; Cinematography</h3>
+                <p className="text-xs text-charcoal/60 font-medium">Candid photography, traditional video, pre-wedding &amp; drone coverage</p>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                {galleryPhotos.slice(0, 4).map((photo, i) => (
-                  <div key={i} onClick={() => setLightboxIndex(i)} className="relative aspect-[4/3] rounded-xl overflow-hidden border border-gold/20 shadow-2xs cursor-pointer group bg-gray-100">
-                    <img src={photo.url} alt="Portfolio Shot" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  </div>
-                ))}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs font-bold text-charcoal">
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Camera className="w-4 h-4 text-[#0F4C45]" /> Candid Captures
+                </div>
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Film className="w-4 h-4 text-[#0F4C45]" /> 4K Cinematic Films
+                </div>
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#0F4C45]" /> Drone Coverage
+                </div>
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-[#0F4C45]" /> Quick Teaser
+                </div>
               </div>
             </div>
 
-            {/* 2. PHOTOGRAPHY CATEGORIES / STYLES */}
+            {/* 2. GALLERY / PORTFOLIO */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Photography Styles &amp; Services</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-bold text-charcoal">
-                <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <Sparkles className="w-4 h-4 text-[#0F4C45]" />
-                  <div>Candid Photography</div>
-                  <div className="text-[10px] text-charcoal/50 font-normal">Unscripted emotional moments</div>
+              <div className="flex items-center justify-between border-b border-gold/10 pb-3">
+                <div className="flex items-center gap-2">
+                  <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Portfolio &amp; Wedding Highlights</h2>
+                  {galleryPhotos.length > 0 && (
+                    <span className="px-2.5 py-0.5 rounded-full bg-gold/15 text-[#0F4C45] text-xs font-extrabold">
+                      {galleryPhotos.length} photos
+                    </span>
+                  )}
                 </div>
-                <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <Play className="w-4 h-4 text-[#0F4C45]" />
-                  <div>Cinematic Wedding Film</div>
-                  <div className="text-[10px] text-charcoal/50 font-normal">4K 60fps movie-style videos</div>
-                </div>
-                <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <ImageIcon className="w-4 h-4 text-[#0F4C45]" />
-                  <div>Pre-Wedding Shoots</div>
-                  <div className="text-[10px] text-charcoal/50 font-normal">Outdoor destination sessions</div>
-                </div>
-                <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <Video className="w-4 h-4 text-[#0F4C45]" />
-                  <div>4K Drone Aerial Footage</div>
-                  <div className="text-[10px] text-charcoal/50 font-normal">Panoramic venue coverage</div>
-                </div>
+                {galleryPhotos.length > 0 && (
+                  <button
+                    onClick={() => setShowAllPhotosModal(true)}
+                    className="text-xs font-extrabold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    View All Photos <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
+              {galleryPhotos.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  {galleryPhotos.slice(0, 4).map((photo, i) => (
+                    <div
+                      key={i}
+                      onClick={() => setLightboxIndex(i)}
+                      className="relative aspect-[4/3] rounded-xl overflow-hidden border border-gold/20 shadow-2xs cursor-pointer group bg-gray-100"
+                    >
+                      <img src={photo.url} alt={photo.caption || `Portfolio Photo ${i + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      {i === 3 && galleryPhotos.length > 4 && (
+                        <div
+                          onClick={(e) => { e.stopPropagation(); setShowAllPhotosModal(true); }}
+                          className="absolute inset-0 bg-black/60 backdrop-blur-xs flex flex-col items-center justify-center text-white font-extrabold text-xs sm:text-sm gap-1 group-hover:bg-black/70 transition-colors"
+                        >
+                          <ImageIcon className="w-5 h-5" />
+                          <span>+{galleryPhotos.length - 4} More</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <SectionEmptyState
+                  icon={Camera}
+                  title="No portfolio images uploaded yet"
+                  message="Portfolio captures and wedding highlights will appear here once uploaded."
+                  actionLabel="Request Portfolio Photos"
+                  onAction={() => handleOpenMessage()}
+                />
+              )}
             </div>
 
             {/* 3. WEDDING FILMS */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Wedding Films &amp; Teasers</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="relative aspect-[16/9] rounded-xl overflow-hidden bg-charcoal group border border-gold/20 shadow-xs cursor-pointer" onClick={() => handleCheckAvailability()}>
-                  <img src={galleryPhotos[0]?.url || coverUrl} alt="Film Teaser" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                    <div className="w-12 h-12 rounded-full bg-white/90 text-[#0F4C45] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                      <Play className="w-6 h-6 fill-[#0F4C45] ml-1" />
+              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal border-b border-gold/10 pb-2.5">
+                Wedding Films &amp; Teasers
+              </h2>
+              {videoFilmsList.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {videoFilmsList.map((film, idx) => (
+                    <div key={idx} className="relative aspect-[16/9] rounded-xl overflow-hidden bg-black group border border-gold/20 shadow-xs cursor-pointer">
+                      <img
+                        src={film.thumbnail || galleryPhotos[0]?.url || "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=800&auto=format&fit=crop"}
+                        alt={film.title}
+                        className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-full bg-white/90 shadow-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <Play className="w-6 h-6 fill-[#0F4C45] text-[#0F4C45] ml-1" />
+                        </div>
+                      </div>
+                      <span className="absolute bottom-3 left-3 text-white text-xs font-bold bg-black/60 px-2.5 py-0.5 rounded-full">
+                        {film.title}
+                      </span>
                     </div>
-                  </div>
-                  <span className="absolute bottom-3 left-3 text-white text-xs font-bold bg-black/60 px-2.5 py-0.5 rounded-full">Cinematic Teaser (3 Mins)</span>
+                  ))}
                 </div>
-                <div className="relative aspect-[16/9] rounded-xl overflow-hidden bg-charcoal group border border-gold/20 shadow-xs cursor-pointer" onClick={() => handleCheckAvailability()}>
-                  <img src={galleryPhotos[1]?.url || coverUrl} alt="Feature Film" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                    <div className="w-12 h-12 rounded-full bg-white/90 text-[#0F4C45] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                      <Play className="w-6 h-6 fill-[#0F4C45] ml-1" />
-                    </div>
-                  </div>
-                  <span className="absolute bottom-3 left-3 text-white text-xs font-bold bg-black/60 px-2.5 py-0.5 rounded-full">Full Wedding Highlights (30 Mins)</span>
-                </div>
-              </div>
+              ) : (
+                <SectionEmptyState
+                  icon={Film}
+                  title="No videos added yet"
+                  message="Wedding film teasers and cinema highlights have not been uploaded yet."
+                  actionLabel="Request Wedding Film Sample"
+                  onAction={() => handleOpenMessage()}
+                />
+              )}
             </div>
 
             {/* 4. PRICING */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal flex flex-wrap items-center justify-between gap-2 border-b border-gold/10 pb-2.5">
                 <span>Photography &amp; Film Pricing</span>
-                {Boolean(vendor?.contactForPricing ?? vendor?.contact_for_pricing ?? sf?.contactForPricing ?? false) ? (
-                  <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20">
-                    Contact for Pricing
-                  </span>
-                ) : (vendor?.startingPrice || vendor?.starting_price || vendor?.startingPriceLabel) ? (
-                  <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20">
-                    Starting from {vendor?.startingPriceLabel || (typeof (vendor?.startingPrice ?? vendor?.starting_price) === "number" ? `₹${Number(vendor?.startingPrice ?? vendor?.starting_price).toLocaleString("en-IN")}` : (vendor?.startingPrice || vendor?.starting_price))}
-                  </span>
-                ) : null}
+                <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20">
+                  {Boolean(vendor?.contactForPricing ?? vendor?.contact_for_pricing ?? sf?.contactForPricing ?? false)
+                    ? "Contact for Pricing"
+                    : vendor?.startingPriceLabel || (vendor?.startingPrice ? (typeof vendor.startingPrice === "number" ? `₹${Number(vendor.startingPrice).toLocaleString("en-IN")}` : vendor.startingPrice) : "Contact for Pricing")}
+                </span>
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Candid Photography</span>
-                  <div className="font-serif font-bold text-lg text-[#0F4C45]">₹45,000 / Day</div>
-                  <p className="text-charcoal/60">Senior candid photographer + edited high-res digital gallery.</p>
+              {vendorServicesList.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  {vendorServicesList.map((svc: any, idx: number) => {
+                    const price = svc.base_price || svc.price;
+                    const formatted = typeof price === "number" ? `₹${price.toLocaleString("en-IN")}` : price || "Custom Quote";
+                    return (
+                      <div key={svc.id || idx} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
+                        <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">{svc.name}</span>
+                        <div className="font-serif font-bold text-lg text-[#0F4C45]">{formatted}</div>
+                        {svc.description && <p className="text-charcoal/60">{svc.description}</p>}
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Cinematography &amp; Drone</span>
-                  <div className="font-serif font-bold text-lg text-[#0F4C45]">₹55,000 / Day</div>
-                  <p className="text-charcoal/60">4K Cinema camera + 3-min teaser + 30-min feature film.</p>
-                </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Pre-Wedding Shoot</span>
-                  <div className="font-serif font-bold text-lg text-[#0F4C45]">₹30,000 / Day</div>
-                  <p className="text-charcoal/60">1-Day outdoor shoot with reel edits &amp; drone footage.</p>
-                </div>
-              </div>
+              ) : (
+                <SectionEmptyState
+                  icon={Tag}
+                  title="Contact for pricing"
+                  message="Day rates, deliverable timelines, and album options are quoted upon consultation."
+                  actionLabel="Request Pricing Quote"
+                  onAction={() => handleOpenMessage()}
+                />
+              )}
             </div>
 
-            {/* 5. GALLERY */}
-            {galleryPhotos.length > 4 && (
-              <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3">
-                <div className="flex items-center justify-between border-b border-gold/10 pb-2">
-                  <h2 className="font-serif text-lg font-bold text-charcoal">More Portfolio Captures</h2>
-                  <button onClick={() => setShowAllPhotosModal(true)} className="text-xs font-bold text-[#0F4C45]">View All ({galleryPhotos.length})</button>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {galleryPhotos.slice(4, 8).map((photo, i) => (
-                    <img key={i} src={photo.url} alt="" onClick={() => setLightboxIndex(i + 4)} className="w-full aspect-[4/3] object-cover rounded-xl cursor-pointer" />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 6. ABOUT */}
+            {/* 5. ABOUT */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3">
               <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2">About Team &amp; Equipment</h2>
-              <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">
-                {about || `Capturing timeless wedding stories across India, ${displayName} brings 8+ years of expertise in candid wedding photography and 4K cinematography. Equipped with Sony Alpha full-frame cameras, prime lenses, and DJI 4K drones.`}
-              </p>
+              {about ? (
+                <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">{about}</p>
+              ) : (
+                <SectionEmptyState
+                  icon={User}
+                  title="Business information not added yet"
+                  message="Equipment specifications, camera gear, and team size details have not been added yet."
+                />
+              )}
             </div>
 
-            {/* 7. PACKAGES */}
+            {/* 6. PACKAGES */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Wedding Photography Packages</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full">Gold 2-Day Package</span>
-                  <h3 className="font-serif font-bold text-base text-charcoal">Candid + Traditional + Highlights Film</h3>
-                  <p className="text-xs text-charcoal/70">2 Candid Photographers + 2 Traditional Videographers + 1 Luxury Photo Album (40 Pages) + Teaser.</p>
-                  <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
-                    <span>₹1,45,000 Complete</span>
-                    <button onClick={() => handleCheckAvailability()} className="underline">Book Package</button>
-                  </div>
+              {vendorPackagesList.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {vendorPackagesList.map((pkg: any, idx: number) => {
+                    const price = pkg.discount_price || pkg.price;
+                    const formatted = typeof price === "number" ? `₹${price.toLocaleString("en-IN")}` : price || "Custom Quote";
+                    return (
+                      <div key={pkg.id || idx} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2 flex flex-col justify-between">
+                        <div className="space-y-1">
+                          {pkg.is_popular && (
+                            <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full inline-block">
+                              Most Popular
+                            </span>
+                          )}
+                          <h3 className="font-serif font-bold text-base text-charcoal">{pkg.name}</h3>
+                          {pkg.description && <p className="text-xs text-charcoal/70 leading-relaxed">{pkg.description}</p>}
+                        </div>
+                        <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
+                          <span>{formatted}</span>
+                          <button onClick={() => handleCheckAvailability()} className="underline">Book Package</button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full">Platinum 3-Day Cinematic Package</span>
-                  <h3 className="font-serif font-bold text-base text-charcoal">Pre-Wedding + Full Wedding &amp; 4K Drone</h3>
-                  <p className="text-xs text-charcoal/70">3 Candid Photographers + 3 Cinematographers + 4K Drone + 2 Luxury Albums + 30-Min Feature Film.</p>
-                  <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
-                    <span>₹2,20,000 Complete</span>
-                    <button onClick={() => handleCheckAvailability()} className="underline">Book Package</button>
-                  </div>
-                </div>
-              </div>
+              ) : (
+                <SectionEmptyState
+                  icon={Package}
+                  title="No packages available yet"
+                  message="Preset photography packages have not been published yet. Inquire for a custom coverage proposal."
+                  actionLabel="Inquire for Custom Package"
+                  onAction={() => handleCheckAvailability()}
+                />
+              )}
             </div>
 
-            {/* 8. REVIEWS */}
+            {/* 7. REVIEWS */}
             <section className="bg-white p-4.5 sm:p-6 rounded-2xl border border-gold/15 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Reviews</h2>
+                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">
+                  Reviews {reviewsList.length > 0 ? `(${reviewsList.length})` : ""}
+                </h2>
                 <button onClick={() => setIsReviewModalOpen(true)} className="px-3.5 py-1.5 rounded-xl border border-rose-500 text-rose-600 font-extrabold text-xs hover:bg-rose-50 transition-colors cursor-pointer">
                   Write a Review
                 </button>
               </div>
-              <div className="space-y-3 pt-2">
-                {reviewsList.map((rev) => (
-                  <div key={rev.id} className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs text-charcoal">{rev.customerName}</span>
-                      <span className="text-[10px] text-emerald-700 font-semibold">★ {rev.rating || 5}.0 Verified Couple</span>
+              {reviewsList.length > 0 ? (
+                <div className="space-y-3 pt-2">
+                  {reviewsList.map((rev) => (
+                    <div key={rev.id} className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-xs text-charcoal">{rev.customerName}</span>
+                        <span className="text-[10px] text-emerald-700 font-semibold">★ {rev.rating || 5}.0 Verified Couple</span>
+                      </div>
+                      <p className="text-xs text-charcoal/80">"{rev.text}"</p>
                     </div>
-                    <p className="text-xs text-charcoal/80">"{rev.text}"</p>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <SectionEmptyState
+                  icon={MessageSquare}
+                  title="No reviews yet"
+                  message={`Be the first couple to leave a review for ${displayName}.`}
+                  actionLabel="Write a Review"
+                  onAction={() => setIsReviewModalOpen(true)}
+                />
+              )}
             </section>
 
-            {/* 9. FAQS */}
+            {/* 8. FAQS */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
               <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Frequently Asked Questions</h2>
-              <div className="space-y-3 text-xs">
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <h3 className="font-bold text-charcoal">What is the delivery timeline for photos and films?</h3>
-                  <p className="text-charcoal/70">Edited photos are delivered within 3 weeks. Full cinematic films &amp; print albums are completed within 5 weeks.</p>
+              {vendorFaqsList.length > 0 ? (
+                <div className="space-y-3">
+                  {vendorFaqsList.map((faq: any, idx: number) => (
+                    <div key={idx} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
+                      <h3 className="font-bold text-xs sm:text-sm text-charcoal leading-snug">{faq.q}</h3>
+                      <p className="text-xs text-charcoal/70 leading-relaxed font-normal">{faq.a}</p>
+                    </div>
+                  ))}
                 </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <h3 className="font-bold text-charcoal">Do you provide all raw, unedited photos?</h3>
-                  <p className="text-charcoal/70">Yes! All raw camera files are delivered on a high-speed hard drive or cloud link at no extra cost.</p>
-                </div>
-              </div>
+              ) : (
+                <SectionEmptyState
+                  icon={HelpCircle}
+                  title="No FAQs added yet"
+                  message="FAQs about raw footage, turnaround times, and travel policies have not been published yet."
+                />
+              )}
             </div>
 
-            {/* 10. SIMILAR PHOTOGRAPHERS */}
+            {/* 9. SIMILAR PHOTOGRAPHERS */}
             <section className="bg-white p-4.5 sm:p-6 rounded-2xl border border-gold/15 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-gold/10 pb-2.5">
                 <h2 className="font-serif font-bold text-lg sm:text-xl text-charcoal">Similar Photographers</h2>
-                <Link href="/photographers" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
+                <Link href="/categories/photographers" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-                
-                {similarStudios.slice(0, 3).map((item: any) => (
+                {similarStudios.slice(0, 3).map((item, idx) => (
                   <Link
-                    key={item.id}
-                    href={getSimilarVendorHref(item, "photographer")}
-                    className="group block rounded-2xl border border-gold/15 bg-white overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all p-3 space-y-2.5 cursor-pointer"
+                    key={item.id || idx}
+                    href={getSimilarVendorHref(item, "photographers")}
+                    className="group bg-white rounded-2xl overflow-hidden border border-gold/15 shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col"
                   >
-                    <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-gray-200">
+                    <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
                       <img
-                        src={item.image || item.coverImage || item.logo || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80"}
-                        alt={item.name}
+                        src={item.coverImage || item.cover_image || item.image || item.image_url}
+                        alt={item.name || item.business_name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      <span className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-xs text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
-                        <CheckCircle2 className="w-3 h-3 text-[#0F4C45] fill-[#0F4C45] text-white" /> Verified
-                      </span>
                     </div>
-
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-xs text-charcoal/70">
-                        <span className="font-medium flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-[#0F4C45] shrink-0" />
-                          <span className="truncate">{item.location || item.city || "Kerala, India"}</span>
-                        </span>
-                        <span className="font-bold text-amber-600 flex items-center gap-1 shrink-0">
-                          <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                          {item.rating ? Number(item.rating).toFixed(1) : "4.8"}
-                        </span>
-                      </div>
-
+                    <div className="p-3.5 space-y-1.5 flex-1 flex flex-col justify-between">
                       <h3 className="font-serif font-bold text-base text-charcoal leading-snug group-hover:text-[#0F4C45] transition-colors truncate">
-                        {item.name}
+                        {item.name || item.business_name}
                       </h3>
-
-                      <div className="text-xs font-bold text-[#0F4C45]">
-                        {item.startingPrice || item.starting_price || "Contact for Pricing"}
+                      <div className="pt-2 border-t border-gold/10 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
+                        <span>View Portfolio</span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                       </div>
-                    </div>
-
-                    <div className="w-full py-2.5 rounded-xl bg-[#0F4C45] group-hover:bg-[#12584E] text-white font-bold text-xs transition-all text-center flex items-center justify-center gap-1.5 shadow-2xs">
-                      <span>View Profile</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
                     </div>
                   </Link>
                 ))}
@@ -3194,125 +3181,69 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
         {/* ════════════════════════════════════════════════════════════════ */}
         {categoryType === "makeupArtist" && (
           <>
-            {/* 1. LOOKBOOK */}
-            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <div className="border-b border-gold/10 pb-2.5">
-                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Bridal Makeup Lookbook</h2>
-                <p className="text-xs text-charcoal/60 mt-0.5">Signature HD, airbrush, glass-skin, and traditional bridal transformations</p>
+            {/* 1. OVERVIEW */}
+            <div className="bg-white rounded-2xl p-4 border border-gold/15 shadow-2xs space-y-2.5">
+              <div>
+                <h3 className="font-serif font-bold text-base text-charcoal">Bridal Makeup &amp; Hair Artistry</h3>
+                <p className="text-xs text-charcoal/60 font-medium">HD airbrush bridal makeup, luxury hair styling &amp; saree draping</p>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1 text-center">
-                  <Sparkles className="w-5 h-5 text-[#0F4C45] mx-auto" />
-                  <div className="font-bold text-charcoal">Royal HD Bridal</div>
-                  <div className="text-[10px] text-charcoal/50">Full coverage camera-ready</div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs font-bold text-charcoal">
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#0F4C45]" /> HD Airbrush
                 </div>
-                <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1 text-center">
-                  <Award className="w-5 h-5 text-[#0F4C45] mx-auto" />
-                  <div className="font-bold text-charcoal">Airbrush Glamour</div>
-                  <div className="text-[10px] text-charcoal/50">Sweat-proof 18h finish</div>
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-[#0F4C45]" /> Luxury Brands
                 </div>
-                <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1 text-center">
-                  <Heart className="w-5 h-5 text-[#0F4C45] mx-auto" />
-                  <div className="font-bold text-charcoal">Glass-Skin Reception</div>
-                  <div className="text-[10px] text-charcoal/50">Dewy luminous glow</div>
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-[#0F4C45]" /> On-Location Travel
                 </div>
-                <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1 text-center">
-                  <Star className="w-5 h-5 text-[#0F4C45] mx-auto" />
-                  <div className="font-bold text-charcoal">Traditional Nadam</div>
-                  <div className="text-[10px] text-charcoal/50">Classic temple bridal look</div>
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Building className="w-4 h-4 text-[#0F4C45]" /> Studio Trial
                 </div>
               </div>
             </div>
 
-            {/* 2. BRIDAL LOOKS & SERVICES */}
+            {/* 2. SERVICES */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Bridal Services &amp; Draping</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center justify-between">
-                  <div>
-                    <div className="font-bold text-charcoal">HD Bridal Makeup &amp; Hair Styling</div>
-                    <div className="text-charcoal/60">Includes lashes, lens application, saree draping</div>
-                  </div>
-                  <div className="font-bold text-[#0F4C45] text-sm">₹16,000</div>
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Bridal Services</h2>
+              {vendorServicesList.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  {vendorServicesList.map((svc: any, idx: number) => {
+                    const price = svc.base_price || svc.price;
+                    const formatted = typeof price === "number" ? `₹${price.toLocaleString("en-IN")}` : price || "Contact for pricing";
+                    return (
+                      <div key={svc.id || idx} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center justify-between">
+                        <div>
+                          <div className="font-bold text-charcoal">{svc.name}</div>
+                          {svc.description && <div className="text-charcoal/60">{svc.description}</div>}
+                        </div>
+                        <div className="font-bold text-[#0F4C45] text-sm shrink-0">{formatted}</div>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center justify-between">
-                  <div>
-                    <div className="font-bold text-charcoal">Airbrush HD Bridal Package</div>
-                    <div className="text-charcoal/60">Waterproof HD airbrush finish + hair extension</div>
-                  </div>
-                  <div className="font-bold text-[#0F4C45] text-sm">₹20,000</div>
-                </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center justify-between">
-                  <div>
-                    <div className="font-bold text-charcoal">Sangeet / Reception Makeup</div>
-                    <div className="text-charcoal/60">Glamorous evening makeup + hair styling</div>
-                  </div>
-                  <div className="font-bold text-[#0F4C45] text-sm">₹12,000</div>
-                </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center justify-between">
-                  <div>
-                    <div className="font-bold text-charcoal">Party Makeup (Per Person)</div>
-                    <div className="text-charcoal/60">For bridesmaids, family &amp; relatives</div>
-                  </div>
-                  <div className="font-bold text-[#0F4C45] text-sm">₹4,500</div>
-                </div>
-              </div>
+              ) : (
+                <SectionEmptyState
+                  icon={Sparkles}
+                  title="No services added yet"
+                  message="Individual service options (bridal makeup, party makeup, trial session) will appear here once configured."
+                  actionLabel="Inquire Services"
+                  onAction={() => handleOpenMessage()}
+                />
+              )}
             </div>
 
-            {/* 3. PRICING */}
+            {/* 3. GALLERY / PORTFOLIO */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal flex flex-wrap items-center justify-between gap-2 border-b border-gold/10 pb-2.5">
-                <span>Makeup Pricing Summary</span>
-                {Boolean(vendor?.contactForPricing ?? vendor?.contact_for_pricing ?? sf?.contactForPricing ?? false) ? (
-                  <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20">
-                    Contact for Pricing
-                  </span>
-                ) : (vendor?.startingPrice || vendor?.starting_price || vendor?.startingPriceLabel) ? (
-                  <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20">
-                    Starting from {vendor?.startingPriceLabel || (typeof (vendor?.startingPrice ?? vendor?.starting_price) === "number" ? `₹${Number(vendor?.startingPrice ?? vendor?.starting_price).toLocaleString("en-IN")}` : (vendor?.startingPrice || vendor?.starting_price))}
-                  </span>
-                ) : null}
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Bridal HD Makeup</span>
-                  <div className="font-serif font-bold text-lg text-[#0F4C45]">₹16,000 / Event</div>
-                  <p className="text-charcoal/60">Complete bridal makeup, hair styling, lashes &amp; saree draping.</p>
-                </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Party Makeup</span>
-                  <div className="font-serif font-bold text-lg text-[#0F4C45]">₹4,500 / Person</div>
-                  <p className="text-charcoal/60">HD party makeup for mothers, sisters &amp; bridesmaids.</p>
-                </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Trial Makeup</span>
-                  <div className="font-serif font-bold text-lg text-[#0F4C45]">₹3,000 / Session</div>
-                  <p className="text-charcoal/60">Adjustable against final bridal booking deposit.</p>
-                </div>
-              </div>
-            </div>
-
-            {/* 4. PRODUCTS USED */}
-            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Luxury Cosmetic Brands Used</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-bold text-charcoal">
-                {["MAC Cosmetics", "Huda Beauty", "Charlotte Tilbury", "NARS Cosmetics", "Bobbi Brown", "Estée Lauder", "Dior Beauty", "Too Faced"].map((brand) => (
-                  <div key={brand} className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center justify-center gap-1.5 text-center">
-                    <Sparkles className="w-3.5 h-3.5 text-[#C8A96A]" /> {brand}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* 5. GALLERY / PORTFOLIO */}
-            {galleryPhotos.length > 0 && (
-              <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-                <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-                  <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Bridal Transformations Gallery</h2>
+              <div className="flex items-center justify-between border-b border-gold/10 pb-3">
+                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Bridal Transformations Gallery</h2>
+                {galleryPhotos.length > 0 && (
                   <button onClick={() => setShowAllPhotosModal(true)} className="text-xs font-extrabold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer">
                     View All ({galleryPhotos.length}) <ChevronRight className="w-3.5 h-3.5" />
                   </button>
-                </div>
+                )}
+              </div>
+              {galleryPhotos.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   {galleryPhotos.slice(0, 4).map((photo, i) => (
                     <div key={i} onClick={() => setLightboxIndex(i)} className="relative aspect-[3/4] rounded-xl overflow-hidden border border-gold/20 shadow-2xs cursor-pointer group bg-gray-100">
@@ -3320,43 +3251,65 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <SectionEmptyState
+                  icon={Camera}
+                  title="No portfolio images uploaded yet"
+                  message="Bridal transformation photos and lookbooks will appear here once uploaded."
+                  actionLabel="Request Portfolio Photos"
+                  onAction={() => handleOpenMessage()}
+                />
+              )}
+            </div>
 
-            {/* 6. ABOUT */}
+            {/* 4. ABOUT */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3">
               <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2">About Artist &amp; Hygiene Standards</h2>
-              <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">
-                {about || `Certified international makeup artist, ${displayName} specializes in high-definition bridal makeup that enhances natural features. We use 100% authentic luxury international brands with sanitized brushes and disposable applicators for complete hygiene.`}
-              </p>
+              {about ? (
+                <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">{about}</p>
+              ) : (
+                <SectionEmptyState
+                  icon={User}
+                  title="Business information not added yet"
+                  message="Artist certifications, background, and hygiene protocols will appear here once added."
+                />
+              )}
             </div>
 
-            {/* 7. PACKAGES */}
+            {/* 5. PACKAGES */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Bridal Makeup Packages</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full">Wedding + Reception Bundle</span>
-                  <h3 className="font-serif font-bold text-base text-charcoal">2-Event HD Bridal Package</h3>
-                  <p className="text-xs text-charcoal/70">Includes HD Wedding Makeup + HD Reception Makeup + 2 Family Party Makeups complimentary.</p>
-                  <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
-                    <span>₹28,000 Complete</span>
-                    <button onClick={() => handleCheckAvailability()} className="underline">Book Package</button>
-                  </div>
+              {vendorPackagesList.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {vendorPackagesList.map((pkg: any, idx: number) => {
+                    const price = pkg.discount_price || pkg.price;
+                    const formatted = typeof price === "number" ? `₹${price.toLocaleString("en-IN")}` : price || "Custom Quote";
+                    return (
+                      <div key={pkg.id || idx} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2 flex flex-col justify-between">
+                        <div className="space-y-1">
+                          <h3 className="font-serif font-bold text-base text-charcoal">{pkg.name}</h3>
+                          {pkg.description && <p className="text-xs text-charcoal/70">{pkg.description}</p>}
+                        </div>
+                        <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
+                          <span>{formatted}</span>
+                          <button onClick={() => handleCheckAvailability()} className="underline">Book Package</button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full">Grand Bridal Suite</span>
-                  <h3 className="font-serif font-bold text-base text-charcoal">3-Event Airbrush Bridal Package</h3>
-                  <p className="text-xs text-charcoal/70">Includes Engagement + Wedding Airbrush + Reception Glamour + 4 Family Party Makeups.</p>
-                  <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
-                    <span>₹42,000 Complete</span>
-                    <button onClick={() => handleCheckAvailability()} className="underline">Book Package</button>
-                  </div>
-                </div>
-              </div>
+              ) : (
+                <SectionEmptyState
+                  icon={Package}
+                  title="No packages available yet"
+                  message="Bridal makeup packages have not been added yet. Inquire directly for custom packages."
+                  actionLabel="Inquire for Custom Package"
+                  onAction={() => handleCheckAvailability()}
+                />
+              )}
             </div>
 
-            {/* 8. POLICIES */}
+            {/* 6. POLICIES */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
               <div className="flex items-center gap-2 border-b border-gold/10 pb-2.5">
                 <FileText className="w-4.5 h-4.5 text-[#C8A96A]" />
@@ -3364,81 +3317,93 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
               </div>
               <div className="space-y-2 text-xs font-semibold text-charcoal/80">
                 <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Available for On-Location Venue Travel Across India &amp; Abroad</div>
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> 25% Advance Deposit Required to Lock Wedding Date</div>
+                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Advance Deposit Required to Lock Wedding Date</div>
                 <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Trial Makeup Session Available at Studio</div>
               </div>
             </div>
 
-            {/* 9. REVIEWS */}
+            {/* 7. REVIEWS */}
             <section className="bg-white p-4.5 sm:p-6 rounded-2xl border border-gold/15 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Reviews</h2>
+                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">
+                  Reviews {reviewsList.length > 0 ? `(${reviewsList.length})` : ""}
+                </h2>
                 <button onClick={() => setIsReviewModalOpen(true)} className="px-3.5 py-1.5 rounded-xl border border-rose-500 text-rose-600 font-extrabold text-xs hover:bg-rose-50 transition-colors cursor-pointer">
                   Write a Review
                 </button>
               </div>
-              <div className="space-y-3 pt-2">
-                {reviewsList.map((rev) => (
-                  <div key={rev.id} className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs text-charcoal">{rev.customerName}</span>
-                      <span className="text-[10px] text-emerald-700 font-semibold">★ {rev.rating || 5}.0 Verified Bride</span>
+              {reviewsList.length > 0 ? (
+                <div className="space-y-3 pt-2">
+                  {reviewsList.map((rev) => (
+                    <div key={rev.id} className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-xs text-charcoal">{rev.customerName}</span>
+                        <span className="text-[10px] text-emerald-700 font-semibold">★ {rev.rating || 5}.0 Verified Bride</span>
+                      </div>
+                      <p className="text-xs text-charcoal/80">"{rev.text}"</p>
                     </div>
-                    <p className="text-xs text-charcoal/80">"{rev.text}"</p>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <SectionEmptyState
+                  icon={MessageSquare}
+                  title="No reviews yet"
+                  message={`Be the first bride to leave a review for ${displayName}.`}
+                  actionLabel="Write a Review"
+                  onAction={() => setIsReviewModalOpen(true)}
+                />
+              )}
             </section>
 
-            {/* 10. SIMILAR MAKEUP ARTISTS */}
+            {/* 8. FAQS */}
+            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Frequently Asked Questions</h2>
+              {vendorFaqsList.length > 0 ? (
+                <div className="space-y-3">
+                  {vendorFaqsList.map((faq: any, idx: number) => (
+                    <div key={idx} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
+                      <h3 className="font-bold text-xs sm:text-sm text-charcoal leading-snug">{faq.q}</h3>
+                      <p className="text-xs text-charcoal/70 leading-relaxed font-normal">{faq.a}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <SectionEmptyState
+                  icon={HelpCircle}
+                  title="No FAQs added yet"
+                  message="FAQs about trial sessions, travel to venue, and group bookings have not been added yet."
+                />
+              )}
+            </div>
+
+            {/* 9. SIMILAR MAKEUP ARTISTS */}
             <section className="bg-white p-4.5 sm:p-6 rounded-2xl border border-gold/15 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-gold/10 pb-2.5">
                 <h2 className="font-serif font-bold text-lg sm:text-xl text-charcoal">Similar Makeup Artists</h2>
-                <Link href="/makeup-artists" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
+                <Link href="/categories/makeup" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-                
-                {similarStudios.slice(0, 3).map((item: any) => (
+                {similarStudios.slice(0, 3).map((item, idx) => (
                   <Link
-                    key={item.id}
-                    href={getSimilarVendorHref(item, "makeupArtist")}
-                    className="group block rounded-2xl border border-gold/15 bg-white overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all p-3 space-y-2.5 cursor-pointer"
+                    key={item.id || idx}
+                    href={getSimilarVendorHref(item, "makeup")}
+                    className="group bg-white rounded-2xl overflow-hidden border border-gold/15 shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col"
                   >
-                    <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-gray-200">
+                    <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
                       <img
-                        src={item.image || item.coverImage || item.logo || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80"}
-                        alt={item.name}
+                        src={item.coverImage || item.cover_image || item.image || item.image_url}
+                        alt={item.name || item.business_name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      <span className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-xs text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
-                        <CheckCircle2 className="w-3 h-3 text-[#0F4C45] fill-[#0F4C45] text-white" /> Verified
-                      </span>
                     </div>
-
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-xs text-charcoal/70">
-                        <span className="font-medium flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-[#0F4C45] shrink-0" />
-                          <span className="truncate">{item.location || item.city || "Kerala, India"}</span>
-                        </span>
-                        <span className="font-bold text-amber-600 flex items-center gap-1 shrink-0">
-                          <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                          {item.rating ? Number(item.rating).toFixed(1) : "4.8"}
-                        </span>
-                      </div>
-
+                    <div className="p-3.5 space-y-1.5 flex-1 flex flex-col justify-between">
                       <h3 className="font-serif font-bold text-base text-charcoal leading-snug group-hover:text-[#0F4C45] transition-colors truncate">
-                        {item.name}
+                        {item.name || item.business_name}
                       </h3>
-
-                      <div className="text-xs font-bold text-[#0F4C45]">
-                        {item.startingPrice || item.starting_price || "Contact for Pricing"}
+                      <div className="pt-2 border-t border-gold/10 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
+                        <span>View Artist</span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                       </div>
-                    </div>
-
-                    <div className="w-full py-2.5 rounded-xl bg-[#0F4C45] group-hover:bg-[#12584E] text-white font-bold text-xs transition-all text-center flex items-center justify-center gap-1.5 shadow-2xs">
-                      <span>View Profile</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
                     </div>
                   </Link>
                 ))}
@@ -3452,226 +3417,214 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
         {/* ════════════════════════════════════════════════════════════════ */}
         {categoryType === "caterer" && (
           <>
-            {/* 1. MENU PREVIEW */}
-            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <div className="border-b border-gold/10 pb-2.5">
-                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Wedding Menu &amp; Dining Formats</h2>
-                <p className="text-xs text-charcoal/60 mt-0.5">Authentic Ela Sadya, multi-course buffets, live counters &amp; royal feasts</p>
+            {/* 1. OVERVIEW */}
+            <div className="bg-white rounded-2xl p-4 border border-gold/15 shadow-2xs space-y-2.5">
+              <div>
+                <h3 className="font-serif font-bold text-base text-charcoal">Wedding Catering &amp; Gourmet Dining</h3>
+                <p className="text-xs text-charcoal/60 font-medium">Grand Kerala sadhya, multi-cuisine buffets &amp; live food stations</p>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <div className="font-bold text-charcoal">Traditional Ela Sadya</div>
-                  <div className="text-[10px] text-charcoal/50">28+ items on banana leaf</div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs font-bold text-charcoal">
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Utensils className="w-4 h-4 text-[#0F4C45]" /> Traditional Sadhya
                 </div>
-                <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <div className="font-bold text-charcoal">North Indian Buffet</div>
-                  <div className="text-[10px] text-charcoal/50">Paneer tikka, naan, dal makhani</div>
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#0F4C45]" /> Live Counters
                 </div>
-                <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <div className="font-bold text-charcoal">Live BBQ &amp; Counters</div>
-                  <div className="text-[10px] text-charcoal/50">Live chaat, kebabs, appam &amp; stew</div>
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-[#0F4C45]" /> Certified Hygiene
                 </div>
-                <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <div className="font-bold text-charcoal">Royal Dessert Counter</div>
-                  <div className="text-[10px] text-charcoal/50">Palada payasam, coconut pudding</div>
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Users className="w-4 h-4 text-[#0F4C45]" /> Up to 5000 Pax
                 </div>
               </div>
             </div>
 
-            {/* 2. CUISINE CATEGORIES */}
+            {/* 2. SERVICES / LIVE COUNTERS */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Cuisine Specialties</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs font-bold text-charcoal">
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Sparkles className="w-4 h-4 text-[#0F4C45]" /> Kerala Sadya &amp; Malabar Feast</div>
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Sparkles className="w-4 h-4 text-[#0F4C45]" /> North Indian &amp; Tandoori</div>
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Sparkles className="w-4 h-4 text-[#0F4C45]" /> Mughlai &amp; Dum Biryani</div>
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Sparkles className="w-4 h-4 text-[#0F4C45]" /> Continental &amp; Italian Live</div>
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Sparkles className="w-4 h-4 text-[#0F4C45]" /> Chinese &amp; Pan-Asian</div>
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Sparkles className="w-4 h-4 text-[#0F4C45]" /> Mocktails &amp; Juice Bar</div>
-              </div>
-            </div>
-
-            {/* 3. SIGNATURE DISHES */}
-            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Signature Dishes</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <div className="font-bold text-charcoal text-sm">Authentic Palada Payasam</div>
-                  <p className="text-charcoal/70">Rich slow-cooked milk payasam with golden cashew nuts and raisins.</p>
-                </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <div className="font-bold text-charcoal text-sm">Malabar Dum Mutton Biryani</div>
-                  <p className="text-charcoal/70">Kaima rice Dum Biryani cooked with fragrant spices and tender meat.</p>
-                </div>
-              </div>
-            </div>
-
-            {/* 4. PRICING */}
-            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal flex flex-wrap items-center justify-between gap-2 border-b border-gold/10 pb-2.5">
-                <span>Catering Per-Plate Pricing</span>
-                {Boolean(vendor?.contactForPricing ?? vendor?.contact_for_pricing ?? sf?.contactForPricing ?? false) ? (
-                  <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20">
-                    Contact for Pricing
-                  </span>
-                ) : (vendor?.startingPrice || vendor?.starting_price || vendor?.startingPriceLabel) ? (
-                  <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20">
-                    Starting from {vendor?.startingPriceLabel || (typeof (vendor?.startingPrice ?? vendor?.starting_price) === "number" ? `₹${Number(vendor?.startingPrice ?? vendor?.starting_price).toLocaleString("en-IN")}` : (vendor?.startingPrice || vendor?.starting_price))}
-                  </span>
-                ) : null}
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Veg Plate Price</span>
-                  <div className="font-serif font-bold text-lg text-[#0F4C45]">₹650 / Plate</div>
-                  <p className="text-charcoal/60">Traditional Ela Sadya or multi-dish veg buffet with payasam.</p>
-                </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Non-Veg Plate Price</span>
-                  <div className="font-serif font-bold text-lg text-[#0F4C45]">₹850 / Plate</div>
-                  <p className="text-charcoal/60">Includes Malabar Biryani, fish curry, chicken roast &amp; desserts.</p>
-                </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Live Counter Add-On</span>
-                  <div className="font-serif font-bold text-lg text-[#0F4C45]">₹150 / Guest</div>
-                  <p className="text-charcoal/60">Live chaat, appam &amp; stew, BBQ kebabs or mocktail bar.</p>
-                </div>
-              </div>
-            </div>
-
-            {/* 5. GALLERY / PORTFOLIO */}
-            {galleryPhotos.length > 0 && (
-              <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-                <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-                  <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Food Spreads &amp; Buffet Gallery</h2>
-                  <button onClick={() => setShowAllPhotosModal(true)} className="text-xs font-extrabold text-[#0F4C45]">View All ({galleryPhotos.length})</button>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                  {galleryPhotos.slice(0, 4).map((photo, i) => (
-                    <div key={i} onClick={() => setLightboxIndex(i)} className="relative aspect-[4/3] rounded-xl overflow-hidden border border-gold/20 shadow-2xs cursor-pointer group bg-gray-100">
-                      <img src={photo.url} alt="Food Spread" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Live Counters &amp; Food Stalls</h2>
+              {vendorServicesList.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  {vendorServicesList.map((svc: any, idx: number) => (
+                    <div key={svc.id || idx} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center justify-between">
+                      <div>
+                        <div className="font-bold text-charcoal">{svc.name}</div>
+                        {svc.description && <div className="text-charcoal/60">{svc.description}</div>}
+                      </div>
+                      <div className="font-bold text-[#0F4C45] text-sm shrink-0">
+                        {svc.base_price ? `₹${svc.base_price}` : "Included"}
+                      </div>
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-
-            {/* 6. ABOUT */}
-            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3">
-              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2">About Kitchen &amp; Hygiene Standards</h2>
-              <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">
-                {about || `Delivering culinary excellence for grand weddings, ${displayName} operates an FSSAI-certified central kitchen handling events up to 5,000 guests. Uniformed service staff, mineral water preparation, and strict hygiene protocols.`}
-              </p>
+              ) : (
+                <SectionEmptyState
+                  icon={Utensils}
+                  title="No food stalls added yet"
+                  message="Live counters and interactive dessert stations will appear here once added."
+                  actionLabel="Inquire Food Stalls"
+                  onAction={() => handleOpenMessage()}
+                />
+              )}
             </div>
 
-            {/* 7. PACKAGES */}
+            {/* 3. GALLERY / PORTFOLIO */}
+            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
+              <div className="flex items-center justify-between border-b border-gold/10 pb-3">
+                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Catering Menus &amp; Food Portfolio</h2>
+                {galleryPhotos.length > 0 && (
+                  <button onClick={() => setShowAllPhotosModal(true)} className="text-xs font-extrabold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer">
+                    View All Photos ({galleryPhotos.length}) <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+              {galleryPhotos.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  {galleryPhotos.slice(0, 4).map((photo, i) => (
+                    <div key={i} onClick={() => setLightboxIndex(i)} className="relative aspect-[4/3] rounded-xl overflow-hidden border border-gold/20 shadow-2xs cursor-pointer group bg-gray-100">
+                      <img src={photo.url} alt="Catering Menu" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <SectionEmptyState
+                  icon={Camera}
+                  title="No portfolio images uploaded yet"
+                  message="Food presentation and banquet setup photos will appear here once uploaded."
+                  actionLabel="Request Food Photos"
+                  onAction={() => handleOpenMessage()}
+                />
+              )}
+            </div>
+
+            {/* 4. ABOUT */}
+            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3">
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2">About Catering &amp; Hygiene Standards</h2>
+              {about ? (
+                <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">{about}</p>
+              ) : (
+                <SectionEmptyState
+                  icon={User}
+                  title="Business information not added yet"
+                  message="Kitchen hygiene certifications, central production facility, and chef experience details will appear here once added."
+                />
+              )}
+            </div>
+
+            {/* 5. PACKAGES */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Catering Packages</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full">Traditional Sadya</span>
-                  <h3 className="font-serif font-bold text-base text-charcoal">Grand Kerala Banana Leaf Ela Sadya</h3>
-                  <p className="text-xs text-charcoal/70">28 Authentic Sadya items + 2 varieties of Payasam + uniformed banana leaf serving staff.</p>
-                  <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
-                    <span>₹650 / Plate (Min 200 Pax)</span>
-                    <button onClick={() => handleCheckAvailability()} className="underline">Book Menu</button>
-                  </div>
+              {vendorPackagesList.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {vendorPackagesList.map((pkg: any, idx: number) => {
+                    const price = pkg.discount_price || pkg.price;
+                    const formatted = typeof price === "number" ? `₹${price.toLocaleString("en-IN")}` : price || "Custom Quote";
+                    return (
+                      <div key={pkg.id || idx} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2 flex flex-col justify-between">
+                        <div className="space-y-1">
+                          <h3 className="font-serif font-bold text-base text-charcoal">{pkg.name}</h3>
+                          {pkg.description && <p className="text-xs text-charcoal/70">{pkg.description}</p>}
+                        </div>
+                        <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
+                          <span>{formatted}</span>
+                          <button onClick={() => handleCheckAvailability()} className="underline">Reserve Menu</button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full">Royal Buffet</span>
-                  <h3 className="font-serif font-bold text-base text-charcoal">Multi-Cuisine Royal Wedding Buffet</h3>
-                  <p className="text-xs text-charcoal/70">4 Starters + Dum Biryani + 3 Non-Veg Curries + Live Pasta Counter + 4 Desserts &amp; Ice Cream Bar.</p>
-                  <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
-                    <span>₹950 / Plate (Min 300 Pax)</span>
-                    <button onClick={() => handleCheckAvailability()} className="underline">Book Menu</button>
-                  </div>
-                </div>
-              </div>
+              ) : (
+                <SectionEmptyState
+                  icon={Package}
+                  title="No packages available yet"
+                  message="Preset banquet packages have not been published yet. Inquire for a customized multi-course menu."
+                  actionLabel="Inquire for Custom Package"
+                  onAction={() => handleCheckAvailability()}
+                />
+              )}
             </div>
 
-            {/* 8. POLICIES */}
-            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
-              <div className="flex items-center gap-2 border-b border-gold/10 pb-2.5">
-                <FileText className="w-4.5 h-4.5 text-[#C8A96A]" />
-                <h2 className="font-serif text-lg font-bold text-charcoal">Catering Policies</h2>
-              </div>
-              <div className="space-y-2 text-xs font-semibold text-charcoal/80">
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Free Food Tasting Session for 4 Guests Upon Booking</div>
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Uniformed Waiters &amp; Live Counter Chefs Included</div>
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Waste Management &amp; Leftover Packing Provided</div>
-              </div>
-            </div>
-
-            {/* 9. REVIEWS */}
+            {/* 6. REVIEWS */}
             <section className="bg-white p-4.5 sm:p-6 rounded-2xl border border-gold/15 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Reviews</h2>
+                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">
+                  Reviews {reviewsList.length > 0 ? `(${reviewsList.length})` : ""}
+                </h2>
                 <button onClick={() => setIsReviewModalOpen(true)} className="px-3.5 py-1.5 rounded-xl border border-rose-500 text-rose-600 font-extrabold text-xs hover:bg-rose-50 transition-colors cursor-pointer">
                   Write a Review
                 </button>
               </div>
-              <div className="space-y-3 pt-2">
-                {reviewsList.map((rev) => (
-                  <div key={rev.id} className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs text-charcoal">{rev.customerName}</span>
-                      <span className="text-[10px] text-emerald-700 font-semibold">★ {rev.rating || 5}.0 Verified Host</span>
+              {reviewsList.length > 0 ? (
+                <div className="space-y-3 pt-2">
+                  {reviewsList.map((rev) => (
+                    <div key={rev.id} className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-xs text-charcoal">{rev.customerName}</span>
+                        <span className="text-[10px] text-emerald-700 font-semibold">★ {rev.rating || 5}.0 Verified Host</span>
+                      </div>
+                      <p className="text-xs text-charcoal/80">"{rev.text}"</p>
                     </div>
-                    <p className="text-xs text-charcoal/80">"{rev.text}"</p>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <SectionEmptyState
+                  icon={MessageSquare}
+                  title="No reviews yet"
+                  message={`Be the first host to leave a review for ${displayName}.`}
+                  actionLabel="Write a Review"
+                  onAction={() => setIsReviewModalOpen(true)}
+                />
+              )}
             </section>
 
-            {/* 10. SIMILAR CATERERS */}
+            {/* 7. FAQS */}
+            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Frequently Asked Questions</h2>
+              {vendorFaqsList.length > 0 ? (
+                <div className="space-y-3">
+                  {vendorFaqsList.map((faq: any, idx: number) => (
+                    <div key={idx} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
+                      <h3 className="font-bold text-xs sm:text-sm text-charcoal leading-snug">{faq.q}</h3>
+                      <p className="text-xs text-charcoal/70 leading-relaxed font-normal">{faq.a}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <SectionEmptyState
+                  icon={HelpCircle}
+                  title="No FAQs added yet"
+                  message="FAQs about minimum order count, tasting sessions, and service staff have not been published yet."
+                />
+              )}
+            </div>
+
+            {/* 8. SIMILAR CATERERS */}
             <section className="bg-white p-4.5 sm:p-6 rounded-2xl border border-gold/15 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-gold/10 pb-2.5">
                 <h2 className="font-serif font-bold text-lg sm:text-xl text-charcoal">Similar Caterers</h2>
-                <Link href="/catering" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
+                <Link href="/categories/caterers" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-                
-                {similarStudios.slice(0, 3).map((item: any) => (
+                {similarStudios.slice(0, 3).map((item, idx) => (
                   <Link
-                    key={item.id}
-                    href={getSimilarVendorHref(item, "caterer")}
-                    className="group block rounded-2xl border border-gold/15 bg-white overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all p-3 space-y-2.5 cursor-pointer"
+                    key={item.id || idx}
+                    href={getSimilarVendorHref(item, "caterers")}
+                    className="group bg-white rounded-2xl overflow-hidden border border-gold/15 shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col"
                   >
-                    <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-gray-200">
+                    <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
                       <img
-                        src={item.image || item.coverImage || item.logo || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80"}
-                        alt={item.name}
+                        src={item.coverImage || item.cover_image || item.image || item.image_url}
+                        alt={item.name || item.business_name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      <span className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-xs text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
-                        <CheckCircle2 className="w-3 h-3 text-[#0F4C45] fill-[#0F4C45] text-white" /> Verified
-                      </span>
                     </div>
-
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-xs text-charcoal/70">
-                        <span className="font-medium flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-[#0F4C45] shrink-0" />
-                          <span className="truncate">{item.location || item.city || "Kerala, India"}</span>
-                        </span>
-                        <span className="font-bold text-amber-600 flex items-center gap-1 shrink-0">
-                          <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                          {item.rating ? Number(item.rating).toFixed(1) : "4.8"}
-                        </span>
-                      </div>
-
+                    <div className="p-3.5 space-y-1.5 flex-1 flex flex-col justify-between">
                       <h3 className="font-serif font-bold text-base text-charcoal leading-snug group-hover:text-[#0F4C45] transition-colors truncate">
-                        {item.name}
+                        {item.name || item.business_name}
                       </h3>
-
-                      <div className="text-xs font-bold text-[#0F4C45]">
-                        {item.startingPrice || item.starting_price || "Contact for Pricing"}
+                      <div className="pt-2 border-t border-gold/10 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
+                        <span>View Menu</span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                       </div>
-                    </div>
-
-                    <div className="w-full py-2.5 rounded-xl bg-[#0F4C45] group-hover:bg-[#12584E] text-white font-bold text-xs transition-all text-center flex items-center justify-center gap-1.5 shadow-2xs">
-                      <span>View Profile</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
                     </div>
                   </Link>
                 ))}
@@ -3685,211 +3638,193 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
         {/* ════════════════════════════════════════════════════════════════ */}
         {categoryType === "decorator" && (
           <>
-            {/* 1. DECORATION GALLERY */}
-            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-                <div>
-                  <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Decoration Gallery</h2>
-                  <p className="text-xs text-charcoal/60 mt-0.5">Stage mandap backdrops, entrance arches &amp; floral styling</p>
-                </div>
-                <button onClick={() => setShowAllPhotosModal(true)} className="text-xs font-extrabold text-[#0F4C45]">View All ({galleryPhotos.length})</button>
+            {/* 1. OVERVIEW */}
+            <div className="bg-white rounded-2xl p-4 border border-gold/15 shadow-2xs space-y-2.5">
+              <div>
+                <h3 className="font-serif font-bold text-base text-charcoal">Wedding Decor &amp; Stage Design</h3>
+                <p className="text-xs text-charcoal/60 font-medium">Bespoke floral mandaps, grand reception stages, lighting &amp; themes</p>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                {galleryPhotos.slice(0, 4).map((photo, i) => (
-                  <div key={i} onClick={() => setLightboxIndex(i)} className="relative aspect-[4/3] rounded-xl overflow-hidden border border-gold/20 shadow-2xs cursor-pointer group bg-gray-100">
-                    <img src={photo.url} alt="Decor Showcase" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* 2. THEMES */}
-            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Signature Decor Themes</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <Sparkles className="w-4 h-4 text-[#0F4C45]" />
-                  <div className="font-bold text-charcoal">Royal Marigold &amp; Temple Gold</div>
-                  <div className="text-[10px] text-charcoal/50">Traditional South Indian brass &amp; marigolds</div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs font-bold text-charcoal">
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Palette className="w-4 h-4 text-[#0F4C45]" /> 3D Moodboards
                 </div>
-                <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <Building className="w-4 h-4 text-[#0F4C45]" />
-                  <div className="font-bold text-charcoal">Botanical Glasshouse</div>
-                  <div className="text-[10px] text-charcoal/50">Lush foliage, white roses &amp; fairy lights</div>
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#0F4C45]" /> Fresh Floral
                 </div>
-                <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <Star className="w-4 h-4 text-[#0F4C45]" />
-                  <div className="font-bold text-charcoal">Celestial Starlight Navy</div>
-                  <div className="text-[10px] text-charcoal/50">Crystal chandeliers &amp; midnight drapes</div>
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Building className="w-4 h-4 text-[#0F4C45]" /> Mandap &amp; Stage
                 </div>
-                <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <Heart className="w-4 h-4 text-[#0F4C45]" />
-                  <div className="font-bold text-charcoal">Boho Pastel Sunset</div>
-                  <div className="text-[10px] text-charcoal/50">Pampas grass &amp; blush pink florals</div>
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-[#0F4C45]" /> Venue Permitted
                 </div>
               </div>
             </div>
 
-            {/* 3. FLORAL DESIGNS */}
+            {/* 2. SERVICES */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Floral &amp; Stage Design Services</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-bold text-charcoal">
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Sparkles className="w-4 h-4 text-[#0F4C45]" /> Fresh Exotic Florals</div>
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Sparkles className="w-4 h-4 text-[#0F4C45]" /> 3D Mandap Canopies</div>
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Sparkles className="w-4 h-4 text-[#0F4C45]" /> Grand Entrance Arches</div>
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Sparkles className="w-4 h-4 text-[#0F4C45]" /> Photo-Booth Setup</div>
-              </div>
+              {vendorServicesList.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  {vendorServicesList.map((svc: any, idx: number) => (
+                    <div key={svc.id || idx} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center justify-between">
+                      <div>
+                        <div className="font-bold text-charcoal">{svc.name}</div>
+                        {svc.description && <div className="text-charcoal/60">{svc.description}</div>}
+                      </div>
+                      <div className="font-bold text-[#0F4C45] text-sm shrink-0">
+                        {svc.base_price ? `₹${svc.base_price}` : "Custom"}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <SectionEmptyState
+                  icon={Sparkles}
+                  title="No services added yet"
+                  message="Stage decor, mandap setup, entrance walkways, and table centerpieces will appear here once configured."
+                  actionLabel="Inquire Services"
+                  onAction={() => handleOpenMessage()}
+                />
+              )}
             </div>
 
-            {/* 4. PRICING */}
+            {/* 3. GALLERY / PORTFOLIO */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal flex flex-wrap items-center justify-between gap-2 border-b border-gold/10 pb-2.5">
-                <span>Decoration Package Rates</span>
-                {Boolean(vendor?.contactForPricing ?? vendor?.contact_for_pricing ?? sf?.contactForPricing ?? false) ? (
-                  <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20">
-                    Contact for Pricing
-                  </span>
-                ) : (vendor?.decorStartingPrice || vendor?.startingPrice || vendor?.starting_price || vendor?.startingPriceLabel) ? (
-                  <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20">
-                    Starting from {vendor?.startingPriceLabel || `₹${Number(vendor?.decorStartingPrice || vendor?.startingPrice || vendor?.starting_price).toLocaleString("en-IN")}`}
-                  </span>
-                ) : null}
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Stage Decor</span>
-                  <div className="font-serif font-bold text-lg text-[#0F4C45]">From ₹50,000</div>
-                  <p className="text-charcoal/60">Stage backdrop, sofa seating, carpet &amp; warm spot lighting.</p>
-                </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Mandap Setup</span>
-                  <div className="font-serif font-bold text-lg text-[#0F4C45]">From ₹35,000</div>
-                  <p className="text-charcoal/60">Pillar mandap with fresh marigold/rose floral hangings &amp; havan kund.</p>
-                </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Full Venue Transformation</span>
-                  <div className="font-serif font-bold text-lg text-[#0F4C45]">From ₹1,50,000</div>
-                  <p className="text-charcoal/60">Entrance, stage, mandap, dining, pathway &amp; outdoor ambient lighting.</p>
-                </div>
+              <div className="flex items-center justify-between border-b border-gold/10 pb-3">
+                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Decor Portfolio &amp; Event Gallery</h2>
+                {galleryPhotos.length > 0 && (
+                  <button onClick={() => setShowAllPhotosModal(true)} className="text-xs font-extrabold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer">
+                    View All Photos ({galleryPhotos.length}) <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
+              {galleryPhotos.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  {galleryPhotos.slice(0, 4).map((photo, i) => (
+                    <div key={i} onClick={() => setLightboxIndex(i)} className="relative aspect-[4/3] rounded-xl overflow-hidden border border-gold/20 shadow-2xs cursor-pointer group bg-gray-100">
+                      <img src={photo.url} alt="Decor Setup" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <SectionEmptyState
+                  icon={Camera}
+                  title="No portfolio images uploaded yet"
+                  message="Stage designs, entrance setups, and floral mandap photos will appear here once uploaded."
+                  actionLabel="Request Decor Photos"
+                  onAction={() => handleOpenMessage()}
+                />
+              )}
             </div>
 
-            {/* 5. ABOUT */}
+            {/* 4. ABOUT */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3">
               <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2">About Decor Studio &amp; Craftsmen</h2>
-              <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">
-                {about || `Transforming venues into fairytale settings, ${displayName} brings 10+ years of decor production experience. We offer 3D venue layout visualizations and complete floral and lighting execution with an in-house team of 25+ craftsmen.`}
-              </p>
+              {about ? (
+                <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">{about}</p>
+              ) : (
+                <SectionEmptyState
+                  icon={User}
+                  title="Business information not added yet"
+                  message="Design philosophy, warehouse inventory, and fabrication capabilities will appear here once added."
+                />
+              )}
             </div>
 
-            {/* 6. PACKAGES */}
+            {/* 5. PACKAGES */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Decor Packages</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full">Classic Floral Package</span>
-                  <h3 className="font-serif font-bold text-base text-charcoal">Stage + Mandap + Entrance Floral Setup</h3>
-                  <p className="text-xs text-charcoal/70">Includes 30ft Stage backdrop + 4-Pillar Mandap + Entrance Floral Arch with LED spot lights.</p>
-                  <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
-                    <span>₹85,000 Complete</span>
-                    <button onClick={() => handleCheckAvailability()} className="underline">Inquire Decor</button>
-                  </div>
+              {vendorPackagesList.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {vendorPackagesList.map((pkg: any, idx: number) => {
+                    const price = pkg.discount_price || pkg.price;
+                    const formatted = typeof price === "number" ? `₹${price.toLocaleString("en-IN")}` : price || "Custom Quote";
+                    return (
+                      <div key={pkg.id || idx} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2 flex flex-col justify-between">
+                        <div className="space-y-1">
+                          <h3 className="font-serif font-bold text-base text-charcoal">{pkg.name}</h3>
+                          {pkg.description && <p className="text-xs text-charcoal/70">{pkg.description}</p>}
+                        </div>
+                        <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
+                          <span>{formatted}</span>
+                          <button onClick={() => handleCheckAvailability()} className="underline">Book Theme</button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full">Royal Heritage Package</span>
-                  <h3 className="font-serif font-bold text-base text-charcoal">Complete Venue Theme &amp; Starlight Lighting</h3>
-                  <p className="text-xs text-charcoal/70">Includes Stage + Mandap + Pathway Archway + Dining Canopy + Photo-booth + Ambient Starlight.</p>
-                  <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
-                    <span>₹1,75,000 Complete</span>
-                    <button onClick={() => handleCheckAvailability()} className="underline">Inquire Decor</button>
-                  </div>
-                </div>
-              </div>
+              ) : (
+                <SectionEmptyState
+                  icon={Package}
+                  title="No packages available yet"
+                  message="Preset theme packages have not been published yet. Inquire for a personalized theme proposal."
+                  actionLabel="Inquire for Custom Package"
+                  onAction={() => handleCheckAvailability()}
+                />
+              )}
             </div>
 
-            {/* 7. POLICIES */}
-            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
-              <div className="flex items-center gap-2 border-b border-gold/10 pb-2.5">
-                <FileText className="w-4.5 h-4.5 text-[#C8A96A]" />
-                <h2 className="font-serif text-lg font-bold text-charcoal">Decor Setup Policies</h2>
-              </div>
-              <div className="space-y-2 text-xs font-semibold text-charcoal/80">
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> On-site Setup Commences 12 Hours Prior to Event</div>
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> 3D Venue Layout Rendering Provided Before Finalizing</div>
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Teardown Completed Post-Event without Venue Damage</div>
-              </div>
-            </div>
-
-            {/* 8. REVIEWS */}
+            {/* 6. REVIEWS */}
             <section className="bg-white p-4.5 sm:p-6 rounded-2xl border border-gold/15 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Reviews</h2>
+                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">
+                  Reviews {reviewsList.length > 0 ? `(${reviewsList.length})` : ""}
+                </h2>
                 <button onClick={() => setIsReviewModalOpen(true)} className="px-3.5 py-1.5 rounded-xl border border-rose-500 text-rose-600 font-extrabold text-xs hover:bg-rose-50 transition-colors cursor-pointer">
                   Write a Review
                 </button>
               </div>
-              <div className="space-y-3 pt-2">
-                {reviewsList.map((rev) => (
-                  <div key={rev.id} className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs text-charcoal">{rev.customerName}</span>
-                      <span className="text-[10px] text-emerald-700 font-semibold">★ {rev.rating || 5}.0 Verified Host</span>
+              {reviewsList.length > 0 ? (
+                <div className="space-y-3 pt-2">
+                  {reviewsList.map((rev) => (
+                    <div key={rev.id} className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-xs text-charcoal">{rev.customerName}</span>
+                        <span className="text-[10px] text-emerald-700 font-semibold">★ {rev.rating || 5}.0 Verified Host</span>
+                      </div>
+                      <p className="text-xs text-charcoal/80">"{rev.text}"</p>
                     </div>
-                    <p className="text-xs text-charcoal/80">"{rev.text}"</p>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <SectionEmptyState
+                  icon={MessageSquare}
+                  title="No reviews yet"
+                  message={`Be the first couple to leave a review for ${displayName}.`}
+                  actionLabel="Write a Review"
+                  onAction={() => setIsReviewModalOpen(true)}
+                />
+              )}
             </section>
 
-            {/* 9. SIMILAR DECORATORS */}
+            {/* 7. SIMILAR DECORATORS */}
             <section className="bg-white p-4.5 sm:p-6 rounded-2xl border border-gold/15 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-gold/10 pb-2.5">
                 <h2 className="font-serif font-bold text-lg sm:text-xl text-charcoal">Similar Decorators</h2>
-                <Link href="/decor-planning" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
+                <Link href="/categories/decorators" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-                
-                {similarStudios.slice(0, 3).map((item: any) => (
+                {similarStudios.slice(0, 3).map((item, idx) => (
                   <Link
-                    key={item.id}
-                    href={getSimilarVendorHref(item, "decorator")}
-                    className="group block rounded-2xl border border-gold/15 bg-white overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all p-3 space-y-2.5 cursor-pointer"
+                    key={item.id || idx}
+                    href={getSimilarVendorHref(item, "decorators")}
+                    className="group bg-white rounded-2xl overflow-hidden border border-gold/15 shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col"
                   >
-                    <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-gray-200">
+                    <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
                       <img
-                        src={item.image || item.coverImage || item.logo || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80"}
-                        alt={item.name}
+                        src={item.coverImage || item.cover_image || item.image || item.image_url}
+                        alt={item.name || item.business_name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      <span className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-xs text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
-                        <CheckCircle2 className="w-3 h-3 text-[#0F4C45] fill-[#0F4C45] text-white" /> Verified
-                      </span>
                     </div>
-
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-xs text-charcoal/70">
-                        <span className="font-medium flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-[#0F4C45] shrink-0" />
-                          <span className="truncate">{item.location || item.city || "Kerala, India"}</span>
-                        </span>
-                        <span className="font-bold text-amber-600 flex items-center gap-1 shrink-0">
-                          <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                          {item.rating ? Number(item.rating).toFixed(1) : "4.8"}
-                        </span>
-                      </div>
-
+                    <div className="p-3.5 space-y-1.5 flex-1 flex flex-col justify-between">
                       <h3 className="font-serif font-bold text-base text-charcoal leading-snug group-hover:text-[#0F4C45] transition-colors truncate">
-                        {item.name}
+                        {item.name || item.business_name}
                       </h3>
-
-                      <div className="text-xs font-bold text-[#0F4C45]">
-                        {item.startingPrice || item.starting_price || "Contact for Pricing"}
+                      <div className="pt-2 border-t border-gold/10 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
+                        <span>View Portfolio</span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                       </div>
-                    </div>
-
-                    <div className="w-full py-2.5 rounded-xl bg-[#0F4C45] group-hover:bg-[#12584E] text-white font-bold text-xs transition-all text-center flex items-center justify-center gap-1.5 shadow-2xs">
-                      <span>View Profile</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
                     </div>
                   </Link>
                 ))}
@@ -3903,71 +3838,65 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
         {/* ════════════════════════════════════════════════════════════════ */}
         {categoryType === "jewellery" && (
           <>
-            {/* 1. COLLECTIONS */}
-            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <div className="border-b border-gold/10 pb-2.5">
-                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Bridal Jewellery Collections</h2>
-                <p className="text-xs text-charcoal/60 mt-0.5">Heritage temple gold, uncut polki kundan &amp; diamond bridal sets</p>
+            {/* 1. OVERVIEW */}
+            <div className="bg-white rounded-2xl p-4 border border-gold/15 shadow-2xs space-y-2.5">
+              <div>
+                <h3 className="font-serif font-bold text-base text-charcoal">Bridal Jewellery &amp; Rental Ornaments</h3>
+                <p className="text-xs text-charcoal/60 font-medium">Antique temple jewellery, bridal kundan sets, diamonds &amp; bridal chokers</p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
-                  <span className="text-[10px] font-bold uppercase text-[#0F4C45] bg-[#0F4C45]/10 px-2 py-0.5 rounded">Heritage Temple Gold</span>
-                  <h3 className="font-serif font-bold text-base text-charcoal">Nagas &amp; Kasu Mala Collection</h3>
-                  <p className="text-xs text-charcoal/70">Pure 916 hallmarked temple gold chokers &amp; long haram sets.</p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs font-bold text-charcoal">
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Gem className="w-4 h-4 text-[#0F4C45]" /> Temple Jewellery
                 </div>
-                <div className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
-                  <span className="text-[10px] font-bold uppercase text-[#0F4C45] bg-[#0F4C45]/10 px-2 py-0.5 rounded">Uncut Polki Kundan</span>
-                  <h3 className="font-serif font-bold text-base text-charcoal">Royal Kundan &amp; Pearl Sets</h3>
-                  <p className="text-xs text-charcoal/70">Handcrafted polki chokers, maang tikka, and matching jhumkas.</p>
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-[#0F4C45]" /> 3-Day Rental
                 </div>
-                <div className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
-                  <span className="text-[10px] font-bold uppercase text-[#0F4C45] bg-[#0F4C45]/10 px-2 py-0.5 rounded">Diamond Reception</span>
-                  <h3 className="font-serif font-bold text-base text-charcoal">Elegance Diamond Collection</h3>
-                  <p className="text-xs text-charcoal/70">Certified VVS diamond necklaces and drop earrings for reception.</p>
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-[#0F4C45]" /> 916 Hallmark
+                </div>
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Building className="w-4 h-4 text-[#0F4C45]" /> Safe Trial
                 </div>
               </div>
             </div>
 
-            {/* 2. GOLD / DIAMOND / ANTIQUE CATEGORIES */}
+            {/* 2. COLLECTIONS */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Jewellery Categories</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-bold text-charcoal">
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Sparkles className="w-4 h-4 text-[#0F4C45]" /> Bridal Chokers</div>
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Sparkles className="w-4 h-4 text-[#0F4C45]" /> Long Haram Necklaces</div>
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Sparkles className="w-4 h-4 text-[#0F4C45]" /> Temple Jhumkas &amp; Earrings</div>
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Sparkles className="w-4 h-4 text-[#0F4C45]" /> Maang Tikka &amp; Matha Patti</div>
-              </div>
+              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal border-b border-gold/10 pb-2.5">Bridal Jewellery Collections</h2>
+              {boutiqueCollectionsList.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {boutiqueCollectionsList.map((col: any) => (
+                    <div key={col.id} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
+                      <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">{col.category || "Jewellery"}</span>
+                      <h3 className="font-serif font-bold text-base text-charcoal">{col.name}</h3>
+                      <div className="pt-2 text-xs font-bold text-[#0F4C45]">
+                        <button onClick={() => handleOpenMessage()} className="underline">Inquire Collection</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <SectionEmptyState
+                  icon={Gem}
+                  title="No collections added yet"
+                  message="Temple jewellery, kundan sets, and bridal uncut diamond collections will appear here once published."
+                  actionLabel="Inquire Collections"
+                  onAction={() => handleOpenMessage()}
+                />
+              )}
             </div>
 
-            {/* 3. PRICING */}
+            {/* 3. GALLERY / SHOWCASE */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal border-b border-gold/10 pb-2.5">Jewellery Rental &amp; Purchase Rates</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Bridal Set Rental</span>
-                  <div className="font-serif font-bold text-lg text-[#0F4C45]">From ₹8,500 / 3 Days</div>
-                  <p className="text-charcoal/60">Complete 5-piece bridal jewellery rental set with security deposit.</p>
-                </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Polki Choker Rental</span>
-                  <div className="font-serif font-bold text-lg text-[#0F4C45]">From ₹5,500 / 3 Days</div>
-                  <p className="text-charcoal/60">Handcrafted uncut polki choker with matching earrings.</p>
-                </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Custom Purchase</span>
-                  <div className="font-serif font-bold text-lg text-[#0F4C45]">From ₹45,000</div>
-                  <p className="text-charcoal/60">100% BIS 916 hallmarked gold &amp; certified diamond purchase.</p>
-                </div>
+              <div className="flex items-center justify-between border-b border-gold/10 pb-3">
+                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Jewellery Showcase &amp; Real Brides</h2>
+                {galleryPhotos.length > 0 && (
+                  <button onClick={() => setShowAllPhotosModal(true)} className="text-xs font-extrabold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer">
+                    View All ({galleryPhotos.length}) <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
-            </div>
-
-            {/* 4. GALLERY / PORTFOLIO */}
-            {galleryPhotos.length > 0 && (
-              <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-                <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-                  <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Jewellery Showcase &amp; Real Brides</h2>
-                  <button onClick={() => setShowAllPhotosModal(true)} className="text-xs font-extrabold text-[#0F4C45]">View All ({galleryPhotos.length})</button>
-                </div>
+              {galleryPhotos.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   {galleryPhotos.slice(0, 4).map((photo, i) => (
                     <div key={i} onClick={() => setLightboxIndex(i)} className="relative aspect-[3/4] rounded-xl overflow-hidden border border-gold/20 shadow-2xs cursor-pointer group bg-gray-100">
@@ -3975,100 +3904,105 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-
-            {/* 5. ABOUT */}
-            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3">
-              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2">About Showroom &amp; Purity Standards</h2>
-              <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">
-                {about || `Trusted heritage jewellers, ${displayName} offers pure 916 hallmarked gold, certified VVS diamonds, and luxury bridal rental sets. Each rental piece is thoroughly inspected and sanitized before every event.`}
-              </p>
+              ) : (
+                <SectionEmptyState
+                  icon={Camera}
+                  title="No portfolio images uploaded yet"
+                  message="Real bride jewellery styling and craftsmanship close-ups will appear here once uploaded."
+                  actionLabel="Request Showcase Photos"
+                  onAction={() => handleOpenMessage()}
+                />
+              )}
             </div>
 
-            {/* 6. POLICIES */}
+            {/* 4. ABOUT */}
+            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3">
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2">About Showroom &amp; Purity Standards</h2>
+              {about ? (
+                <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">{about}</p>
+              ) : (
+                <SectionEmptyState
+                  icon={User}
+                  title="Business information not added yet"
+                  message="Hallmark certifications, gold purity standards, and craft heritage details will appear here once added."
+                />
+              )}
+            </div>
+
+            {/* 5. POLICIES */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
               <div className="flex items-center gap-2 border-b border-gold/10 pb-2.5">
                 <FileText className="w-4.5 h-4.5 text-[#C8A96A]" />
                 <h2 className="font-serif text-lg font-bold text-charcoal">Rental &amp; Deposit Policies</h2>
               </div>
               <div className="space-y-2 text-xs font-semibold text-charcoal/80">
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> 3-Day Rental Period with Doorstep Lock Box Delivery</div>
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Refundable Security Deposit Returned on Inspection</div>
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> 100% BIS 916 Hallmarked &amp; Gemologist Certified</div>
+                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> 3-Day Rental Duration (Pickup day before, Return day after event)</div>
+                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> 100% Refundable Security Deposit upon return inspection</div>
+                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Safe sanitization before dispatch</div>
               </div>
             </div>
 
-            {/* 7. REVIEWS */}
+            {/* 6. REVIEWS */}
             <section className="bg-white p-4.5 sm:p-6 rounded-2xl border border-gold/15 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Reviews</h2>
+                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">
+                  Reviews {reviewsList.length > 0 ? `(${reviewsList.length})` : ""}
+                </h2>
                 <button onClick={() => setIsReviewModalOpen(true)} className="px-3.5 py-1.5 rounded-xl border border-rose-500 text-rose-600 font-extrabold text-xs hover:bg-rose-50 transition-colors cursor-pointer">
                   Write a Review
                 </button>
               </div>
-              <div className="space-y-3 pt-2">
-                {reviewsList.map((rev) => (
-                  <div key={rev.id} className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs text-charcoal">{rev.customerName}</span>
-                      <span className="text-[10px] text-emerald-700 font-semibold">★ {rev.rating || 5}.0 Verified Customer</span>
+              {reviewsList.length > 0 ? (
+                <div className="space-y-3 pt-2">
+                  {reviewsList.map((rev) => (
+                    <div key={rev.id} className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-xs text-charcoal">{rev.customerName}</span>
+                        <span className="text-[10px] text-emerald-700 font-semibold">★ {rev.rating || 5}.0 Verified Customer</span>
+                      </div>
+                      <p className="text-xs text-charcoal/80">"{rev.text}"</p>
                     </div>
-                    <p className="text-xs text-charcoal/80">"{rev.text}"</p>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <SectionEmptyState
+                  icon={MessageSquare}
+                  title="No reviews yet"
+                  message={`Be the first customer to leave a review for ${displayName}.`}
+                  actionLabel="Write a Review"
+                  onAction={() => setIsReviewModalOpen(true)}
+                />
+              )}
             </section>
 
-            {/* 8. SIMILAR JEWELLERY STORES */}
+            {/* 7. SIMILAR JEWELLERY */}
             <section className="bg-white p-4.5 sm:p-6 rounded-2xl border border-gold/15 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-gold/10 pb-2.5">
                 <h2 className="font-serif font-bold text-lg sm:text-xl text-charcoal">Similar Jewellery Stores</h2>
                 <Link href="/categories/jewellery" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-                
-                {similarStudios.slice(0, 3).map((item: any) => (
+                {similarStudios.slice(0, 3).map((item, idx) => (
                   <Link
-                    key={item.id}
+                    key={item.id || idx}
                     href={getSimilarVendorHref(item, "jewellery")}
-                    className="group block rounded-2xl border border-gold/15 bg-white overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all p-3 space-y-2.5 cursor-pointer"
+                    className="group bg-white rounded-2xl overflow-hidden border border-gold/15 shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col"
                   >
-                    <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-gray-200">
+                    <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
                       <img
-                        src={item.image || item.coverImage || item.logo || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80"}
-                        alt={item.name}
+                        src={item.coverImage || item.cover_image || item.image || item.image_url}
+                        alt={item.name || item.business_name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      <span className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-xs text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
-                        <CheckCircle2 className="w-3 h-3 text-[#0F4C45] fill-[#0F4C45] text-white" /> Verified
-                      </span>
                     </div>
-
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-xs text-charcoal/70">
-                        <span className="font-medium flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-[#0F4C45] shrink-0" />
-                          <span className="truncate">{item.location || item.city || "Kerala, India"}</span>
-                        </span>
-                        <span className="font-bold text-amber-600 flex items-center gap-1 shrink-0">
-                          <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                          {item.rating ? Number(item.rating).toFixed(1) : "4.8"}
-                        </span>
-                      </div>
-
+                    <div className="p-3.5 space-y-1.5 flex-1 flex flex-col justify-between">
                       <h3 className="font-serif font-bold text-base text-charcoal leading-snug group-hover:text-[#0F4C45] transition-colors truncate">
-                        {item.name}
+                        {item.name || item.business_name}
                       </h3>
-
-                      <div className="text-xs font-bold text-[#0F4C45]">
-                        {item.startingPrice || item.starting_price || "Contact for Pricing"}
+                      <div className="pt-2 border-t border-gold/10 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
+                        <span>View Store</span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                       </div>
-                    </div>
-
-                    <div className="w-full py-2.5 rounded-xl bg-[#0F4C45] group-hover:bg-[#12584E] text-white font-bold text-xs transition-all text-center flex items-center justify-center gap-1.5 shadow-2xs">
-                      <span>View Profile</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
                     </div>
                   </Link>
                 ))}
@@ -4082,183 +4016,171 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
         {/* ════════════════════════════════════════════════════════════════ */}
         {categoryType === "invitation" && (
           <>
-            {/* 1. INVITATION COLLECTIONS */}
-            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <div className="border-b border-gold/10 pb-2.5">
-                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Invitation Card Collections</h2>
-                <p className="text-xs text-charcoal/60 mt-0.5">Laser-cut boxed suites, velvet scrolls &amp; interactive digital invitations</p>
+            {/* 1. OVERVIEW */}
+            <div className="bg-white rounded-2xl p-4 border border-gold/15 shadow-2xs space-y-2.5">
+              <div>
+                <h3 className="font-serif font-bold text-base text-charcoal">Wedding Invitations &amp; Stationery Design</h3>
+                <p className="text-xs text-charcoal/60 font-medium">Bespoke boxed cards, laser-cut scrolls, wax-sealed envelopes &amp; digital invites</p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
-                  <span className="text-[10px] font-bold uppercase text-[#0F4C45] bg-[#0F4C45]/10 px-2 py-0.5 rounded">Luxury Boxed Suites</span>
-                  <h3 className="font-serif font-bold text-base text-charcoal">Royal Laser-Cut Boxed Cards</h3>
-                  <p className="text-xs text-charcoal/70">Embossed gold foil cards with custom wax seals &amp; sweet boxes.</p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs font-bold text-charcoal">
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-[#0F4C45]" /> Bespoke Cards
                 </div>
-                <div className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
-                  <span className="text-[10px] font-bold uppercase text-[#0F4C45] bg-[#0F4C45]/10 px-2 py-0.5 rounded">Traditional Scroll Cards</span>
-                  <h3 className="font-serif font-bold text-base text-charcoal">Velvet Royal Scroll Sets</h3>
-                  <p className="text-xs text-charcoal/70">Silk &amp; velvet scrolls enclosed in carved wooden or brass cylinders.</p>
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Video className="w-4 h-4 text-[#0F4C45]" /> Video Invites
                 </div>
-                <div className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
-                  <span className="text-[10px] font-bold uppercase text-[#0F4C45] bg-[#0F4C45]/10 px-2 py-0.5 rounded">Digital E-Invites</span>
-                  <h3 className="font-serif font-bold text-base text-charcoal">Interactive Web &amp; Video Invites</h3>
-                  <p className="text-xs text-charcoal/70">Animated WhatsApp video invites with Google Maps RSVP links.</p>
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <Palette className="w-4 h-4 text-[#0F4C45]" /> Foil Stamping
+                </div>
+                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-[#0F4C45]" /> Doorstep Dispatch
                 </div>
               </div>
             </div>
 
-            {/* 2. DIGITAL INVITATIONS */}
+            {/* 2. CARD COLLECTIONS */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Digital &amp; Video Invitation Features</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-bold text-charcoal">
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Sparkles className="w-4 h-4 text-[#0F4C45]" /> WhatsApp Animated Video</div>
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Sparkles className="w-4 h-4 text-[#0F4C45]" /> Interactive RSVP Website</div>
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Sparkles className="w-4 h-4 text-[#0F4C45]" /> Google Maps Pin Link</div>
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Sparkles className="w-4 h-4 text-[#0F4C45]" /> Save-The-Date Reels</div>
-              </div>
-            </div>
-
-            {/* 3. PRINTING OPTIONS */}
-            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Luxury Printing Finishes</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-bold text-charcoal">
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Award className="w-4 h-4 text-[#0F4C45]" /> Gold &amp; Rose Foil Stamping</div>
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Award className="w-4 h-4 text-[#0F4C45]" /> Embossed Thermography</div>
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Award className="w-4 h-4 text-[#0F4C45]" /> Acrylic &amp; Velvet Board</div>
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><Award className="w-4 h-4 text-[#0F4C45]" /> Handmade Cotton Paper</div>
-              </div>
-            </div>
-
-            {/* 4. PRICING */}
-            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal border-b border-gold/10 pb-2.5">Invitation Pricing</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Printed Cards</span>
-                  <div className="font-serif font-bold text-lg text-[#0F4C45]">From ₹85 / Card</div>
-                  <p className="text-charcoal/60">Foil stamped card with custom printed envelope (MOQ: 100).</p>
-                </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Boxed Suite</span>
-                  <div className="font-serif font-bold text-lg text-[#0F4C45]">From ₹280 / Box</div>
-                  <p className="text-charcoal/60">Hardbound luxury box card set with dry fruit compartment.</p>
-                </div>
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Digital Video Invite</span>
-                  <div className="font-serif font-bold text-lg text-[#0F4C45]">From ₹3,500 / Video</div>
-                  <p className="text-charcoal/60">Custom 60-sec animated video invite with background music.</p>
-                </div>
-              </div>
-            </div>
-
-            {/* 5. GALLERY / PORTFOLIO */}
-            {galleryPhotos.length > 0 && (
-              <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-                <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-                  <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Invitation Card Samples</h2>
-                  <button onClick={() => setShowAllPhotosModal(true)} className="text-xs font-extrabold text-[#0F4C45]">View All ({galleryPhotos.length})</button>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                  {galleryPhotos.slice(0, 4).map((photo, i) => (
-                    <div key={i} onClick={() => setLightboxIndex(i)} className="relative aspect-[4/3] rounded-xl overflow-hidden border border-gold/20 shadow-2xs cursor-pointer group bg-gray-100">
-                      <img src={photo.url} alt="Card Sample" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal border-b border-gold/10 pb-2.5">Invitation Card Collections</h2>
+              {boutiqueCollectionsList.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {boutiqueCollectionsList.map((col: any) => (
+                    <div key={col.id} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
+                      <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">{col.category || "Invitation"}</span>
+                      <h3 className="font-serif font-bold text-base text-charcoal">{col.name}</h3>
+                      <div className="pt-2 text-xs font-bold text-[#0F4C45]">
+                        <button onClick={() => handleOpenMessage()} className="underline">Inquire Collection</button>
+                      </div>
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-
-            {/* 6. ABOUT */}
-            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3">
-              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2">About Printing Press &amp; Designers</h2>
-              <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">
-                {about || `Designing bespoke wedding invitations since 2012, ${displayName} blends traditional craftsmanship with modern luxury printing techniques. We provide worldwide doorstep shipping and online PDF proof approvals.`}
-              </p>
+              ) : (
+                <SectionEmptyState
+                  icon={Mail}
+                  title="No collections added yet"
+                  message="Laser-cut boxes, royal scrolls, and floral card suites will appear here once published."
+                  actionLabel="Inquire Collections"
+                  onAction={() => handleOpenMessage()}
+                />
+              )}
             </div>
 
-            {/* 7. POLICIES */}
+            {/* 3. GALLERY / SAMPLES */}
+            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
+              <div className="flex items-center justify-between border-b border-gold/10 pb-3">
+                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Invitation Card Samples</h2>
+                {galleryPhotos.length > 0 && (
+                  <button onClick={() => setShowAllPhotosModal(true)} className="text-xs font-extrabold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer">
+                    View All ({galleryPhotos.length}) <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+              {galleryPhotos.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  {galleryPhotos.slice(0, 4).map((photo, i) => (
+                    <div key={i} onClick={() => setLightboxIndex(i)} className="relative aspect-[4/3] rounded-xl overflow-hidden border border-gold/20 shadow-2xs cursor-pointer group bg-gray-100">
+                      <img src={photo.url} alt="Invitation Card" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <SectionEmptyState
+                  icon={Camera}
+                  title="No portfolio images uploaded yet"
+                  message="Finished invitation cards and calligraphy samples will appear here once uploaded."
+                  actionLabel="Request Card Samples"
+                  onAction={() => handleOpenMessage()}
+                />
+              )}
+            </div>
+
+            {/* 4. ABOUT */}
+            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3">
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2">About Printing Press &amp; Designers</h2>
+              {about ? (
+                <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">{about}</p>
+              ) : (
+                <SectionEmptyState
+                  icon={User}
+                  title="Business information not added yet"
+                  message="Design studio background, printing equipment, and custom monogram services will appear here once added."
+                />
+              )}
+            </div>
+
+            {/* 5. POLICIES */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
               <div className="flex items-center gap-2 border-b border-gold/10 pb-2.5">
                 <FileText className="w-4.5 h-4.5 text-[#C8A96A]" />
                 <h2 className="font-serif text-lg font-bold text-charcoal">Order &amp; Turnaround Policies</h2>
               </div>
               <div className="space-y-2 text-xs font-semibold text-charcoal/80">
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Digital Proof Approved before Production Commences</div>
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> 10 to 14 Days Printing &amp; Assembly Turnaround</div>
-                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Express Domestic &amp; International Courier Shipping</div>
+                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Free Digital PDF Proof Approval Before Final Printing</div>
+                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Rush 7-Day Fast Track Printing Option Available</div>
+                <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> All-India &amp; International Courier Shipping Available</div>
               </div>
             </div>
 
-            {/* 8. REVIEWS */}
+            {/* 6. REVIEWS */}
             <section className="bg-white p-4.5 sm:p-6 rounded-2xl border border-gold/15 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Reviews</h2>
+                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">
+                  Reviews {reviewsList.length > 0 ? `(${reviewsList.length})` : ""}
+                </h2>
                 <button onClick={() => setIsReviewModalOpen(true)} className="px-3.5 py-1.5 rounded-xl border border-rose-500 text-rose-600 font-extrabold text-xs hover:bg-rose-50 transition-colors cursor-pointer">
                   Write a Review
                 </button>
               </div>
-              <div className="space-y-3 pt-2">
-                {reviewsList.map((rev) => (
-                  <div key={rev.id} className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs text-charcoal">{rev.customerName}</span>
-                      <span className="text-[10px] text-emerald-700 font-semibold">★ {rev.rating || 5}.0 Verified Client</span>
+              {reviewsList.length > 0 ? (
+                <div className="space-y-3 pt-2">
+                  {reviewsList.map((rev) => (
+                    <div key={rev.id} className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-xs text-charcoal">{rev.customerName}</span>
+                        <span className="text-[10px] text-emerald-700 font-semibold">★ {rev.rating || 5}.0 Verified Client</span>
+                      </div>
+                      <p className="text-xs text-charcoal/80">"{rev.text}"</p>
                     </div>
-                    <p className="text-xs text-charcoal/80">"{rev.text}"</p>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <SectionEmptyState
+                  icon={MessageSquare}
+                  title="No reviews yet"
+                  message={`Be the first couple to leave a review for ${displayName}.`}
+                  actionLabel="Write a Review"
+                  onAction={() => setIsReviewModalOpen(true)}
+                />
+              )}
             </section>
 
-            {/* 9. SIMILAR INVITATION VENDORS */}
+            {/* 7. SIMILAR INVITATION VENDORS */}
             <section className="bg-white p-4.5 sm:p-6 rounded-2xl border border-gold/15 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-gold/10 pb-2.5">
                 <h2 className="font-serif font-bold text-lg sm:text-xl text-charcoal">Similar Invitation Vendors</h2>
                 <Link href="/categories/invitations" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-                
-                {similarStudios.slice(0, 3).map((item: any) => (
+                {similarStudios.slice(0, 3).map((item, idx) => (
                   <Link
-                    key={item.id}
-                    href={getSimilarVendorHref(item, "invitation")}
-                    className="group block rounded-2xl border border-gold/15 bg-white overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all p-3 space-y-2.5 cursor-pointer"
+                    key={item.id || idx}
+                    href={getSimilarVendorHref(item, "invitations")}
+                    className="group bg-white rounded-2xl overflow-hidden border border-gold/15 shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col"
                   >
-                    <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-gray-200">
+                    <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
                       <img
-                        src={item.image || item.coverImage || item.logo || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80"}
-                        alt={item.name}
+                        src={item.coverImage || item.cover_image || item.image || item.image_url}
+                        alt={item.name || item.business_name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      <span className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-xs text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
-                        <CheckCircle2 className="w-3 h-3 text-[#0F4C45] fill-[#0F4C45] text-white" /> Verified
-                      </span>
                     </div>
-
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-xs text-charcoal/70">
-                        <span className="font-medium flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-[#0F4C45] shrink-0" />
-                          <span className="truncate">{item.location || item.city || "Kerala, India"}</span>
-                        </span>
-                        <span className="font-bold text-amber-600 flex items-center gap-1 shrink-0">
-                          <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                          {item.rating ? Number(item.rating).toFixed(1) : "4.8"}
-                        </span>
-                      </div>
-
+                    <div className="p-3.5 space-y-1.5 flex-1 flex flex-col justify-between">
                       <h3 className="font-serif font-bold text-base text-charcoal leading-snug group-hover:text-[#0F4C45] transition-colors truncate">
-                        {item.name}
+                        {item.name || item.business_name}
                       </h3>
-
-                      <div className="text-xs font-bold text-[#0F4C45]">
-                        {item.startingPrice || item.starting_price || "Contact for Pricing"}
+                      <div className="pt-2 border-t border-gold/10 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
+                        <span>View Cards</span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                       </div>
-                    </div>
-
-                    <div className="w-full py-2.5 rounded-xl bg-[#0F4C45] group-hover:bg-[#12584E] text-white font-bold text-xs transition-all text-center flex items-center justify-center gap-1.5 shadow-2xs">
-                      <span>View Profile</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
                     </div>
                   </Link>
                 ))}
