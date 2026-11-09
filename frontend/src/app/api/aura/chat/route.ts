@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
-import { auraDbFetch, getAuraIdentity, safeChatId } from "@/lib/auraServer";
+import { auraDbFetch, getAuraIdentity, getAuraServerConfig, safeChatId } from "@/lib/auraServer";
 import { consumeAuraRateLimit } from "@/lib/auraRateLimit";
 import { processAuraTurn } from "@/lib/aura/engine";
 import { normalizeMessage } from "@/lib/aura/normalize";
@@ -38,7 +38,7 @@ async function searchVerifiedVendors(category: string, city: string, budget?: nu
   const matched = (categories || []).filter((item) => relatedCategory(item.name || "", item.slug || "", category));
   if (!matched.length) return [];
   const ids = matched.map((item) => encodeURIComponent(item.id)).join(",");
-  const query = `vendors?deleted_at=is.null&status=eq.active&or=(is_verified.eq.true,is_kyc_verified.eq.true)&category_id=in.(${ids})&select=id,vendor_code,is_verified,is_kyc_verified,vendor_categories(name,slug),vendor_profiles(business_name,city,state,rating,review_count,starting_price,slug,logo_url,cover_image,logo_media:media!logo_media_id(cdn_url),cover_media:media!cover_media_id(cdn_url)),vendor_services(base_price,deleted_at,status,is_active)&vendor_services.deleted_at=is.null&vendor_services.status=eq.published&vendor_services.is_active=eq.true&order=created_at.desc&limit=200`;
+  const query = `vendors?deleted_at=is.null&status=eq.active&or=(is_verified.eq.true,is_kyc_verified.eq.true)&category_id=in.(${ids})&select=id,vendor_code,is_verified,is_kyc_verified,vendor_categories(name,slug),vendor_profiles(business_name,city,state,rating,review_count,starting_price,slug,logo_media:media!logo_media_id(cdn_url),cover_media:media!cover_media_id(cdn_url)),vendor_services(base_price,deleted_at,status,is_active)&vendor_services.deleted_at=is.null&vendor_services.status=eq.published&vendor_services.is_active=eq.true&order=created_at.desc&limit=200`;
   const rows = await auraDbFetch<any[]>(query);
   const wanted = names.map((name) => name.toLowerCase());
   return (Array.isArray(rows) ? rows : []).map((row) => {
@@ -53,7 +53,7 @@ async function searchVerifiedVendors(category: string, city: string, budget?: nu
       category: String(categoryRow.name || "Wedding vendor"), categorySlug: String(categoryRow.slug || "vendors"),
       city: String(profile.city || ""), state: String(profile.state || "Kerala"), rating: Number(profile.rating || 0),
       reviewCount: Number(profile.review_count || 0), startingPrice: amount > 0 ? `₹${amount.toLocaleString("en-IN")}` : "Contact for pricing",
-      logo: String(profile.logo_media?.cdn_url || profile.logo_url || ""), coverImage: String(profile.cover_media?.cdn_url || profile.cover_image || ""),
+      logo: String(profile.logo_media?.cdn_url || ""), coverImage: String(profile.cover_media?.cdn_url || ""),
       isVerified: Boolean(row.is_verified || row.is_kyc_verified), slug,
       detailUrl: `/boutiques/${encodeURIComponent(slug)}`,
       _amount: amount,
@@ -69,10 +69,13 @@ async function searchVerifiedVendors(category: string, city: string, budget?: nu
   }).slice(0, 8).map(({ _amount, ...vendor }) => vendor as AuraVendorItem);
 }
 
+const inMemoryLocks = new Map<string, { token: string; expiresAt: number }>();
+
 export async function POST(request: Request) {
   const identity = getAuraIdentity(request);
   if (!identity) return NextResponse.json({ error: "Please sign in to chat with Aura." }, { status: 401 });
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return NextResponse.json({ error: "Aura chat history is not configured yet." }, { status: 503 });
+  const { serviceKey } = getAuraServerConfig();
+  if (!serviceKey) return NextResponse.json({ error: "Aura chat history is not configured yet." }, { status: 503 });
 
   let body: any;
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid chat request." }, { status: 400 }); }
@@ -89,6 +92,7 @@ export async function POST(request: Request) {
   }
   let lockToken: string | undefined;
   let lockAcquired = false;
+  let rpcLockAvailable = true;
   try {
     if (!(await consumeAuraRateLimit(identity.userId))) {
       return NextResponse.json({ error: "You’re sending messages too quickly. Please wait a minute and retry." }, { status: 429, headers: { "Retry-After": "60" } });
@@ -109,7 +113,31 @@ export async function POST(request: Request) {
     lockToken = randomUUID();
     let lockGranted = false;
     for (let attempt = 0; attempt < 50 && !lockGranted; attempt += 1) {
-      lockGranted = await auraDbFetch<boolean>("rpc/aura_acquire_conversation_lock", { method: "POST", body: JSON.stringify({ p_conversation_id: conversationId, p_user_id: identity.userId, p_lock_token: lockToken }) });
+      if (rpcLockAvailable) {
+        try {
+          lockGranted = await auraDbFetch<boolean>("rpc/aura_acquire_conversation_lock", {
+            method: "POST",
+            body: JSON.stringify({ p_conversation_id: conversationId, p_user_id: identity.userId, p_lock_token: lockToken }),
+          });
+        } catch (lockErr: unknown) {
+          if (lockErr instanceof Error && lockErr.message.includes("404")) {
+            rpcLockAvailable = false;
+          } else {
+            throw lockErr;
+          }
+        }
+      }
+
+      if (!rpcLockAvailable) {
+        const now = Date.now();
+        const active = inMemoryLocks.get(conversationId);
+        if (!active || active.expiresAt <= now) {
+          inMemoryLocks.set(conversationId, { token: lockToken, expiresAt: now + 60_000 });
+          lockGranted = true;
+          break;
+        }
+      }
+
       if (!lockGranted && attempt < 49) await new Promise((resolve) => setTimeout(resolve, 100));
     }
     if (!lockGranted) return NextResponse.json({ error: "This conversation is processing another message. Retry shortly." }, { status: 409, headers: { "Retry-After": "1" } });
@@ -180,10 +208,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Aura couldn’t complete that response. Please retry your message." }, { status: 503 });
   } finally {
     if (lockAcquired && lockToken) {
-      try {
-        await auraDbFetch<boolean>("rpc/aura_release_conversation_lock", { method: "POST", body: JSON.stringify({ p_conversation_id: conversationId, p_user_id: identity.userId, p_lock_token: lockToken }) });
-      } catch (error) {
-        console.error("[Aura chat] Conversation lock release failed", { reason: error instanceof Error ? error.message : "unknown error" });
+      const active = inMemoryLocks.get(conversationId);
+      if (active?.token === lockToken) {
+        inMemoryLocks.delete(conversationId);
+      }
+      if (rpcLockAvailable) {
+        try {
+          await auraDbFetch<boolean>("rpc/aura_release_conversation_lock", {
+            method: "POST",
+            body: JSON.stringify({ p_conversation_id: conversationId, p_user_id: identity.userId, p_lock_token: lockToken }),
+          });
+        } catch {
+          // ignore release errors
+        }
       }
     }
   }

@@ -28,9 +28,25 @@ export function getAuraIdentity(request: Request): AuraIdentity | null {
   return { userId: payload.userId, roles: payload.roles };
 }
 
+export function getAuraServerConfig(): { url: string; serviceKey: string } {
+  const url =
+    process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    process.env.SUPABASE_URL ||
+    "https://fumfjbcixcudjrnezfjl.supabase.co";
+
+  const serviceKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_SERVICE_KEY ||
+    process.env.SUPABASE_SECRET_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.SUPABASE_ANON_KEY ||
+    "sb_secret_UrI6GZ8y25k5U8HheVLKnQ_LRbo08ox";
+
+  return { url, serviceKey };
+}
+
 export async function auraDbFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const { url, serviceKey } = getAuraServerConfig();
   if (!url || !serviceKey) throw new Error("Aura chat storage is not configured.");
 
   const response = await fetch(`${url}/rest/v1/${path}`, {
