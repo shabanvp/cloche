@@ -20,18 +20,27 @@ const CATEGORIES: Array<[string, string[]]> = [
 ];
 
 const CITIES: Array<[string, string[]]> = [
-  ["Kochi", ["kochi", "kochi-yil", "kochi yil", "kochiyil"]],
-  ["Ernakulam", ["ernakulam"]], ["Thiruvananthapuram", ["thiruvananthapuram"]], ["Trivandrum", ["trivandrum"]],
-  ["Kozhikode", ["kozhikode"]], ["Calicut", ["calicut"]], ["Thrissur", ["thrissur"]], ["Kannur", ["kannur"]],
-  ["Kottayam", ["kottayam"]], ["Alappuzha", ["alappuzha"]], ["Palakkad", ["palakkad"]], ["Malappuram", ["malappuram"]],
+  ["Kochi", ["kochi", "kochi-yil", "kochi yil", "kochiyil", "കൊച്ചി"]],
+  ["Ernakulam", ["ernakulam", "എറണാകുളം"]],
+  ["Thiruvananthapuram", ["thiruvananthapuram", "തിരുവനന്തപുരം"]],
+  ["Trivandrum", ["trivandrum"]],
+  ["Kozhikode", ["kozhikode", "kozhikod", "കോഴിക്കോട്"]], ["Calicut", ["calicut"]],
+  ["Thrissur", ["thrissur", "തൃശ്ശൂർ", "തൃശൂർ"]], ["Kannur", ["kannur", "കണ്ണൂർ"]],
+  ["Kottayam", ["kottayam", "കോട്ടയം"]], ["Alappuzha", ["alappuzha", "ആലപ്പുഴ"]],
+  ["Palakkad", ["palakkad", "പാലക്കാട്"]], ["Malappuram", ["malappuram", "മലപ്പുറം"]],
+  ["Perinthalmanna", ["perinthalmanna", "perinthalman", "പെരിന്തൽമണ്ണ"]],
+  ["Nilambur", ["nilambur", "നിലമ്പൂർ"]],
 ];
 
 function escaped(value: string) { return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
 
-export function extractEntities(text: string, knownVendorNames: string[] = []): AuraEntities {
+export function extractEntities(text: string, knownVendorNames: string[] = [], expectedField?: "location"): AuraEntities {
   const normalized = text.toLocaleLowerCase();
   const category = CATEGORIES.find(([, terms]) => terms.some((term) => new RegExp(`\\b${escaped(term)}\\b`, "i").test(normalized)))?.[0];
-  const city = CITIES.find(([, aliases]) => aliases.some((alias) => new RegExp(`\\b${escaped(alias)}\\b`, "i").test(text)))?.[0];
+  const detectedCity = CITIES.find(([, aliases]) => aliases.some((alias) => {
+    if (/[\u0d00-\u0d7f]/.test(alias)) return text.includes(alias);
+    return new RegExp(`\\b${escaped(alias)}(?:[- ]?(?:yil|il))?\\b`, "i").test(text);
+  }))?.[0];
   const budgetMatch = text.match(/(?:under|below|within|budget(?:\s+of)?|₹|rs\.?\s*)(?:\s*₹\s*)?([\d,]+(?:\.\d+)?)\s*(lakh|lakhs|l|k|thousand)?/i);
   let budget: number | undefined;
   if (budgetMatch) {
@@ -44,6 +53,7 @@ export function extractEntities(text: string, knownVendorNames: string[] = []): 
   const vendorNames = knownVendorNames.filter((candidate) => candidate && normalized.includes(candidate.toLocaleLowerCase())).slice(0, 5);
   const comparison = /\b(compare|comparison|versus|vs\.?|difference between)\b/i.test(text);
   const budgetStrict = budget !== undefined && /\b(?:under|below|less than)\b|<(?!\=)/i.test(text);
+  const city = expectedField === "location" || category || /\b(?:in|near|around|at)\b/i.test(text) ? detectedCity : undefined;
   return { name, category, city, budget, budgetStrict, vendorNames, comparison };
 }
 
@@ -58,4 +68,3 @@ export function mergeEntities(previous: Partial<AuraEntities> & { lastCategory?:
     comparison: current.comparison || Boolean(previous.comparison),
   };
 }
-

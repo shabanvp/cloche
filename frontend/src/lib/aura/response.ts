@@ -7,6 +7,8 @@ import { retrieveKnowledge } from "./knowledge";
 export interface AuraMemory extends Partial<AuraEntities> {
   preferredName?: string;
   lastIntent?: AuraIntent;
+  pendingIntent?: "vendor_search";
+  pendingField?: "category" | "location";
   lastCategory?: string;
   lastCity?: string;
   lastBudget?: number;
@@ -58,7 +60,7 @@ export function generateResponse(input: {
   const greeting = ml ? MALAYALAM.greeting : "Hi! How can I help you today?";
   let reply = "";
   let topic = "general";
-  let extras: Pick<AuraEngineResult, "groundedVendors" | "budgetPlan" | "checklist"> = {};
+  const extras: Pick<AuraEngineResult, "groundedVendors" | "budgetPlan" | "checklist"> = {};
 
   if (entities.name) {
     memory.preferredName = entities.name;
@@ -74,10 +76,22 @@ export function generateResponse(input: {
     const budget = entities.budget ?? memory.lastBudget;
     const budgetStrict = entities.budget !== undefined ? Boolean(entities.budgetStrict) : Boolean(memory.lastBudgetStrict);
     if (!category && intent !== "compare") {
+      memory.pendingIntent = "vendor_search";
+      memory.pendingField = "category";
       reply = ml ? "ഏത് തരത്തിലുള്ള vendor ആണ് വേണ്ടത്—photographer, makeup artist, venue, അല്ലെങ്കിൽ മറ്റൊന്നോ?" : "Which vendor category should I look for, such as photographers, makeup artists, venues or catering?";
     } else if (!city && !input.vendors) {
+      const alreadyAskedForLocation = memory.pendingIntent === "vendor_search" && memory.pendingField === "location";
       memory.lastCategory = category;
-      reply = ml ? MALAYALAM.askCity : `Which city or area should I search for${category ? ` ${category}` : " vendors"}? I’ll use Cloche’s registered listings.`;
+      memory.lastBudget = budget;
+      memory.lastBudgetStrict = budgetStrict;
+      memory.pendingIntent = "vendor_search";
+      memory.pendingField = "location";
+      const unsure = /\b(?:i\s+(?:do\s+not|don.t)\s+know|not\s+sure|no\s+idea)\b/i.test(query);
+      reply = unsure
+        ? (ml ? "ശരി. സമീപത്തെ നഗരം അല്ലെങ്കിൽ പ്രദേശം അറിയുമ്പോൾ പറയൂ; അതനുസരിച്ച് Cloche listings പരിശോധിക്കാം." : "No problem. Tell me a nearby city or area when you have one in mind, and I’ll check Cloche’s listings.")
+        : alreadyAskedForLocation
+          ? (ml ? "നഗരമോ പ്രദേശമോ വ്യക്തമാക്കാമോ? ഉദാഹരണത്തിന് Kochi, Kozhikode, അല്ലെങ്കിൽ Perinthalmanna." : "I didn’t catch the area. Please name a city or town, such as Kochi, Kozhikode, or Perinthalmanna.")
+        : (ml ? MALAYALAM.askCity : `Which city or area should I search for${category ? ` ${category}` : " vendors"}? I’ll use Cloche’s registered listings.`);
     } else if (intent === "compare" && entities.vendorNames.length < 2) {
       reply = "Which two vendor names should I compare? Mention both names from Cloche.";
     } else {
@@ -91,6 +105,8 @@ export function generateResponse(input: {
       memory.lastBudget = budget;
       memory.lastBudgetStrict = budgetStrict;
       memory.recentVendors = filtered;
+      delete memory.pendingIntent;
+      delete memory.pendingField;
       extras.groundedVendors = filtered;
       const unpriced = results.filter((vendor) => vendor.startingPrice === "Contact for pricing");
       if (filtered.length === 0 && budget && unpriced.length > 0) {
@@ -139,4 +155,3 @@ export function generateResponse(input: {
   memory.lastIntent = intent;
   return { reply, topic, ...extras, memory };
 }
-

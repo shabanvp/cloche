@@ -68,6 +68,122 @@ test('recognizes Malayalam-English transliteration for a category and city', () 
   assert.match(result.reply, /couldn.{1,3}t find verified/i);
 });
 
+test('resolves a pending photographer location and searches using the merged context', () => {
+  const first = processAuraTurn({ query: 'Find photographers.' });
+  assert.equal(first.memory.pendingIntent, 'vendor_search');
+  assert.equal(first.memory.pendingField, 'location');
+  assert.match(first.reply, /Which city or area/i);
+
+  const inPerinthalmanna = { ...fixtures[2], city: 'Perinthalmanna', detailUrl: '/boutiques/perinthalmanna-lens' };
+  const result = processAuraTurn({
+    query: 'Perinthalmanna.',
+    memory: first.memory,
+    vendors: [inPerinthalmanna],
+  });
+  assert.equal(result.intent, 'vendors');
+  assert.equal(result.entities.category, 'photographers');
+  assert.equal(result.entities.city, 'Perinthalmanna');
+  assert.equal(result.groundedVendors[0].id, inPerinthalmanna.id);
+  assert.match(result.reply, /photographers in Perinthalmanna/i);
+  assert.equal(result.memory.pendingIntent, undefined);
+  assert.equal(result.memory.lastCity, 'Perinthalmanna');
+});
+
+test('resolves pending makeup artist location follow-ups', () => {
+  const first = processAuraTurn({ query: 'Find makeup artists.' });
+  const makeup = { ...fixtures[3], city: 'Kozhikode' };
+  const result = processAuraTurn({ query: 'Kozhikode', memory: first.memory, vendors: [makeup] });
+  assert.equal(result.entities.category, 'makeup artists');
+  assert.equal(result.entities.city, 'Kozhikode');
+  assert.equal(result.groundedVendors[0].id, makeup.id);
+});
+
+test('preserves a previous budget while resolving a pending location', () => {
+  const first = processAuraTurn({ query: 'Find photographers under ₹20,000.' });
+  const kannurPhotographer = { ...fixtures[2], city: 'Kannur' };
+  const result = processAuraTurn({ query: 'Kannur', memory: first.memory, vendors: [kannurPhotographer] });
+  assert.equal(result.entities.budget, 20000);
+  assert.equal(result.entities.city, 'Kannur');
+  assert.equal(result.groundedVendors[0].id, kannurPhotographer.id);
+  assert.match(result.reply, /under ₹20,000/i);
+});
+
+test('searches immediately when a location is included in the original request', () => {
+  const result = processAuraTurn({
+    query: 'Find photographers in Perinthalmanna.',
+    vendors: [{ ...fixtures[2], city: 'Perinthalmanna' }],
+  });
+  assert.equal(result.entities.city, 'Perinthalmanna');
+  assert.equal(result.memory.pendingField, undefined);
+  assert.equal(result.groundedVendors.length, 1);
+});
+
+test('a pending location request can be replaced by a new category and location', () => {
+  const first = processAuraTurn({ query: 'Find photographers.' });
+  const makeup = { ...fixtures[3], city: 'Malappuram' };
+  const result = processAuraTurn({
+    query: 'Actually, find makeup artists in Malappuram.',
+    memory: first.memory,
+    vendors: [makeup],
+  });
+  assert.equal(result.entities.category, 'makeup artists');
+  assert.equal(result.entities.city, 'Malappuram');
+  assert.equal(result.groundedVendors[0].id, makeup.id);
+  assert.equal(result.memory.pendingIntent, undefined);
+});
+
+test('an uncertain reply is not treated as a location and keeps the pending search', () => {
+  const first = processAuraTurn({ query: 'Find photographers.' });
+  const uncertain = processAuraTurn({ query: "I don't know.", memory: first.memory });
+  assert.match(uncertain.reply, /No problem/i);
+  assert.doesNotMatch(uncertain.reply, /Which city or area should I search/i);
+  assert.equal(uncertain.entities.city, undefined);
+  assert.equal(uncertain.memory.pendingField, 'location');
+});
+
+test('does not repeat the location clarification after a valid answer', () => {
+  const first = processAuraTurn({ query: 'Find photographers.' });
+  const result = processAuraTurn({
+    query: 'Perinthalmanna',
+    memory: first.memory,
+    vendors: [],
+  });
+  assert.doesNotMatch(result.reply, /Which city or area should I search/i);
+  assert.match(result.reply, /couldn.t find verified.*Perinthalmanna/i);
+});
+
+test('pending clarification survives serializing and restoring conversation context', () => {
+  const first = processAuraTurn({ query: 'Find photographers.' });
+  const restoredMemory = JSON.parse(JSON.stringify(first.memory));
+  const result = processAuraTurn({
+    query: 'Perinthalmanna',
+    memory: restoredMemory,
+    vendors: [{ ...fixtures[2], city: 'Perinthalmanna' }],
+  });
+  assert.equal(result.entities.city, 'Perinthalmanna');
+  assert.equal(result.groundedVendors.length, 1);
+  assert.equal(result.memory.pendingIntent, undefined);
+});
+
+test('does not treat a bare city as a vendor search without a pending location question', () => {
+  const priorSearch = processAuraTurn({
+    query: 'Find photographers in Kochi.',
+    vendors: [fixtures[2]],
+  });
+  const unrelated = processAuraTurn({ query: 'Perinthalmanna', memory: priorSearch.memory });
+  assert.notEqual(unrelated.intent, 'vendors');
+  assert.equal(unrelated.memory.lastCity, 'Kochi');
+  assert.equal(unrelated.groundedVendors, undefined);
+});
+
+test('asks a different, specific clarification for an ambiguous pending-location reply', () => {
+  const first = processAuraTurn({ query: 'Find photographers.' });
+  const unclear = processAuraTurn({ query: 'Maybe nearby.', memory: first.memory });
+  assert.notEqual(unclear.reply, first.reply);
+  assert.match(unclear.reply, /Please name a city or town/i);
+  assert.equal(unclear.memory.pendingField, 'location');
+});
+
 test('comparison is grounded in the two named verified candidates', () => {
   const names = fixtures.slice(0, 2).map((vendor) => vendor.name);
   const result = processAuraTurn({ query: 'Compare Kochi Groom Studio and Ernakulam Groom House.', memory: { lastCategory: 'groom wear', lastCity: 'Kochi' }, knownVendorNames: names, vendors: fixtures.slice(0, 2) });

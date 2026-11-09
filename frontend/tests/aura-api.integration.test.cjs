@@ -154,6 +154,40 @@ suite('Aura authenticated API integration (loopback isolated stack only)', { con
     assert.ok(!chatsA.body.chats.some((chat) => chat.id === testConversationB));
   });
 
+  await t.test('restores a pending location clarification and runs the real photographer search', async () => {
+    await resetLimiter(identities[0]);
+    const conversation = `aura-test-${runId}-pending-location`;
+    const clarification = await send(identities[0], crypto.randomUUID(), 'Find photographers.', conversation);
+    assert.equal(clarification.status, 200, JSON.stringify(clarification.body));
+    assert.match(clarification.body.reply, /Which city or area/i);
+
+    const savedContext = await rest(`aura_conversations?id=eq.${conversation}&user_id=eq.${identities[0].id}&select=context`);
+    assert.equal(savedContext[0].context.pendingIntent, 'vendor_search');
+    assert.equal(savedContext[0].context.pendingField, 'location');
+    assert.equal(savedContext[0].context.lastCategory, 'photographers');
+
+    const restored = await api(identities[0], '/api/aura/chats');
+    assert.equal(restored.status, 200);
+    assert.ok(restored.body.chats.some((chat) => chat.id === conversation && chat.context.pendingField === 'location'));
+
+    const searched = await send(identities[0], crypto.randomUUID(), 'Perinthalmanna.', conversation);
+    assert.equal(searched.status, 200, JSON.stringify(searched.body));
+    assert.equal(searched.body.topic, 'vendors');
+    assert.doesNotMatch(searched.body.reply, /Which city or area should I search/i);
+    assert.ok(Array.isArray(searched.body.groundedVendors));
+    for (const vendor of searched.body.groundedVendors) {
+      assert.equal(vendor.isVerified, true);
+      assert.match(vendor.city, /Perinthalmanna/i);
+      assert.match(vendor.detailUrl, /^\/boutiques\//);
+    }
+
+    const completedContext = await rest(`aura_conversations?id=eq.${conversation}&user_id=eq.${identities[0].id}&select=context`);
+    assert.equal(completedContext[0].context.lastCategory, 'photographers');
+    assert.equal(completedContext[0].context.lastCity, 'Perinthalmanna');
+    assert.equal(completedContext[0].context.pendingIntent, undefined);
+    assert.equal(completedContext[0].context.pendingField, undefined);
+  });
+
   await t.test('prevents cross-user read, delete, and context update', async () => {
     const before = await rest(`aura_conversations?id=eq.${testConversationB}&user_id=eq.${identities[1].id}&select=context`);
     const read = await api(identities[0], '/api/aura/chats');
