@@ -3,10 +3,20 @@ import type { AuraEntities } from "./entities";
 export type AuraIntent = "greeting" | "introduce" | "ask_name" | "vendors" | "budget_filter" | "compare" | "budget_plan" | "checklist" | "planning" | "knowledge" | "unsupported" | "clarify";
 
 const PHRASES: Record<AuraIntent, RegExp[]> = {
-  greeting: [/\b(hi|hello|hey|good morning|good evening)\b/i, /\b(namaskaram|sughamano)\b/i, /ഹലോ|നമസ്കാരം/],
+  greeting: [
+    /\b(h+i+|h+e+y+|h+e+l+l*o+|h+e+l+a+|hola|yo|gm|gn)\b/i,
+    /\b(good\s*(morning|afternoon|evening))\b/i,
+    /\b(namaste|namaskar|namaskaram|sughamano)\b/i,
+    /^(h+i+|h+e+y+|h+e+l+l*o+|hola|yo|namaste|namaskaram|halo+)[!.,\s]*$/i,
+    /ഹലോ|നമസ്കാരം/i,
+  ],
   introduce: [/\b(my name is|i am|i'm|call me)\b/i, /എന്റെ പേര്/],
   ask_name: [/\b(what is|what's|do you know)\s+(my\s+)?name\b/i, /എന്റെ പേര്.*എന്ത്/],
-  vendors: [/\b(find|show|search|recommend|looking for|options|want|need)\b/i, /\b(photographer|groom wear|makeup artist|venue|caterer|decor|mehendi)\b/i, /വേണം|കാണിക്കൂ/],
+  vendors: [
+    /\b(find|show|search|recommend|looking for|options|want|need|about|tell me about|info on|details on|show me)\b/i,
+    /\b(photographer|groom wear|makeup artist|venue|caterer|decor|mehendi)\b/i,
+    /വേണം|കാണിക്കൂ/i,
+  ],
   budget_filter: [/\b(under|below|within|options under|show options)\b/i, /താഴെ|ബജറ്റ്/],
   compare: [/\b(compare|versus|\bvs\b|difference between)\b/i, /താരതമ്യം/],
   budget_plan: [/\b(plan|budget|allocate|split)\b/i, /ബജറ്റ്|പ്ലാൻ/],

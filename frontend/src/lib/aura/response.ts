@@ -17,12 +17,12 @@ export interface AuraMemory extends Partial<AuraEntities> {
 export interface AuraEngineResult { reply: string; topic: string; groundedVendors?: AuraVendorItem[]; budgetPlan?: { totalBudget: number; guestCount: number; city: string; items: Array<{ category: string; percentage: number; amount: number; note: string }> }; checklist?: Array<{ id: string; title: string; category: string; completed: boolean }>; memory: AuraMemory; }
 
 const MALAYALAM = {
-  greeting: "നമസ്കാരം! Cloche വെഡ്ഡിംഗ് പ്ലാനിംഗിലും യഥാർത്ഥ vendor-കളെ കണ്ടെത്തുന്നതിലും സഹായിക്കാം. എന്താണ് വേണ്ടത്?",
+  greeting: "നമസ്കാരം! എങ്ങനെ സഹായിക്കണം?",
   nameSaved: (name: string) => `സന്തോഷം, ${name}! ഈ സംഭാഷണത്തിൽ നിങ്ങളുടെ പേര് ഓർക്കാം.`,
   nameUnknown: "ഈ സംഭാഷണത്തിൽ നിങ്ങൾ പേര് പറഞ്ഞിട്ടില്ല. പറഞ്ഞാൽ ഈ ചാറ്റിൽ ഓർത്തുവെക്കാം.",
-  askCity: "ഏത് നഗരത്തിലോ പ്രദേശത്തിലോ വേണം? സ്ഥലം പറഞ്ഞാൽ Cloche-യിലെ രജിസ്റ്റർ ചെയ്ത vendor-കൾ തിരയാം.",
-  noVendors: "നൽകിയ മാനദണ്ഡങ്ങൾക്ക് അനുയോജ്യമായ verified Cloche vendor-കളെ കണ്ടെത്താനായില്ല. മറ്റൊരു category, സ്ഥലം, അല്ലെങ്കിൽ budget പരീക്ഷിക്കാമോ?",
-  unsupported: "ഞാൻ wedding planning, budgeting, curated സഹായം, Cloche vendor directory എന്നിവയ്ക്കായി നിർമിച്ച deterministic assistant ആണ്. ഈ വിഷയത്തിൽ പരിശോധിച്ച അറിവ് ഇപ്പോൾ ഇല്ല; ഊഹിച്ച് മറുപടി നൽകില്ല.",
+  askCity: "ഏത് നഗരത്തിലോ പ്രദേശത്തിലോ വേണം?",
+  noVendors: "നൽകിയ മാനദണ്ഡങ്ങൾക്ക് അനുയോജ്യമായ verified Cloche vendor-കളെ കണ്ടെത്താനായില്ല.",
+  unsupported: "Wedding vendor-കൾ, budget, planning checklist എന്നിവയിൽ സഹായിക്കാം. എന്താണ് വേണ്ടത്?",
 };
 
 export function makeChecklist() {
@@ -55,7 +55,7 @@ export function generateResponse(input: {
   const { query, intent, language, entities } = input;
   const memory: AuraMemory = { ...input.memory };
   const ml = language === "ml";
-  const greeting = ml ? MALAYALAM.greeting : "Hi! I can help with wedding planning and find real vendors listed on Cloche. What would you like help with?";
+  const greeting = ml ? MALAYALAM.greeting : "Hi! How can I help you today?";
   let reply = "";
   let topic = "general";
   let extras: Pick<AuraEngineResult, "groundedVendors" | "budgetPlan" | "checklist"> = {};
@@ -79,7 +79,7 @@ export function generateResponse(input: {
       memory.lastCategory = category;
       reply = ml ? MALAYALAM.askCity : `Which city or area should I search for${category ? ` ${category}` : " vendors"}? I’ll use Cloche’s registered listings.`;
     } else if (intent === "compare" && entities.vendorNames.length < 2) {
-      reply = "Which two vendor names should I compare? Mention both names from Cloche, and I can compare the stored category, city, starting price and profile rating where listed.";
+      reply = "Which two vendor names should I compare? Mention both names from Cloche.";
     } else {
       const results = input.vendors || [];
       const filtered = budget ? results.filter((v) => {
@@ -93,12 +93,19 @@ export function generateResponse(input: {
       memory.recentVendors = filtered;
       extras.groundedVendors = filtered;
       const unpriced = results.filter((vendor) => vendor.startingPrice === "Contact for pricing");
-      if (filtered.length === 0 && budget && unpriced.length > 0) reply = `I couldn’t confirm any ${category} listings in ${city} under ₹${budget.toLocaleString("en-IN")}. ${unpriced.length} matching listing(s) have no starting price recorded, so I’m not treating them as under budget.`;
-      else if (filtered.length === 0) reply = ml ? MALAYALAM.noVendors : `I couldn't find verified Cloche ${category || "vendor"} listings${city ? ` in ${city}` : ""}${budget ? ` at the requested ${budgetStrict ? "under" : "at or below"} INR ${budget.toLocaleString("en-IN")} budget` : ""}. Try another city or broaden the filters. I won't invent listings, prices or availability.`;
-      else if (intent === "compare" && filtered.length < 2) reply = "I found fewer than two matching vendors to compare. Please name two vendors or broaden the category or location.";
-      else if (intent === "compare") reply = `Here are the ${filtered.length} verified vendor records you named. Compare the listed category, city, starting price and any recorded rating on their Cloche profiles. I can only compare attributes stored in those profiles; availability and unlisted inclusions need confirmation with each vendor.`;
-      else if (budget && filtered.every((v) => v.startingPrice === "Contact for pricing")) reply = `I found ${filtered.length} verified ${category} listing(s) in ${city}, but their starting prices are not listed, so I can’t confirm which meet your ₹${budget.toLocaleString("en-IN")} budget. Contact them to check.`;
-      else reply = `I found ${filtered.length} verified ${category} listing(s)${city ? ` in ${city}` : ""}${budget ? ` with listed starting prices ${budgetStrict ? "under" : "at or below"} ₹${budget.toLocaleString("en-IN")}` : ". Listings are ordered by their recorded starting price where available"}${budget && unpriced.length ? `; ${unpriced.length} other matching listing(s) have no recorded price and are not included` : ""}. The cards show only details stored in Cloche; confirm current prices and availability with each vendor.`;
+      if (filtered.length === 0 && budget && unpriced.length > 0) {
+        reply = `I couldn’t find any verified ${category} in ${city} under ₹${budget.toLocaleString("en-IN")}. Contact vendors directly for custom packages.`;
+      } else if (filtered.length === 0) {
+        reply = ml ? MALAYALAM.noVendors : `I couldn't find verified Cloche ${category || "vendor"} listings${city ? ` in ${city}` : ""}${budget ? ` at the requested ${budgetStrict ? "under" : "at or below"} INR ${budget.toLocaleString("en-IN")} budget` : ""}. Try another city or category.`;
+      } else if (intent === "compare" && filtered.length < 2) {
+        reply = "Which two vendor names should I compare? Mention both names from Cloche.";
+      } else if (intent === "compare") {
+        reply = `Here are the verified vendors you named:`;
+      } else if (budget && filtered.every((v) => v.startingPrice === "Contact for pricing")) {
+        reply = `Here are verified ${category} in ${city} (pricing on request):`;
+      } else {
+        reply = `Here are verified ${category}${city ? ` in ${city}` : ""}${budget ? ` under ₹${budget.toLocaleString("en-IN")}` : ""}:`;
+      }
     }
   } else if (intent === "budget_plan") {
     topic = "budget";
@@ -110,12 +117,12 @@ export function generateResponse(input: {
       const perGuest = guestCount ? Math.round(total / guestCount) : undefined;
       extras.budgetPlan = { totalBudget: total, guestCount, city: entities.city || memory.lastCity || "", items };
       memory.lastBudget = total;
-      reply = `For a total of ₹${total.toLocaleString("en-IN")}, here is a sample allocation—not vendor quotations or market prices:\n\n${items.map((item) => `- **${item.category} (${item.percentage}%)**: ₹${item.amount.toLocaleString("en-IN")} — ${item.note}`).join("\n")}${perGuest ? `\n\nThat is about ₹${perGuest.toLocaleString("en-IN")} per guest for ${guestCount} guests.` : ""}\n\nAdjust these shares to your priorities and get written quotations. This is arithmetic guidance, not live pricing.`;
+      reply = `For a total of ₹${total.toLocaleString("en-IN")}, here is a sample allocation—not vendor quotations or market prices:\n\n${items.map((item) => `- **${item.category} (${item.percentage}%)**: ₹${item.amount.toLocaleString("en-IN")} — ${item.note}`).join("\n")}${perGuest ? `\n\nThat is about ₹${perGuest.toLocaleString("en-IN")} per guest for ${guestCount} guests.` : ""}\n\nAdjust these shares to your priorities.`;
     }
   } else if (intent === "checklist") {
     topic = "checklist";
     extras.checklist = makeChecklist();
-    reply = `Here’s a starter checklist:\n\n${extras.checklist.map((item) => `- [ ] ${item.title}`).join("\n")}\n\nTell me your wedding date to tailor the order. This is a general planning aid.`;
+    reply = `Here’s your starter checklist:\n\n${extras.checklist.map((item) => `- [ ] ${item.title}`).join("\n")}`;
   } else {
     const entry = retrieveKnowledge(query);
     if (entry) {
@@ -124,7 +131,7 @@ export function generateResponse(input: {
     } else if (intent === "clarify") {
       reply = ml ? "കൂടുതൽ സഹായിക്കാം. Vendor തിരയണോ, wedding budget ആസൂത്രണം ചെയ്യണോ, checklist വേണോ?" : "I can help with Cloche vendor search, wedding budgeting or a planning checklist. Which would you like?";
     } else {
-      reply = ml ? MALAYALAM.unsupported : "I’m Cloche’s deterministic wedding assistant. I can search verified Cloche vendors, calculate a sample wedding budget, provide a starter checklist, and answer a small set of maintained wedding-planning questions. I don’t have a maintained answer for that request, so I won’t guess. You can ask about vendor selection, wedding budgets or planning checklists.";
+      reply = ml ? MALAYALAM.unsupported : "I can help you search verified wedding vendors, calculate wedding budgets, or prepare a planning checklist. What would you like help with?";
       topic = "unsupported";
     }
   }
