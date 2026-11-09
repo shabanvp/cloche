@@ -176,7 +176,7 @@ export async function POST(request: Request) {
       await auraDbFetch("aura_messages", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ conversation_id: conversationId, user_id: identity.userId, role: "user", content: message, client_message_id: clientMessageId || null }) });
     }
 
-    const knownVendorNames = ["vendor_search", "vendor_comparison", "conversation_follow_up"].includes(String(memory.lastIntent || ""))
+    const knownVendorNames = ["vendor_search", "vendor_comparison", "conversation_follow_up", "vendors", "budget_filter", "compare"].includes(String(memory.lastIntent || ""))
       ? (memory.recentVendors || []).map((vendor) => vendor.name)
       : [];
     const provisional = processAuraTurn({ query: message, memory, knownVendorNames });
