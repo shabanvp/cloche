@@ -6,9 +6,9 @@ import { retrieveKnowledge } from "./knowledge";
 
 export interface AuraMemory extends Partial<AuraEntities> {
   preferredName?: string;
-  lastIntent?: AuraIntent;
-  pendingIntent?: "vendor_search";
-  pendingField?: "category" | "location";
+  lastIntent?: AuraIntent | string;
+  pendingIntent?: "vendor_search" | "wedding_budget_planning";
+  pendingField?: "category" | "location" | "budget" | "guestCount" | "functionType";
   lastCategory?: string;
   lastCity?: string;
   lastBudget?: number;
@@ -16,7 +16,8 @@ export interface AuraMemory extends Partial<AuraEntities> {
   recentVendors?: AuraVendorItem[];
 }
 
-export interface AuraEngineResult { reply: string; topic: string; groundedVendors?: AuraVendorItem[]; budgetPlan?: { totalBudget: number; guestCount: number; city: string; items: Array<{ category: string; percentage: number; amount: number; note: string }> }; checklist?: Array<{ id: string; title: string; category: string; completed: boolean }>; memory: AuraMemory; }
+export type AuraResponseIntent = "greeting" | "introduce" | "ask_name" | "vendors" | "budget_filter" | "compare" | "budget_plan" | "checklist" | "planning" | "knowledge" | "unsupported" | "clarify";
+export interface AuraEngineResult { reply: string; topic: string; groundedVendors?: AuraVendorItem[]; budgetPlan?: { totalBudget: number; guestCount: number; city: string; functionType?: string; items: Array<{ category: string; percentage: number; amount: number; note: string }> }; checklist?: Array<{ id: string; title: string; category: string; completed: boolean }>; memory: AuraMemory; }
 
 const MALAYALAM = {
   greeting: "നമസ്കാരം! എങ്ങനെ സഹായിക്കണം?",
@@ -41,18 +42,19 @@ export function makeChecklist() {
 
 function budgetBreakdown(total: number) {
   const allocations: Array<[string, number, string]> = [
-    ["Venue", 22, "Sample planning share; get a venue quotation."],
-    ["Catering", 30, "Sample planning share; depends on guest count and menu."],
-    ["Decor", 12, "Sample planning share; confirm inclusions."],
-    ["Photography", 10, "Sample planning share; confirm coverage."],
-    ["Attire and jewellery", 12, "Sample planning share; adjust to priorities."],
-    ["Other costs and contingency", 14, "Sample reserve for invitations, transport and unexpected costs."],
+    ["Venue", 18, "Illustrative share; confirm venue capacity and quotation."],
+    ["Catering", 30, "Illustrative share; depends on guest count, menu and service."],
+    ["Photography and videography", 10, "Illustrative share; compare coverage and written packages."],
+    ["Decoration", 8, "Illustrative share; confirm the venue's included setup."],
+    ["Bridal and groom expenses", 12, "Illustrative share for attire, grooming and related needs."],
+    ["Invitations and miscellaneous", 8, "Illustrative share for invitations, transport and small expenses."],
+    ["Contingency", 14, "Reserve for unexpected expenses; adjust to local quotations."],
   ];
   return allocations.map(([category, percentage, note]) => ({ category, percentage, amount: Math.round(total * Number(percentage) / 100), note }));
 }
 
 export function generateResponse(input: {
-  query: string; intent: AuraIntent; language: AuraLanguage; entities: AuraEntities; memory: AuraMemory; vendors?: AuraVendorItem[]; guestCount?: number;
+  query: string; intent: AuraResponseIntent; language: AuraLanguage; entities: AuraEntities; memory: AuraMemory; vendors?: AuraVendorItem[]; guestCount?: number;
 }): AuraEngineResult {
   const { query, intent, language, entities } = input;
   const memory: AuraMemory = { ...input.memory };
@@ -125,15 +127,36 @@ export function generateResponse(input: {
     }
   } else if (intent === "budget_plan") {
     topic = "budget";
-    const total = entities.budget || memory.lastBudget;
-    if (!total) reply = ml ? "ആകെ wedding budget എത്രയാണ്? തുക പറഞ്ഞാൽ വ്യക്തമായ sample allocation കണക്കാക്കാം." : "What total wedding budget should I use? Share an amount and I’ll calculate a sample allocation.";
+    const total = entities.budget;
+    if (!total) {
+      memory.pendingIntent = "wedding_budget_planning";
+      memory.pendingField = "budget";
+      reply = ml ? "ആകെ wedding budget എത്രയാണ്? തുക പറഞ്ഞാൽ വ്യക്തമായ sample allocation കണക്കാക്കാം." : "What total wedding budget should I use? Share an amount and I’ll calculate a sample allocation.";
+    }
     else {
       const items = budgetBreakdown(total);
-      const guestCount = input.guestCount || 0;
+      const guestCount = entities.guestCount || input.guestCount || 0;
       const perGuest = guestCount ? Math.round(total / guestCount) : undefined;
-      extras.budgetPlan = { totalBudget: total, guestCount, city: entities.city || memory.lastCity || "", items };
+      extras.budgetPlan = { totalBudget: total, guestCount, city: entities.city || "", functionType: entities.functionType, items };
       memory.lastBudget = total;
-      reply = `For a total of ₹${total.toLocaleString("en-IN")}, here is a sample allocation—not vendor quotations or market prices:\n\n${items.map((item) => `- **${item.category} (${item.percentage}%)**: ₹${item.amount.toLocaleString("en-IN")} — ${item.note}`).join("\n")}${perGuest ? `\n\nThat is about ₹${perGuest.toLocaleString("en-IN")} per guest for ${guestCount} guests.` : ""}\n\nAdjust these shares to your priorities.`;
+      memory.lastCity = entities.city;
+      memory.guestCount = guestCount || undefined;
+      memory.functionType = entities.functionType;
+      const missing = [
+        !guestCount ? "guest count" : "",
+        !entities.city ? "wedding location" : "",
+        !entities.functionType ? "function type (for example, ceremony or reception)" : "",
+      ].filter(Boolean);
+      const missingDetails = missing.length > 1 ? `${missing.slice(0, -1).join(", ")}, and ${missing[missing.length - 1]}` : missing[0];
+      const nextField = !guestCount ? "guestCount" : !entities.city ? "location" : !entities.functionType ? "functionType" : undefined;
+      if (nextField) {
+        memory.pendingIntent = "wedding_budget_planning";
+        memory.pendingField = nextField;
+      } else {
+        delete memory.pendingIntent;
+        delete memory.pendingField;
+      }
+      reply = `For a total of ₹${total.toLocaleString("en-IN")}, here is an illustrative sample allocation—not actual vendor quotations or market prices:\n\n${items.map((item) => `- **${item.category} (${item.percentage}%)**: ₹${item.amount.toLocaleString("en-IN")} — ${item.note}`).join("\n")}${perGuest ? `\n\nThat is about ₹${perGuest.toLocaleString("en-IN")} per guest for ${guestCount} guests.` : ""}${missing.length ? `\n\nTo tailor this estimate, what is your ${missingDetails}?` : "\n\nAdjust these shares to your priorities and confirm actual costs with venues and vendors."}`;
     }
   } else if (intent === "checklist") {
     topic = "checklist";
@@ -152,6 +175,5 @@ export function generateResponse(input: {
     }
   }
 
-  memory.lastIntent = intent;
   return { reply, topic, ...extras, memory };
 }

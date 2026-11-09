@@ -32,7 +32,8 @@ test('classifies groom wear and applies the follow-up budget cap', () => {
   assert.equal(first.entities.category, 'groom wear');
   assert.equal(first.entities.city, 'Kochi');
   const second = processAuraTurn({ query: 'Show options under ₹10,000.', memory: first.memory, vendors: [fixtures[0], fixtures[1], fixtures[5]] });
-  assert.equal(second.intent, 'budget_filter');
+  assert.equal(second.intent, 'conversation_follow_up');
+  assert.equal(second.responseIntent, 'budget_filter');
   assert.equal(second.entities.budgetStrict, true);
   assert.equal(second.groundedVendors.length, 1);
   assert.equal(second.groundedVendors[0].name, 'Kochi Groom Studio');
@@ -50,7 +51,7 @@ test('calculates the requested five lakh sample plan transparently', () => {
   const result = processAuraTurn({ query: 'Plan a wedding for ₹5 lakh.' });
   assert.equal(result.budgetPlan.totalBudget, 500000);
   assert.equal(result.budgetPlan.items.reduce((sum, item) => sum + item.amount, 0), 500000);
-  assert.match(result.reply, /not vendor quotations/i);
+  assert.match(result.reply, /not actual vendor quotations/i);
 });
 
 test('provides a deterministic wedding planning checklist', () => {
@@ -80,7 +81,7 @@ test('resolves a pending photographer location and searches using the merged con
     memory: first.memory,
     vendors: [inPerinthalmanna],
   });
-  assert.equal(result.intent, 'vendors');
+  assert.equal(result.intent, 'clarification_response');
   assert.equal(result.entities.category, 'photographers');
   assert.equal(result.entities.city, 'Perinthalmanna');
   assert.equal(result.groundedVendors[0].id, inPerinthalmanna.id);
@@ -152,6 +153,143 @@ test('does not repeat the location clarification after a valid answer', () => {
   assert.match(result.reply, /couldn.t find verified.*Perinthalmanna/i);
 });
 
+test('searches photographers in Thrissur as a vendor search', () => {
+  const result = processAuraTurn({ query: 'Find photographers in Thrissur.', vendors: [{ ...fixtures[2], city: 'Thrissur' }] });
+  assert.equal(result.intent, 'vendor_search');
+  assert.equal(result.responseIntent, 'vendors');
+  assert.equal(result.entities.category, 'photographers');
+  assert.equal(result.entities.city, 'Thrissur');
+  assert.equal(result.groundedVendors[0].city, 'Thrissur');
+});
+
+test('routes the exact 5 lakh marriage-function request to the budget planner without vendor context', () => {
+  const vendorTurn = processAuraTurn({ query: 'Find photographers in Thrissur.', vendors: [fixtures[2]] });
+  const result = processAuraTurn({
+    query: 'I have about 5 lakh rupees and I want to do a marriage function. What to do?',
+    memory: vendorTurn.memory,
+    vendors: [fixtures[2]],
+  });
+  assert.equal(result.intent, 'wedding_budget_planning');
+  assert.equal(result.responseIntent, 'budget_plan');
+  assert.equal(result.entities.budget, 500000);
+  assert.equal(result.entities.category, undefined);
+  assert.equal(result.entities.city, undefined);
+  assert.equal(result.groundedVendors, undefined);
+  assert.equal(result.budgetPlan.totalBudget, 500000);
+  assert.equal(result.budgetPlan.city, '');
+  assert.match(result.reply, /illustrative sample allocation/i);
+  assert.match(result.reply, /guest count/i);
+  assert.match(result.reply, /wedding location/i);
+  assert.equal(result.budgetPlan.functionType, 'marriage function');
+  assert.doesNotMatch(result.reply, /what is your function type/i);
+  assert.equal(result.memory.lastCategory, undefined);
+  assert.equal(result.memory.lastCity, undefined);
+  assert.equal(result.memory.recentVendors, undefined);
+});
+
+test('continues wedding-budget clarification turns and clears pending state when complete', () => {
+  let turn = processAuraTurn({ query: 'Plan a wedding with ₹5 lakh.' });
+  assert.equal(turn.intent, 'wedding_budget_planning');
+  assert.equal(turn.memory.pendingField, 'guestCount');
+
+  turn = processAuraTurn({ query: '250 guests', memory: JSON.parse(JSON.stringify(turn.memory)) });
+  assert.equal(turn.intent, 'clarification_response');
+  assert.equal(turn.responseIntent, 'budget_plan');
+  assert.equal(turn.budgetPlan.totalBudget, 500000);
+  assert.equal(turn.budgetPlan.guestCount, 250);
+  assert.equal(turn.memory.pendingField, 'location');
+
+  turn = processAuraTurn({ query: 'Perinthalmanna', memory: turn.memory });
+  assert.equal(turn.budgetPlan.city, 'Perinthalmanna');
+  assert.equal(turn.memory.pendingField, 'functionType');
+
+  turn = processAuraTurn({ query: 'Reception', memory: turn.memory });
+  assert.equal(turn.budgetPlan.functionType, 'Reception');
+  assert.equal(turn.memory.pendingIntent, undefined);
+  assert.equal(turn.memory.pendingField, undefined);
+});
+
+test('an explicit wedding plan switches away from a previous vendor search', () => {
+  const prior = processAuraTurn({ query: 'Find photographers in Thrissur.', vendors: [fixtures[2]] });
+  const result = processAuraTurn({
+    query: 'Actually, help me plan a wedding for ₹5 lakh.',
+    memory: prior.memory,
+    vendors: [fixtures[2]],
+  });
+  assert.equal(result.intent, 'wedding_budget_planning');
+  assert.equal(result.budgetPlan.totalBudget, 500000);
+  assert.equal(result.groundedVendors, undefined);
+  assert.equal(result.memory.lastCategory, undefined);
+  assert.equal(result.memory.lastCity, undefined);
+});
+
+test('keeps vendor contexts independent when switching conversations', () => {
+  const conversationA = processAuraTurn({ query: 'Find photographers in Thrissur.', vendors: [fixtures[2]] });
+  const conversationB = processAuraTurn({ query: 'I want makeup artists in Malappuram.', vendors: [{ ...fixtures[3], city: 'Malappuram' }] });
+  assert.equal(conversationA.memory.lastCategory, 'photographers');
+  assert.equal(conversationA.memory.lastCity, 'Thrissur');
+  assert.equal(conversationB.memory.lastCategory, 'makeup artists');
+  assert.equal(conversationB.memory.lastCity, 'Malappuram');
+  const restoredA = processAuraTurn({ query: 'Show cheaper options.', memory: JSON.parse(JSON.stringify(conversationA.memory)), vendors: [fixtures[2]] });
+  assert.equal(restoredA.responseIntent, 'vendors');
+  assert.equal(restoredA.entities.category, 'photographers');
+  assert.equal(restoredA.entities.city, 'Thrissur');
+});
+
+test('uses follow-up language only with active vendor-search context', () => {
+  const prior = processAuraTurn({ query: 'Find photographers in Thrissur.', vendors: [fixtures[2]] });
+  const inContext = processAuraTurn({ query: 'Show cheaper options.', memory: prior.memory, vendors: [fixtures[2]] });
+  const newConversation = processAuraTurn({ query: 'Show cheaper options.' });
+  assert.equal(inContext.intent, 'conversation_follow_up');
+  assert.equal(inContext.entities.category, 'photographers');
+  assert.equal(inContext.entities.city, 'Thrissur');
+  assert.equal(newConversation.intent, 'unsupported_request');
+  assert.equal(newConversation.entities.category, undefined);
+  assert.equal(newConversation.entities.city, undefined);
+});
+
+test('recognizes wedding budget guidance as planning, not vendor discovery', () => {
+  const result = processAuraTurn({ query: 'What is the best way to manage a ₹5 lakh wedding budget?' });
+  assert.equal(result.intent, 'wedding_budget_planning');
+  assert.equal(result.responseIntent, 'budget_plan');
+  assert.equal(result.budgetPlan.totalBudget, 500000);
+  assert.equal(result.groundedVendors, undefined);
+});
+
+test('keeps a photographer under-₹20,000 request in vendor search', () => {
+  const result = processAuraTurn({
+    query: 'Find photographers with a budget under ₹20,000.',
+    vendors: [fixtures[2]],
+  });
+  assert.equal(result.intent, 'vendor_search');
+  assert.equal(result.entities.category, 'photographers');
+  assert.equal(result.entities.budget, 20000);
+  assert.equal(result.groundedVendors.length, 1);
+});
+
+test('extracts wedding location and budget without carrying vendor location', () => {
+  const prior = processAuraTurn({ query: 'Find photographers in Thrissur.', vendors: [fixtures[2]] });
+  const result = processAuraTurn({
+    query: 'I want to plan a wedding in Perinthalmanna with ₹5 lakh.',
+    memory: prior.memory,
+  });
+  assert.equal(result.intent, 'wedding_budget_planning');
+  assert.equal(result.entities.city, 'Perinthalmanna');
+  assert.equal(result.entities.budget, 500000);
+  assert.equal(result.budgetPlan.city, 'Perinthalmanna');
+  assert.notEqual(result.budgetPlan.city, 'Thrissur');
+});
+
+test('starts a new conversation without previous vendor-search state', () => {
+  const previousConversation = processAuraTurn({ query: 'Find photographers in Thrissur.', vendors: [fixtures[2]] });
+  const newConversation = processAuraTurn({ query: 'Hi!' });
+  assert.equal(newConversation.intent, 'greeting');
+  assert.equal(newConversation.responseIntent, 'greeting');
+  assert.equal(newConversation.groundedVendors, undefined);
+  assert.equal(newConversation.memory.lastCity, undefined);
+  assert.equal(previousConversation.memory.lastCity, 'Thrissur');
+});
+
 test('pending clarification survives serializing and restoring conversation context', () => {
   const first = processAuraTurn({ query: 'Find photographers.' });
   const restoredMemory = JSON.parse(JSON.stringify(first.memory));
@@ -172,7 +310,7 @@ test('does not treat a bare city as a vendor search without a pending location q
   });
   const unrelated = processAuraTurn({ query: 'Perinthalmanna', memory: priorSearch.memory });
   assert.notEqual(unrelated.intent, 'vendors');
-  assert.equal(unrelated.memory.lastCity, 'Kochi');
+  assert.equal(unrelated.memory.lastCity, undefined);
   assert.equal(unrelated.groundedVendors, undefined);
 });
 
@@ -220,6 +358,13 @@ test('answers Python and React prompts from explicit knowledge limitations', () 
   const react = processAuraTurn({ query: 'Write a React application.' });
   assert.match(python.reply, /don’t have a curated knowledge entry/i);
   assert.match(react.reply, /not a general code-generation tool/i);
+});
+
+test('routes Cloche service questions to maintained service information', () => {
+  const result = processAuraTurn({ query: 'What services does Cloche offer?' });
+  assert.equal(result.intent, 'service_information');
+  assert.equal(result.topic, 'knowledge');
+  assert.match(result.reply, /registered wedding-vendor listings/i);
 });
 
 test('shared database limiter fails closed and keeps a per-user window contract', async () => {

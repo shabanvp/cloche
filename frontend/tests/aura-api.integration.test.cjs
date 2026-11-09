@@ -188,6 +188,54 @@ suite('Aura authenticated API integration (loopback isolated stack only)', { con
     assert.equal(completedContext[0].context.pendingField, undefined);
   });
 
+  await t.test('isolates vendor context across conversations and routes wedding budget requests correctly', async () => {
+    await resetLimiter(identities[0]);
+    const conversationA = `aura-test-${runId}-context-a`;
+    const conversationB = `aura-test-${runId}-context-b`;
+    const photographer = await send(identities[0], crypto.randomUUID(), 'Find photographers in Thrissur.', conversationA);
+    assert.equal(photographer.status, 200, JSON.stringify(photographer.body));
+    assert.equal(photographer.body.topic, 'vendors');
+
+    const makeup = await send(identities[0], crypto.randomUUID(), 'I want makeup artists in Malappuram.', conversationB);
+    assert.equal(makeup.status, 200, JSON.stringify(makeup.body));
+    const contextA = await rest(`aura_conversations?id=eq.${conversationA}&user_id=eq.${identities[0].id}&select=context`);
+    const contextB = await rest(`aura_conversations?id=eq.${conversationB}&user_id=eq.${identities[0].id}&select=context`);
+    assert.equal(contextA[0].context.lastCategory, 'photographers');
+    assert.equal(contextA[0].context.lastCity, 'Thrissur');
+    assert.equal(contextB[0].context.lastCategory, 'makeup artists');
+    assert.equal(contextB[0].context.lastCity, 'Malappuram');
+
+    const restoredA = await send(identities[0], crypto.randomUUID(), 'Show cheaper options.', conversationA);
+    assert.equal(restoredA.status, 200, JSON.stringify(restoredA.body));
+    assert.equal(restoredA.body.topic, 'vendors');
+    const updatedA = await rest(`aura_conversations?id=eq.${conversationA}&user_id=eq.${identities[0].id}&select=context`);
+    assert.equal(updatedA[0].context.lastCategory, 'photographers');
+    assert.equal(updatedA[0].context.lastCity, 'Thrissur');
+    assert.equal(updatedA[0].context.recentVendors?.some((vendor) => /makeup/i.test(vendor.category)), false);
+
+    const switchedCategory = await send(identities[0], crypto.randomUUID(), 'Find makeup artists.', conversationA);
+    assert.equal(switchedCategory.status, 200, JSON.stringify(switchedCategory.body));
+    assert.match(switchedCategory.body.reply, /Which city or area should I search/i);
+    assert.equal(switchedCategory.body.groundedVendors, undefined);
+    const switchedContext = await rest(`aura_conversations?id=eq.${conversationA}&user_id=eq.${identities[0].id}&select=context`);
+    assert.equal(switchedContext[0].context.lastCategory, 'makeup artists');
+    assert.equal(switchedContext[0].context.lastCity, undefined);
+    assert.equal(switchedContext[0].context.pendingField, 'location');
+
+    const planner = await send(
+      identities[0],
+      crypto.randomUUID(),
+      'I have about 5 lakh rupees and I want to do a marriage function. What to do?',
+      `aura-test-${runId}-budget-routing`,
+    );
+    assert.equal(planner.status, 200, JSON.stringify(planner.body));
+    assert.equal(planner.body.topic, 'budget');
+    assert.equal(planner.body.budgetPlan.totalBudget, 500000);
+    assert.equal(planner.body.groundedVendors, undefined);
+    assert.match(planner.body.reply, /illustrative sample allocation/i);
+    assert.match(planner.body.reply, /guest count/i);
+  });
+
   await t.test('prevents cross-user read, delete, and context update', async () => {
     const before = await rest(`aura_conversations?id=eq.${testConversationB}&user_id=eq.${identities[1].id}&select=context`);
     const read = await api(identities[0], '/api/aura/chats');

@@ -4,6 +4,8 @@ export interface AuraEntities {
   city?: string;
   budget?: number;
   budgetStrict?: boolean;
+  guestCount?: number;
+  functionType?: string;
   vendorNames: string[];
   comparison: boolean;
 }
@@ -34,27 +36,33 @@ const CITIES: Array<[string, string[]]> = [
 
 function escaped(value: string) { return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
 
-export function extractEntities(text: string, knownVendorNames: string[] = [], expectedField?: "location"): AuraEntities {
+export function extractEntities(text: string, knownVendorNames: string[] = [], expectedField?: "location" | "budget" | "guestCount" | "functionType"): AuraEntities {
   const normalized = text.toLocaleLowerCase();
   const category = CATEGORIES.find(([, terms]) => terms.some((term) => new RegExp(`\\b${escaped(term)}\\b`, "i").test(normalized)))?.[0];
   const detectedCity = CITIES.find(([, aliases]) => aliases.some((alias) => {
     if (/[\u0d00-\u0d7f]/.test(alias)) return text.includes(alias);
     return new RegExp(`\\b${escaped(alias)}(?:[- ]?(?:yil|il))?\\b`, "i").test(text);
   }))?.[0];
-  const budgetMatch = text.match(/(?:under|below|within|budget(?:\s+of)?|₹|rs\.?\s*)(?:\s*₹\s*)?([\d,]+(?:\.\d+)?)\s*(lakh|lakhs|l|k|thousand)?/i);
+  const budgetMatch = text.match(/(?:(?:under|below|within|less than|budget(?:\s+of)?|₹|rs\.?)\s*₹?\s*([\d,]+(?:\.\d+)?)\s*(lakh|lakhs|l|k|thousand)?|([\d,]+(?:\.\d+)?)\s*(lakh|lakhs|l|k|thousand)\s*(?:rupees|rs\.?)?)/i);
   let budget: number | undefined;
   if (budgetMatch) {
-    const amount = Number(budgetMatch[1].replace(/,/g, ""));
-    const unit = (budgetMatch[2] || "").toLowerCase();
+    const amount = Number((budgetMatch[1] || budgetMatch[3]).replace(/,/g, ""));
+    const unit = (budgetMatch[2] || budgetMatch[4] || "").toLowerCase();
     if (Number.isFinite(amount)) budget = amount * (["lakh", "lakhs", "l"].includes(unit) ? 100_000 : ["k", "thousand"].includes(unit) ? 1000 : 1);
   }
+  const guestMatch = text.match(/\b([\d,]+)\s*(?:guests?|people|attendees)\b/i);
+  const bareGuestCount = expectedField === "guestCount" ? text.match(/^\s*([\d,]+)\s*$/) : undefined;
+  const guestCount = guestMatch
+    ? Number(guestMatch[1].replace(/,/g, ""))
+    : bareGuestCount ? Number(bareGuestCount[1].replace(/,/g, "")) : undefined;
+  const functionType = /\b(?:ceremony|reception|engagement|wedding ceremony|marriage function|wedding function|nikah|walima|haldi|mehendi|sangeet)\b/i.exec(text)?.[0];
   const intro = text.match(/\b(?:my name is|i am|i'm|call me)\s+([\p{L}][\p{L}'-]{0,39})/iu);
   const name = intro?.[1];
   const vendorNames = knownVendorNames.filter((candidate) => candidate && normalized.includes(candidate.toLocaleLowerCase())).slice(0, 5);
   const comparison = /\b(compare|comparison|versus|vs\.?|difference between)\b/i.test(text);
   const budgetStrict = budget !== undefined && /\b(?:under|below|less than)\b|<(?!\=)/i.test(text);
   const city = expectedField === "location" || category || /\b(?:in|near|around|at)\b/i.test(text) ? detectedCity : undefined;
-  return { name, category, city, budget, budgetStrict, vendorNames, comparison };
+  return { name, category, city, budget, budgetStrict, guestCount, functionType, vendorNames, comparison };
 }
 
 export function mergeEntities(previous: Partial<AuraEntities> & { lastCategory?: string; lastCity?: string; lastBudget?: number; lastBudgetStrict?: boolean }, current: AuraEntities): AuraEntities {
@@ -64,6 +72,8 @@ export function mergeEntities(previous: Partial<AuraEntities> & { lastCategory?:
     city: current.city || previous.city || previous.lastCity,
     budget: current.budget ?? previous.budget ?? previous.lastBudget,
     budgetStrict: current.budget !== undefined ? current.budgetStrict : previous.budgetStrict ?? previous.lastBudgetStrict,
+    guestCount: current.guestCount ?? previous.guestCount,
+    functionType: current.functionType || previous.functionType,
     vendorNames: current.vendorNames.length ? current.vendorNames : previous.vendorNames || [],
     comparison: current.comparison || Boolean(previous.comparison),
   };

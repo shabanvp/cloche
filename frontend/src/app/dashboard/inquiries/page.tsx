@@ -80,9 +80,15 @@ export default function MyInquiriesPage() {
           <h1 className="font-display text-2xl text-charcoal font-medium">My Inquiries</h1>
           <p className="text-xs text-charcoal/60 mt-1">Track all your submitted quote requests to vendors.</p>
         </div>
-        <Link href="/vendors" className="bg-emerald text-white px-4 py-2 rounded-full text-xs font-semibold hover:bg-gold transition-colors">
-          Browse Vendors
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/messages" className="bg-[#0F4C45] text-white px-4 py-2 rounded-full text-xs font-semibold hover:bg-[#12584C] transition-colors flex items-center gap-1.5 shadow-xs">
+            <MessageSquare className="w-3.5 h-3.5 text-[#C8A96A]" />
+            <span>Open Live Chat Hub</span>
+          </Link>
+          <Link href="/vendors" className="bg-emerald/10 border border-emerald/20 text-emerald px-4 py-2 rounded-full text-xs font-semibold hover:bg-emerald hover:text-white transition-colors">
+            Browse Vendors
+          </Link>
+        </div>
       </div>
 
       {/* Filter Toolbar: Search, Status, City, Sort */}

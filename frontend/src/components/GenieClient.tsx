@@ -91,6 +91,7 @@ export function GenieClient() {
   const [chatStorageKey, setChatStorageKey] = useState<string | null>(null);
   const [chats, setChats] = useState<SavedAuraChat[]>([]);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
+  const currentChatIdRef = useRef<string | null>(null);
   const chatsRef = useRef<SavedAuraChat[]>([]);
   const [sessionReady, setSessionReady] = useState(false);
   const [userContext, setUserContext] = useState<AuraUserContext | null>(null);
@@ -123,6 +124,7 @@ export function GenieClient() {
           const activeChat = parsed.find((chat: SavedAuraChat) => chat.id === activeId) || ordered[0];
           const normalized = parsed.map((chat: SavedAuraChat) => ({ ...chat, pinned: Boolean(chat.pinned), updatedAt: Number(chat.updatedAt) || Date.now() }));
           storeChats(normalized, key);
+          currentChatIdRef.current = activeChat.id;
           setCurrentChatId(activeChat.id);
           setMessages(activeChat.messages);
           setSessionReady(true);
@@ -137,6 +139,7 @@ export function GenieClient() {
         if (Array.isArray(oldMessages) && oldMessages.length > 0 && oldMessages.every((message) => message?.id && ["user", "aura"].includes(message.sender))) {
           const migrated: SavedAuraChat = { id: `chat-${Date.now()}`, title: "Previous chat", messages: oldMessages, pinned: false, updatedAt: Date.now() };
           storeChats([migrated], key);
+          currentChatIdRef.current = migrated.id;
           setCurrentChatId(migrated.id);
           localStorage.setItem(`${key}:active`, migrated.id);
           setMessages(migrated.messages);
@@ -147,6 +150,7 @@ export function GenieClient() {
     } catch {}
     const firstChat: SavedAuraChat = { id: `chat-${Date.now()}`, title: "New chat", messages: [greeting], pinned: false, updatedAt: Date.now() };
     storeChats([firstChat], key);
+    currentChatIdRef.current = firstChat.id;
     setCurrentChatId(firstChat.id);
     try { localStorage.setItem(`${key}:active`, firstChat.id); } catch {}
     setMessages(firstChat.messages);
@@ -172,12 +176,14 @@ export function GenieClient() {
   }, [messages, currentChatId, chatStorageKey, sessionReady]);
 
   const startNewChat = () => {
+    abortControllerRef.current?.abort();
     const chat: SavedAuraChat = {
       id: `chat-${Date.now()}`, title: "New chat",
       messages: [{ id: `aura-init-${Date.now()}`, sender: "aura", text: "Hi! How can I help?", timestamp: "Just now" }],
       pinned: false, updatedAt: Date.now(),
     };
     storeChats([chat, ...chatsRef.current]);
+    currentChatIdRef.current = chat.id;
     setCurrentChatId(chat.id);
     setMessages(chat.messages);
     if (chatStorageKey) {
@@ -187,6 +193,8 @@ export function GenieClient() {
   };
 
   const openChat = (chat: SavedAuraChat) => {
+    abortControllerRef.current?.abort();
+    currentChatIdRef.current = chat.id;
     setCurrentChatId(chat.id);
     setMessages(chat.messages);
     if (chatStorageKey) {
@@ -218,6 +226,8 @@ export function GenieClient() {
     storeChats(next);
     fetch(`/api/aura/chats/${encodeURIComponent(chatId)}`, { method: "DELETE" }).catch(() => null);
     if (chatId === currentChatId) {
+      abortControllerRef.current?.abort();
+      currentChatIdRef.current = next[0].id;
       setCurrentChatId(next[0].id);
       setMessages(next[0].messages);
       if (chatStorageKey) {
@@ -291,6 +301,7 @@ export function GenieClient() {
             const activeId = localStorage.getItem(`${key}:active`);
             const activeChat = combined.find((chat) => chat.id === activeId) || combined[0];
             storeChats(combined, key);
+            currentChatIdRef.current = activeChat.id;
             setCurrentChatId(activeChat.id);
             setMessages(activeChat.messages);
             try { localStorage.setItem(`${key}:active`, activeChat.id); } catch {}
@@ -303,6 +314,7 @@ export function GenieClient() {
       const guestChat: SavedAuraChat = { id: `chat-${Date.now()}`, title: "New chat", messages: [greeting], pinned: false, updatedAt: Date.now() };
       chatsRef.current = [guestChat];
       setChats([guestChat]);
+      currentChatIdRef.current = guestChat.id;
       setCurrentChatId(guestChat.id);
       setMessages(guestChat.messages);
       setSessionReady(true);
@@ -320,6 +332,7 @@ export function GenieClient() {
     const lastUserIndex = messages.map((message) => message.sender).lastIndexOf("user");
     const query = (regenerate ? messages[lastUserIndex]?.text || "" : textToSend || promptInput).trim();
     if (!query || isThinking || !sessionReady) return;
+    const requestChatId = currentChatId;
 
     const clientMessageId = regenerate
       ? messages[lastUserIndex]?.id.match(/^user-([0-9a-f-]{36})$/i)?.[1] || crypto.randomUUID()
@@ -342,7 +355,7 @@ export function GenieClient() {
 
     try {
       const response: AuraResponse = await queryAuraAssistant(query, userContext, null, {
-        conversationId: currentChatId || undefined,
+        conversationId: requestChatId || undefined,
         clientMessageId,
         signal: controller.signal,
         regenerate,
@@ -350,6 +363,7 @@ export function GenieClient() {
           .filter((message) => !message.id.startsWith("aura-init") && !message.id.startsWith("aura-err-"))
           .map((message) => ({ role: message.sender === "user" ? "user" as const : "assistant" as const, content: message.text })),
       });
+      if (currentChatIdRef.current !== requestChatId) return;
       const auraMessage: ChatMessage = {
         id: `aura-${Date.now()}`,
         sender: "aura",

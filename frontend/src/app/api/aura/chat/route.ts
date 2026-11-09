@@ -176,19 +176,22 @@ export async function POST(request: Request) {
       await auraDbFetch("aura_messages", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ conversation_id: conversationId, user_id: identity.userId, role: "user", content: message, client_message_id: clientMessageId || null }) });
     }
 
-    const knownVendorNames = (memory.recentVendors || []).map((vendor) => vendor.name);
+    const knownVendorNames = ["vendor_search", "vendor_comparison", "conversation_follow_up"].includes(String(memory.lastIntent || ""))
+      ? (memory.recentVendors || []).map((vendor) => vendor.name)
+      : [];
     const provisional = processAuraTurn({ query: message, memory, knownVendorNames });
     let vendors: AuraVendorItem[] | undefined;
-    const category = provisional.entities.category || memory.lastCategory || "";
-    const city = provisional.entities.city || memory.lastCity || "";
-    const mustSearch = ["vendors", "budget_filter", "compare"].includes(provisional.intent) && Boolean(category && city);
+    const continuesVendorContext = ["conversation_follow_up", "clarification_response", "vendor_comparison"].includes(provisional.intent);
+    const category = provisional.entities.category || (continuesVendorContext ? memory.lastCategory : "") || "";
+    const city = provisional.entities.city || (continuesVendorContext ? memory.lastCity : "") || "";
+    const mustSearch = ["vendors", "budget_filter", "compare"].includes(provisional.responseIntent) && Boolean(category && city);
     if (mustSearch) {
-      const budget = provisional.entities.budget ?? (provisional.intent === "budget_filter" ? memory.lastBudget : undefined);
+      const budget = provisional.entities.budget ?? (provisional.responseIntent === "budget_filter" ? memory.lastBudget : undefined);
       const budgetStrict = provisional.entities.budget !== undefined ? Boolean(provisional.entities.budgetStrict) : Boolean(memory.lastBudgetStrict);
       vendors = await searchVerifiedVendors(category, city, budget, budgetStrict, provisional.entities.vendorNames);
     }
     const result = processAuraTurn({ query: message, memory, vendors, knownVendorNames });
-    const mergedMemory: AuraMemory = { ...result.memory, ...(result.memory.recentVendors?.length ? {} : { recentVendors: memory.recentVendors }) };
+    const mergedMemory: AuraMemory = result.memory;
     const responseMetadata = { topic: result.topic, groundedVendors: result.groundedVendors, budgetPlan: result.budgetPlan, checklist: result.checklist, nextContext: mergedMemory };
     await auraDbFetch("aura_messages", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ conversation_id: conversationId, user_id: identity.userId, role: "assistant", content: result.reply, client_message_id: clientMessageId || null, metadata: responseMetadata }) });
     await auraDbFetch(`aura_conversations?id=eq.${encodeURIComponent(conversationId)}&user_id=eq.${encodeURIComponent(identity.userId)}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ title: existing?.[0]?.title && existing[0].title !== "New chat" ? existing[0].title : message.slice(0, 80), context: mergedMemory, updated_at: new Date().toISOString() }) });

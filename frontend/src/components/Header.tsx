@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
-  Bell, Edit3, Smartphone, Menu, X, ChevronDown,
+  MessageSquare, Edit3, Smartphone, Menu, X, ChevronDown,
   Home, MapPin, Store, BookHeart, FileText, Mail,
   Lightbulb, Info, CircleHelp, ArrowRight, Users, MessageCircle, CheckCircle2, Sparkles
 } from "lucide-react";
@@ -16,7 +16,7 @@ type HeaderProps = {
 
 export function Header({ session }: HeaderProps = {}) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(1);
   const pathname = usePathname();
   const isAuthRoute = pathname === "/login" || pathname === "/signup";
 
@@ -48,18 +48,23 @@ export function Header({ session }: HeaderProps = {}) {
   }, [isMobileMenuOpen]);
 
   useEffect(() => {
-    if (!isNotificationsOpen) return;
-
-    const closeNotificationsOnScroll = () => {
-      setIsNotificationsOpen(false);
+    const updateUnread = () => {
+      try {
+        fetch("/api/v1/messages")
+          .then((r) => r.json())
+          .then((res) => {
+            if (res?.success && typeof res.data?.totalUnread === "number") {
+              setUnreadCount(res.data.totalUnread);
+            }
+          })
+          .catch(() => {});
+      } catch (e) {}
     };
 
-    window.addEventListener("scroll", closeNotificationsOnScroll, { passive: true });
-
-    return () => {
-      window.removeEventListener("scroll", closeNotificationsOnScroll);
-    };
-  }, [isNotificationsOpen]);
+    updateUnread();
+    window.addEventListener("cloche_messages_updated", updateUnread);
+    return () => window.removeEventListener("cloche_messages_updated", updateUnread);
+  }, []);
 
   const [wishlistCount, setWishlistCount] = useState(0);
 
@@ -179,6 +184,7 @@ export function Header({ session }: HeaderProps = {}) {
 
   const browseLinks = [
     { label: "Home", href: "/", icon: Home },
+    { label: "Messages", href: "/messages", icon: MessageSquare },
     { label: "Venues", href: "/venues", icon: MapPin },
     { label: "Vendors", href: "/boutiques", icon: Users },
     { label: "Inspiration", href: "/inspiration", icon: Lightbulb },
@@ -196,40 +202,6 @@ export function Header({ session }: HeaderProps = {}) {
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
   const isVendorSession = session?.role === "vendor" || session?.role === "partner";
-
-  const notifications = session
-    ? isVendorSession
-      ? [
-          {
-            title: "Vendor notifications",
-            body: "New enquiries, messages, and appointment updates will appear here.",
-            href: "/vendor",
-          },
-          {
-            title: "Profile status",
-            body: "Keep your profile, images, and collections updated for better visibility.",
-            href: "/vendor/profile",
-          },
-        ]
-      : [
-          {
-            title: "Wedding updates",
-            body: "Boutique replies and appointment updates will appear here.",
-            href: "/dashboard",
-          },
-          {
-            title: "Saved favourites",
-            body: "Check your wishlist for boutiques and collections you saved.",
-            href: "/dashboard/wishlist",
-          },
-        ]
-    : [
-        {
-          title: "Sign in for notifications",
-          body: "Log in to see replies, appointment updates, and saved vendor alerts.",
-          href: "/login",
-        },
-      ];
 
   const isActiveLink = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -309,16 +281,17 @@ export function Header({ session }: HeaderProps = {}) {
 
         {/* Actions */}
         <div className="flex items-center gap-3 lg:gap-5 shrink-0">
-          <button
-            type="button"
+          <Link
+            href="/messages"
             className="relative w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
-            onClick={() => setIsNotificationsOpen((open) => !open)}
-            aria-label="Open notifications"
-            aria-expanded={isNotificationsOpen}
+            aria-label="Messages & Vendor Enquiries"
+            title="Messages & Vendor Enquiries"
           >
-            <Bell className="w-[17px] h-[17px] lg:w-5 lg:h-5" />
-            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#C8A96A] shadow-[0_0_0_2px_#0F4C45]" />
-          </button>
+            <MessageSquare className="w-[17px] h-[17px] lg:w-5 lg:h-5 text-white" />
+            {unreadCount > 0 && (
+              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#C8A96A] shadow-[0_0_0_2px_#0F4C45]" />
+            )}
+          </Link>
           
           {session ? (
             <Link href={profileLink} className="hidden md:flex bg-[#12584C] hover:bg-[#186f61] border border-[#1d796b] px-6 py-2 lg:px-8 lg:py-2.5 rounded-full font-semibold transition-colors text-sm lg:text-[15px]">
@@ -333,61 +306,12 @@ export function Header({ session }: HeaderProps = {}) {
           <button 
             className="lg:hidden text-white hover:text-gold transition-colors"
             onClick={() => {
-              setIsNotificationsOpen(false);
               setIsMobileMenuOpen(true);
             }}
           >
             <Menu className="w-5 h-5" />
           </button>
         </div>
-
-        {isNotificationsOpen && (
-          <div className="absolute right-4 top-[calc(100%+10px)] z-[70] w-[min(calc(100vw-2rem),360px)] overflow-hidden rounded-2xl border border-[#C8A96A]/30 bg-[#F7F3EC] text-[#082F2C] shadow-[0_22px_60px_rgba(0,0,0,0.22)]">
-            <div className="flex items-center justify-between border-b border-[#C8A96A]/20 bg-[#0B3B36] px-4 py-3 text-[#F7F3EC]">
-              <div className="flex items-center gap-2">
-                <Bell className="h-4 w-4 text-[#C8A96A]" />
-                <p className="font-display text-lg font-bold">Notifications</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsNotificationsOpen(false)}
-                className="text-[#D8C39A] hover:text-white"
-                aria-label="Close notifications"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="max-h-[320px] overflow-y-auto p-3">
-              {notifications.map((notification) => (
-                <Link
-                  key={notification.title}
-                  href={notification.href}
-                  onClick={() => setIsNotificationsOpen(false)}
-                  className="group flex gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-[#0B3B36]/8"
-                >
-                  <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0B3B36]/10 text-[#0B3B36]">
-                    {session ? <MessageCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block font-sans text-sm font-bold text-[#082F2C]">{notification.title}</span>
-                    <span className="mt-1 block font-sans text-xs leading-5 text-[#082F2C]/70">{notification.body}</span>
-                  </span>
-                </Link>
-              ))}
-            </div>
-
-            <div className="border-t border-[#C8A96A]/20 px-4 py-3 text-center">
-              <Link
-                href={session ? profileLink : "/login"}
-                onClick={() => setIsNotificationsOpen(false)}
-                className="font-sans text-xs font-bold uppercase tracking-[0.18em] text-[#0B3B36] hover:text-[#C8A96A]"
-              >
-                {session ? "Open account" : "Login to continue"}
-              </Link>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Mobile Sidebar Menu (Drawer) */}
