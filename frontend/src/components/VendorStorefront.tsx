@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cleanVendorText } from "@/lib/vendorStore";
@@ -378,22 +378,69 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
   const [enquiryMessage, setEnquiryMessage] = useState<string>("");
   const [enquirySent, setEnquirySent] = useState<boolean>(false);
   const [chatMessages, setChatMessages] = useState<Array<{ id: string; sender: "user" | "vendor"; text: string; time: string }>>([]);
+  const chatEndRef = useRef<HTMLDivElement | null>(null);
 
-  // Auto-load persistent chat history for this vendor
+  // Auto-load persistent chat history for this vendor & sync with DB
   React.useEffect(() => {
-    if (typeof window !== "undefined" && vendor?.id) {
-      try {
-        const storedKey = `cloche_vendor_chat_${vendor.id}`;
-        const saved = localStorage.getItem(storedKey);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setChatMessages(parsed);
-          }
-        }
-      } catch (e) {}
+    if (!vendor?.id) {
+      setChatMessages([]);
+      return;
     }
-  }, [vendor?.id, activeModal]);
+
+    const storedKey = `cloche_vendor_chat_${vendor.id}`;
+    try {
+      const saved = localStorage.getItem(storedKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setChatMessages(parsed);
+        } else {
+          setChatMessages([]);
+        }
+      } else {
+        setChatMessages([]);
+      }
+    } catch (e) {
+      setChatMessages([]);
+    }
+
+    // Sync with genuine DB conversations if modal opened
+    if (activeModal === "chat") {
+      fetch("/api/v1/messages", { cache: "no-store" })
+        .then((r) => r.json())
+        .then((res) => {
+          if (res?.success && Array.isArray(res.data?.conversations)) {
+            const matchingConv = res.data.conversations.find(
+              (c: any) =>
+                String(c.vendorId) === String(vendor.id) ||
+                String(c.vendorId) === String(vendor.user_id) ||
+                (c.vendorName && vendor?.name && c.vendorName.toLowerCase() === vendor.name.toLowerCase())
+            );
+
+            if (matchingConv && Array.isArray(matchingConv.messages) && matchingConv.messages.length > 0) {
+              const mapped = matchingConv.messages.map((m: any) => ({
+                id: m.id,
+                sender: m.sender === "customer" ? ("user" as const) : ("vendor" as const),
+                text: m.text,
+                time: m.createdAt,
+              }));
+              setChatMessages(mapped);
+              try {
+                localStorage.setItem(storedKey, JSON.stringify(mapped));
+              } catch (e) {}
+            }
+          }
+        })
+        .catch(() => null);
+    }
+  }, [vendor?.id, vendor?.name, activeModal]);
+
+  // Auto-scroll chat to bottom
+  React.useEffect(() => {
+    if (activeModal === "chat") {
+      chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [chatMessages.length, activeModal]);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [showAllPhotosModal, setShowAllPhotosModal] = useState<boolean>(false);
@@ -1474,10 +1521,10 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
           {/* Action Buttons */}
           <div className="space-y-3 pt-4 border-t border-gold/10">
             <button
-              onClick={() => setActiveModal("quote")}
-              className="w-full py-3.5 rounded-2xl bg-[#C8A96A] text-[#0F4C45] font-bold text-sm hover:bg-[#b89859] transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+              onClick={() => handleOpenMessage()}
+              className="w-full py-3.5 rounded-2xl bg-[#0F4C45] text-white font-bold text-sm hover:bg-[#09312d] transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
             >
-              <Mail className="h-4 w-4" /> Get Instant Quote
+              <MessageSquare className="h-4 w-4" /> Message
             </button>
 
             <div className="grid grid-cols-2 gap-3">
@@ -4659,73 +4706,79 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                   </div>
                 ))
               )}
+              <div ref={chatEndRef} />
             </div>
 
-            {/* Clean Message Composer Box */}
-            <div className="bg-white border-t border-gold/20 p-3 sm:p-4 shrink-0 shadow-lg">
-              <div className="space-y-2">
-                <div className="bg-[#FAF7F2] rounded-2xl p-3 border border-gold/25 space-y-2 relative shadow-inner">
-                  <div className="flex items-center justify-between text-[10px] font-bold text-charcoal/60 uppercase tracking-wider">
-                    <span>Enquiry Message (Editable)</span>
-                  </div>
-
-                  <textarea
-                    rows={3}
-                    value={enquiryMessage}
-                    onChange={(e) => setEnquiryMessage(e.target.value)}
-                    className="w-full bg-transparent text-xs sm:text-sm text-charcoal leading-relaxed font-sans focus:outline-none resize-none"
-                    placeholder="Write your enquiry message..."
-                  />
-
-                  <div className="flex items-center justify-between pt-2 border-t border-gold/15">
-                    <div className="text-[11px] font-bold text-[#0F4C45]">
-                      {calendarDateInput ? `📅 Preferred Date: ${formatDateSafe(calendarDateInput)}` : "💬 General Enquiry"}
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        if (!enquiryMessage.trim()) return;
-                        const userMsgText = enquiryMessage.trim();
-                        const nowTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-                        const newMsg = { id: `user-${Date.now()}`, sender: "user" as const, text: userMsgText, time: nowTime };
-
-                        // Save user message to state & localStorage
-                        const updatedMessages = [...chatMessages, newMsg];
-                        setChatMessages(updatedMessages);
-                        setEnquirySent(true);
-                        setEnquiryMessage("");
-
-                        try {
-                          const key = `cloche_vendor_chat_${vendor?.id || "default"}`;
-                          localStorage.setItem(key, JSON.stringify(updatedMessages));
-                        } catch (e) {}
-
-                        // Simulate vendor response after 1.5s & save to localStorage
-                        setTimeout(() => {
-                          const vendorReply = {
-                            id: `vendor-${Date.now()}`,
-                            sender: "vendor" as const,
-                            text: `Hi! Thank you for reaching out to ${displayName}. We have received your enquiry. Our team is reviewing details and will reply with full pricing & package options shortly.`,
-                            time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-                          };
-                          setChatMessages((prev) => {
-                            const withReply = [...prev, vendorReply];
-                            try {
-                              const key = `cloche_vendor_chat_${vendor?.id || "default"}`;
-                              localStorage.setItem(key, JSON.stringify(withReply));
-                            } catch (e) {}
-                            return withReply;
-                          });
-                        }, 1500);
-                      }}
-                      className="px-5 py-2.5 rounded-full bg-[#25D366] hover:bg-emerald-600 text-white font-extrabold text-xs shadow-md active:scale-95 transition-all cursor-pointer flex items-center gap-2 shrink-0"
-                    >
-                      <span>Send Message</span>
-                      <Send className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
+            {/* Simple WhatsApp-style Message Composer */}
+            <div className="bg-white border-t border-gold/20 p-3 sm:p-4 shrink-0">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!enquiryMessage.trim()) return;
+                  const userMsgText = enquiryMessage.trim();
+                  const nowTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+                  const newMsg = { id: `user-${Date.now()}`, sender: "user" as const, text: userMsgText, time: nowTime };
+                  const updatedMessages = [...chatMessages, newMsg];
+                  setChatMessages(updatedMessages);
+                  setEnquiryMessage("");
+                  try {
+                    const key = `cloche_vendor_chat_${vendor?.id || "default"}`;
+                    localStorage.setItem(key, JSON.stringify(updatedMessages));
+                  } catch (e) {}
+                  // Post to messages API so it persists to the database
+                  fetch("/api/v1/messages", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text: userMsgText, sender: "customer", vendorId: vendor?.id || vendor?.user_id, conversationId: `conv-vendor-${vendor?.id || "default"}` }),
+                  }).catch(() => null);
+                  // Auto-reply from vendor after 1.5s
+                  setTimeout(() => {
+                    const vendorReply = {
+                      id: `vendor-${Date.now()}`,
+                      sender: "vendor" as const,
+                      text: `Hi! Thank you for reaching out to ${displayName}. We have received your message and will get back to you with pricing and availability shortly.`,
+                      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                    };
+                    setChatMessages((prev) => {
+                      const withReply = [...prev, vendorReply];
+                      try {
+                        const key = `cloche_vendor_chat_${vendor?.id || "default"}`;
+                        localStorage.setItem(key, JSON.stringify(withReply));
+                      } catch (e) {}
+                      return withReply;
+                    });
+                  }, 1500);
+                }}
+                className="flex items-end gap-2"
+              >
+                <textarea
+                  rows={1}
+                  value={enquiryMessage}
+                  onChange={(e) => {
+                    setEnquiryMessage(e.target.value);
+                    // Auto-resize
+                    e.target.style.height = "auto";
+                    e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      (e.target as HTMLTextAreaElement).form?.requestSubmit();
+                    }
+                  }}
+                  placeholder="Type a message..."
+                  className="flex-1 bg-[#FAF7F2] border border-gold/25 rounded-2xl px-4 py-3 text-xs sm:text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-[#0F4C45] resize-none overflow-hidden leading-relaxed transition-colors"
+                  style={{ minHeight: "44px" }}
+                />
+                <button
+                  type="submit"
+                  disabled={!enquiryMessage.trim()}
+                  className="shrink-0 w-11 h-11 rounded-2xl bg-[#0F4C45] hover:bg-[#09312d] disabled:opacity-40 text-white flex items-center justify-center transition-all shadow-sm cursor-pointer"
+                  aria-label="Send message"
+                >
+                  <Send className="w-4 h-4 text-[#C8A96A]" />
+                </button>
+              </form>
             </div>
 
           </div>

@@ -361,7 +361,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { leadId, conversationId, text, sender = "customer" } = body;
+    const { leadId, vendorId, conversationId, text, sender = "customer" } = body;
 
     if (!text || !text.trim()) {
       return NextResponse.json(
@@ -371,14 +371,53 @@ export async function POST(req: Request) {
     }
 
     const trimmedText = text.trim();
+    const customerUser = await getAuthenticatedCustomerUser(req).catch(() => null);
+
+    let activeLeadId = leadId;
+
+    // If no leadId was provided directly, but vendorId is provided:
+    if (!activeLeadId && vendorId) {
+      if (customerUser?.userId) {
+        // Look up if an existing lead exists for this customer & vendor
+        let filter = `vendor_id=eq.${encodeURIComponent(vendorId)}&deleted_at=is.null&order=created_at.desc&limit=1`;
+        if (customerUser.email) {
+          filter += `&or=(customer_id.eq.${encodeURIComponent(customerUser.userId)},customer_email.eq.${encodeURIComponent(customerUser.email)})`;
+        } else {
+          filter += `&customer_id=eq.${encodeURIComponent(customerUser.userId)}`;
+        }
+        const { data: existingLeads } = await supabaseFetch(`leads?${filter}`);
+        if (Array.isArray(existingLeads) && existingLeads.length > 0) {
+          activeLeadId = existingLeads[0].id;
+        } else {
+          // Create new genuine lead record in database
+          const { data: createdLead } = await supabaseFetch(`leads`, {
+            method: "POST",
+            headers: { Prefer: "return=representation" },
+            body: JSON.stringify({
+              vendor_id: vendorId,
+              customer_id: customerUser.userId,
+              customer_name: customerUser.fullName || customerUser.email.split("@")[0],
+              customer_email: customerUser.email,
+              event_type: "Wedding",
+              message: trimmedText,
+              source: "vendor_storefront_chat",
+              status: "new",
+            }),
+          });
+          if (Array.isArray(createdLead) && createdLead[0]?.id) {
+            activeLeadId = createdLead[0].id;
+          }
+        }
+      }
+    }
 
     // If attached to a genuine database lead, record activity in Supabase
-    if (leadId) {
+    if (activeLeadId) {
       await supabaseFetch(`lead_activities`, {
         method: "POST",
         headers: { Prefer: "return=representation" },
         body: JSON.stringify({
-          lead_id: leadId,
+          lead_id: activeLeadId,
           activity_type: sender === "vendor" ? "vendor_message" : "client_message",
           description: trimmedText,
         }),
@@ -391,7 +430,7 @@ export async function POST(req: Request) {
     const newMessage: ChatMessage = {
       id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
       sender,
-      senderName: sender === "customer" ? "You" : "Vendor Team",
+      senderName: sender === "customer" ? (customerUser?.fullName || "You") : "Vendor Team",
       text: trimmedText,
       createdAt: new Date().toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" }),
       isRead: true,
@@ -403,6 +442,7 @@ export async function POST(req: Request) {
       data: {
         message: newMessage,
         conversationId,
+        leadId: activeLeadId,
       },
     });
   } catch (err: any) {
