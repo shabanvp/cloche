@@ -13,12 +13,10 @@ import {
   Send,
   Phone,
   ArrowLeft,
-  Sparkles,
   ExternalLink,
   Clock,
   Check,
   CheckCheck,
-  Building2,
   Camera,
   Palette,
   Sparkle,
@@ -207,63 +205,6 @@ export default function MessagesPage() {
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-[#082F2C]">
-      {/* Top Banner & Header */}
-      <section className="bg-[#0B3B2D] text-white border-b border-[#C8A96A]/20 pt-6 pb-6 px-4 sm:px-6 lg:px-12">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-[#C8A96A] mb-1.5">
-              <Link href="/" className="hover:underline">Home</Link>
-              <span>/</span>
-              <span>Messages & Enquiries</span>
-            </div>
-            <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold flex items-center gap-3">
-              <span>Vendor Message Center</span>
-              {totalUnreadCount > 0 && (
-                <span className="text-xs bg-[#C8A96A] text-[#0B3B2D] font-bold px-2.5 py-0.5 rounded-full">
-                  {totalUnreadCount} New
-                </span>
-              )}
-            </h1>
-            <p className="text-xs sm:text-sm text-white/70 mt-1 max-w-2xl">
-              Communicate directly with verified wedding venues, photographers, makeup artists & decorators. Receive quotes and confirm dates in one place.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3 shrink-0">
-            <Link
-              href="/boutiques"
-              className="bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs sm:text-sm font-semibold px-4 py-2 sm:px-5 sm:py-2.5 rounded-full transition-colors flex items-center gap-2"
-            >
-              <Building2 className="w-4 h-4 text-[#C8A96A]" />
-              <span>Browse Vendors</span>
-            </Link>
-            <Link
-              href="/venues"
-              className="bg-[#12584C] hover:bg-[#186f61] border border-[#1d796b] text-white text-xs sm:text-sm font-semibold px-4 py-2 sm:px-5 sm:py-2.5 rounded-full transition-colors"
-            >
-              Explore Venues
-            </Link>
-          </div>
-        </div>
-
-        {/* Guest Banner */}
-        {isGuest && (
-          <div className="max-w-7xl mx-auto mt-4 p-3 bg-white/10 border border-[#C8A96A]/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-white/90">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#C8A96A] shrink-0" />
-              <span>
-                <strong>Browsing as Guest:</strong> You can preview vendor inquiries and test live messaging below. Sign in to synchronize your account quotes.
-              </span>
-            </div>
-            <Link
-              href="/login?redirect=/messages"
-              className="bg-[#C8A96A] hover:bg-[#d8b879] text-[#0B3B2D] font-bold px-4 py-1.5 rounded-full shrink-0 text-center text-xs transition-colors"
-            >
-              Sign In to Your Account
-            </Link>
-          </div>
-        )}
-      </section>
 
       {/* Main Inbox Container */}
       <main className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-12 py-4 sm:py-6">
