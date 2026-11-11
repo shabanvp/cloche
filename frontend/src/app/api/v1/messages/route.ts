@@ -341,7 +341,7 @@ export async function GET(req: Request) {
         totalUnread,
         authenticatedUser: customerUser
           ? { name: customerUser.fullName, email: customerUser.email, role: "customer" }
-          : (vendorAuth ? { name: vendorAuth.businessName || "Vendor", role: "vendor" } : null),
+          : (vendorAuth && vendorAuth.user ? { name: vendorAuth.user.fullName || vendorAuth.user.email || "Vendor", role: "vendor" } : null),
       },
     });
   } catch (err: any) {
