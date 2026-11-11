@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedCustomerUser } from "@/lib/customerAuth";
 import { requireAuthenticatedVendor } from "@/lib/vendorAuth";
-import { supabaseFetch, saveLeadActivityToDb } from "@/lib/supabase";
+import { supabaseFetch } from "@/lib/supabase";
 
 export interface ChatMessage {
   id: string;
@@ -42,242 +42,110 @@ export interface ConversationItem {
   messages: ChatMessage[];
 }
 
-// Curated realistic sample conversations for users or guests
-const DEFAULT_CONVERSATIONS: ConversationItem[] = [
-  {
-    id: "conv-photographer-1",
-    vendorId: "v-calicut-films",
-    vendorName: "Calicut Candid Wedding Films",
-    vendorCategory: "Photography",
-    vendorAvatar: "https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=400&q=80",
-    vendorCity: "Kozhikode, Kerala",
-    vendorPhone: "+91 98471 23456",
-    customerName: "Ananya & Rahul",
-    eventType: "Traditional Wedding & Reception",
-    eventDate: "2026-12-18",
-    guestCount: 650,
-    estimatedBudget: 150000,
-    status: "quoted",
-    unreadCount: 1,
-    lastMessageSnippet: "We have prepared a tailored quotation for your 2-day wedding ceremonies.",
-    lastMessageTime: "25m ago",
-    messages: [
-      {
-        id: "msg-101",
-        sender: "customer",
-        senderName: "Ananya",
-        text: "Hi, we are planning our wedding in Kozhikode this December. We love your candid wedding stories and wanted to check your availability and package options.",
-        createdAt: "Yesterday at 11:30 AM",
-        isRead: true,
-      },
-      {
-        id: "msg-102",
-        sender: "vendor",
-        senderName: "Calicut Candid Films",
-        senderAvatar: "https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=400&q=80",
-        text: "Namaste Ananya! Congratulations on your upcoming wedding! December 18th is currently available with our lead photography team. We would love to capture your ceremonies.",
-        createdAt: "Yesterday at 2:15 PM",
-        isRead: true,
-      },
-      {
-        id: "msg-103",
-        sender: "vendor",
-        senderName: "Calicut Candid Films",
-        senderAvatar: "https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=400&q=80",
-        text: "We have prepared a tailored quotation for your 2-day wedding ceremonies.",
-        createdAt: "Today at 10:15 AM",
-        isRead: false,
-        quotation: {
-          amount: 145000,
-          title: "Complete 2-Day Candid & Cinematic Package",
-          details: "2 Lead Candid Photographers + 2 Cinematic Videographers + Drone 4K Coverage + Premium Lay-flat Leather Photo Album + Teaser & 40-Min Highlight Reel.",
-          status: "pending",
-        },
-      },
-    ],
-  },
-  {
-    id: "conv-venue-1",
-    vendorId: "v-eden-banquets",
-    vendorName: "Eden Garden Luxury Banquets & Resort",
-    vendorCategory: "Wedding Venue",
-    vendorAvatar: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=400&q=80",
-    vendorCity: "Ernakulam, Kochi",
-    vendorPhone: "+91 94470 54321",
-    customerName: "Ananya & Rahul",
-    eventType: "Grand Wedding Reception",
-    eventDate: "2026-12-18",
-    guestCount: 800,
-    estimatedBudget: 350000,
-    status: "replied",
-    unreadCount: 0,
-    lastMessageSnippet: "The Grand Waterfront Lawn is available. We can schedule a venue tour this Saturday.",
-    lastMessageTime: "2h ago",
-    messages: [
-      {
-        id: "msg-201",
-        sender: "customer",
-        senderName: "Ananya",
-        text: "Hello! We are looking for an outdoor lawn & banquet hall combination for 700-800 guests in Kochi for December. Is your lawn available?",
-        createdAt: "Nov 7 at 4:20 PM",
-        isRead: true,
-      },
-      {
-        id: "msg-202",
-        sender: "vendor",
-        senderName: "Eden Garden Banquets",
-        senderAvatar: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=400&q=80",
-        text: "Hello! Thank you for considering Eden Garden. The Grand Waterfront Lawn is available for December 18th. It comfortably accommodates 1,000+ guests with valet parking for 250 cars and 2 bridal preparation suites.",
-        createdAt: "Nov 7 at 6:45 PM",
-        isRead: true,
-      },
-      {
-        id: "msg-203",
-        sender: "vendor",
-        senderName: "Eden Garden Banquets",
-        senderAvatar: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=400&q=80",
-        text: "The Grand Waterfront Lawn is available. We can schedule a venue tour this Saturday at 3:00 PM if convenient.",
-        createdAt: "Today at 9:00 AM",
-        isRead: true,
-      },
-    ],
-  },
-  {
-    id: "conv-makeup-1",
-    vendorId: "v-saffron-glam",
-    vendorName: "Saffron Glam Bridal Artistry",
-    vendorCategory: "Makeup Artist",
-    vendorAvatar: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&q=80",
-    vendorCity: "Thrissur, Kerala",
-    vendorPhone: "+91 97450 98765",
-    customerName: "Ananya",
-    eventType: "Muhurtham & Reception Bridal Styling",
-    eventDate: "2026-12-18",
-    guestCount: 0,
-    estimatedBudget: 45000,
-    status: "quoted",
-    unreadCount: 1,
-    lastMessageSnippet: "Here are the details for our Signature HD Airbrush Bridal Package.",
-    lastMessageTime: "Yesterday",
-    messages: [
-      {
-        id: "msg-301",
-        sender: "customer",
-        senderName: "Ananya",
-        text: "Hi! I am looking for traditional Kerala temple look for morning Muhurtham and a glam evening reception look. Do you travel to the venue?",
-        createdAt: "Nov 6 at 10:00 AM",
-        isRead: true,
-      },
-      {
-        id: "msg-302",
-        sender: "vendor",
-        senderName: "Saffron Glam Artistry",
-        senderAvatar: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&q=80",
-        text: "Hello Ananya! Yes, our senior artists travel anywhere across Kerala with our luxury mobile makeup and lighting station.",
-        createdAt: "Nov 6 at 12:30 PM",
-        isRead: true,
-      },
-      {
-        id: "msg-303",
-        sender: "vendor",
-        senderName: "Saffron Glam Artistry",
-        senderAvatar: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&q=80",
-        text: "Here are the details for our Signature HD Airbrush Bridal Package.",
-        createdAt: "Yesterday at 4:10 PM",
-        isRead: false,
-        quotation: {
-          amount: 38000,
-          title: "Dual Bridal Look (Muhurtham + Reception)",
-          details: "HD Airbrush Makeup + Luxury Hair Sculpting + Saree Draping + Premium Mink Lashes + Free Pre-Wedding Consultation.",
-          status: "pending",
-        },
-      },
-    ],
-  },
-  {
-    id: "conv-decor-1",
-    vendorId: "v-mandap-flora",
-    vendorName: "Royal Heritage Mandap & Floral Decor",
-    vendorCategory: "Decor & Floral",
-    vendorAvatar: "https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=400&q=80",
-    vendorCity: "Trivandrum, Kerala",
-    vendorPhone: "+91 94950 11223",
-    customerName: "Ananya & Rahul",
-    eventType: "Stage Decor & Floral Styling",
-    eventDate: "2026-12-18",
-    guestCount: 650,
-    estimatedBudget: 200000,
-    status: "replied",
-    unreadCount: 0,
-    lastMessageSnippet: "I have shared the 3D moodboard for the brass brass-lotus concept.",
-    lastMessageTime: "Nov 5",
-    messages: [
-      {
-        id: "msg-401",
-        sender: "customer",
-        senderName: "Ananya",
-        text: "Hello! We are looking for an elegant traditional Kerala brass vilakku and tuberose/jasmine stage theme for our wedding.",
-        createdAt: "Nov 5 at 3:15 PM",
-        isRead: true,
-      },
-      {
-        id: "msg-402",
-        sender: "vendor",
-        senderName: "Royal Heritage Decor",
-        senderAvatar: "https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=400&q=80",
-        text: "I have shared the 3D moodboard for the brass brass-lotus concept. We specialize in authentic Kerala temple aesthetics with fresh flowers sourced directly from Bangalore and Thovalai.",
-        createdAt: "Nov 5 at 5:00 PM",
-        isRead: true,
-      },
-    ],
-  },
-];
-
 export async function GET(req: Request) {
   try {
-    const customerUser = await getAuthenticatedCustomerUser(req);
+    const customerUser = await getAuthenticatedCustomerUser(req).catch(() => null);
     const vendorAuth = await requireAuthenticatedVendor(req).catch(() => null);
 
     let dbConversations: ConversationItem[] = [];
 
-    // 1. If authenticated as Customer, query customer leads & quotations
+    // 1. If authenticated as Customer, query customer leads & quotations from database
     if (customerUser?.userId) {
       const customerId = customerUser.userId;
-      const { data: leads } = await supabaseFetch(
-        `leads?customer_id=eq.${encodeURIComponent(customerId)}&deleted_at=is.null&order=created_at.desc&select=*,vendors(*)`
-      );
+      const customerEmail = customerUser.email;
 
-      const { data: quotations } = await supabaseFetch(
-        `quotations?select=*,quotation_items(*),leads!inner(customer_id)&leads.customer_id=eq.${encodeURIComponent(customerId)}&order=created_at.desc`
-      );
+      let query = `leads?customer_id=eq.${encodeURIComponent(customerId)}&deleted_at=is.null&order=created_at.desc&select=*,vendors(*)`;
+      if (customerEmail) {
+        query = `leads?or=(customer_id.eq.${encodeURIComponent(customerId)},customer_email.eq.${encodeURIComponent(customerEmail)})&deleted_at=is.null&order=created_at.desc&select=*,vendors(*)`;
+      }
+      const { data: leads } = await supabaseFetch(query);
 
       if (Array.isArray(leads) && leads.length > 0) {
+        const leadIds = leads.map((l: any) => l.id).filter(Boolean);
+
+        // Fetch genuine quotations for these leads
+        let quotationsByLead: Record<string, any[]> = {};
+        if (leadIds.length > 0) {
+          const { data: quotations } = await supabaseFetch(
+            `quotations?lead_id=in.(${leadIds.map((id: string) => encodeURIComponent(id)).join(",")})&order=created_at.desc&select=*,quotation_items(*)`
+          );
+          if (Array.isArray(quotations)) {
+            for (const q of quotations) {
+              const k = String(q.lead_id);
+              if (!quotationsByLead[k]) quotationsByLead[k] = [];
+              quotationsByLead[k].push(q);
+            }
+          }
+        }
+
+        // Fetch genuine chat messages / activities for these leads
+        let activitiesByLead: Record<string, any[]> = {};
+        if (leadIds.length > 0) {
+          const { data: activities } = await supabaseFetch(
+            `lead_activities?lead_id=in.(${leadIds.map((id: string) => encodeURIComponent(id)).join(",")})&order=created_at.asc`
+          );
+          if (Array.isArray(activities)) {
+            for (const act of activities) {
+              const k = String(act.lead_id);
+              if (!activitiesByLead[k]) activitiesByLead[k] = [];
+              activitiesByLead[k].push(act);
+            }
+          }
+        }
+
         dbConversations = leads.map((lead: any, idx: number) => {
           const v = lead.vendors || {};
-          const quote = Array.isArray(quotations)
-            ? quotations.find((q: any) => String(q.lead_id) === String(lead.id))
-            : null;
+          const leadQuotes = quotationsByLead[String(lead.id)] || [];
+          const leadActs = activitiesByLead[String(lead.id)] || [];
 
-          const msgs: ChatMessage[] = [
-            {
-              id: `db-msg-${lead.id}-1`,
+          const msgs: ChatMessage[] = [];
+
+          // Initial lead inquiry message
+          if (lead.message) {
+            msgs.push({
+              id: `db-msg-${lead.id}-inquiry`,
               sender: "customer",
               senderName: lead.customer_name || customerUser.fullName || "You",
-              text: lead.message || "Quote request submitted for wedding planning.",
+              text: lead.message,
               createdAt: lead.created_at ? new Date(lead.created_at).toLocaleString("en-IN") : "Recently",
               isRead: true,
-            },
-          ];
+            });
+          }
 
-          if (quote) {
+          // Thread messages from database lead_activities
+          for (const act of leadActs) {
+            if (act.activity_type === "vendor_message") {
+              msgs.push({
+                id: `act-${act.id}`,
+                sender: "vendor",
+                senderName: v.name || v.boutique_name || "Wedding Vendor",
+                senderAvatar: v.logo || v.cover_image || "",
+                text: act.description,
+                createdAt: act.created_at ? new Date(act.created_at).toLocaleString("en-IN") : "Recently",
+                isRead: true,
+              });
+            } else if (act.activity_type === "client_message") {
+              msgs.push({
+                id: `act-${act.id}`,
+                sender: "customer",
+                senderName: lead.customer_name || customerUser.fullName || "You",
+                text: act.description,
+                createdAt: act.created_at ? new Date(act.created_at).toLocaleString("en-IN") : "Recently",
+                isRead: true,
+              });
+            }
+          }
+
+          // Thread quotations from database
+          for (const quote of leadQuotes) {
             msgs.push({
-              id: `db-msg-${lead.id}-quote`,
+              id: `db-msg-${lead.id}-quote-${quote.id}`,
               sender: "vendor",
               senderName: v.name || v.boutique_name || "Wedding Vendor",
               senderAvatar: v.logo || v.cover_image || "",
               text: `Here is our official quotation for your event on ${lead.event_date || "your wedding date"}.`,
               createdAt: quote.created_at ? new Date(quote.created_at).toLocaleString("en-IN") : "Recently",
-              isRead: false,
+              isRead: quote.status !== "pending",
               quotation: {
                 amount: Number(quote.total_amount || 0),
                 title: quote.title || "Custom Vendor Quotation",
@@ -285,19 +153,22 @@ export async function GET(req: Request) {
                 status: quote.status || "pending",
               },
             });
-          } else if (lead.status && lead.status !== "new") {
+          }
+
+          // Fallback initial notice if inquiry had no text
+          if (msgs.length === 0) {
             msgs.push({
-              id: `db-msg-${lead.id}-status`,
-              sender: "vendor",
-              senderName: v.name || v.boutique_name || "Wedding Vendor",
-              senderAvatar: v.logo || v.cover_image || "",
-              text: `Thank you for your inquiry. Our team has reviewed your date (${lead.event_date || "TBD"}) and is preparing your tailored proposal.`,
-              createdAt: lead.updated_at ? new Date(lead.updated_at).toLocaleString("en-IN") : "Recently",
+              id: `db-msg-${lead.id}-default`,
+              sender: "customer",
+              senderName: lead.customer_name || customerUser.fullName || "You",
+              text: "Quote request submitted for wedding planning.",
+              createdAt: lead.created_at ? new Date(lead.created_at).toLocaleString("en-IN") : "Recently",
               isRead: true,
             });
           }
 
           const hasUnread = msgs.some((m) => !m.isRead && m.sender === "vendor");
+          const latestMsg = msgs[msgs.length - 1];
 
           return {
             id: `conv-lead-${lead.id}`,
@@ -307,7 +178,7 @@ export async function GET(req: Request) {
             vendorCategory: v.category || "Wedding Services",
             vendorAvatar: v.logo || v.cover_image || "https://images.unsplash.com/photo-1519741497674-611481863552?w=400&q=80",
             vendorCity: v.city || lead.city || "Kerala",
-            vendorPhone: v.phone || "+91 98470 00000",
+            vendorPhone: v.phone || "",
             customerName: lead.customer_name || customerUser.fullName || "Customer",
             customerEmail: lead.customer_email || customerUser.email,
             customerPhone: lead.customer_phone,
@@ -315,15 +186,15 @@ export async function GET(req: Request) {
             eventDate: lead.event_date,
             guestCount: lead.guest_count,
             estimatedBudget: lead.estimated_budget,
-            status: quote ? "quoted" : lead.status === "new" ? "new" : "replied",
+            status: leadQuotes.length > 0 ? "quoted" : lead.status === "new" ? "new" : "replied",
             unreadCount: hasUnread ? 1 : 0,
-            lastMessageSnippet: msgs[msgs.length - 1].text,
-            lastMessageTime: msgs[msgs.length - 1].createdAt,
+            lastMessageSnippet: latestMsg ? latestMsg.text : "Inquiry submitted.",
+            lastMessageTime: latestMsg ? latestMsg.createdAt : "Recently",
             messages: msgs,
           };
         });
       }
-    } 
+    }
     // 2. If authenticated as Vendor, query vendor leads
     else if (vendorAuth && vendorAuth.vendorId) {
       const vendorId = vendorAuth.vendorId;
@@ -332,62 +203,145 @@ export async function GET(req: Request) {
       );
 
       if (Array.isArray(vendorLeads) && vendorLeads.length > 0) {
-        dbConversations = vendorLeads.map((lead: any) => ({
-          id: `conv-vendor-lead-${lead.id}`,
-          leadId: String(lead.id),
-          vendorId: String(vendorId),
-          vendorName: lead.vendors?.name || "Your Business",
-          vendorCategory: lead.vendors?.category || "Vendor",
-          vendorAvatar: lead.vendors?.logo || "",
-          vendorCity: lead.city || lead.vendors?.city || "Kerala",
-          customerName: lead.customer_name || "New Client",
-          customerEmail: lead.customer_email,
-          customerPhone: lead.customer_phone,
-          eventType: lead.event_type || "Wedding",
-          eventDate: lead.event_date,
-          guestCount: lead.guest_count,
-          estimatedBudget: lead.estimated_budget,
-          status: lead.status || "new",
-          unreadCount: lead.status === "new" ? 1 : 0,
-          lastMessageSnippet: lead.message || "Customer requested quote.",
-          lastMessageTime: lead.created_at ? new Date(lead.created_at).toLocaleString("en-IN") : "Recently",
-          messages: [
-            {
+        const leadIds = vendorLeads.map((l: any) => l.id).filter(Boolean);
+
+        // Fetch quotations
+        let quotationsByLead: Record<string, any[]> = {};
+        if (leadIds.length > 0) {
+          const { data: quotations } = await supabaseFetch(
+            `quotations?lead_id=in.(${leadIds.map((id: string) => encodeURIComponent(id)).join(",")})&order=created_at.desc&select=*,quotation_items(*)`
+          );
+          if (Array.isArray(quotations)) {
+            for (const q of quotations) {
+              const k = String(q.lead_id);
+              if (!quotationsByLead[k]) quotationsByLead[k] = [];
+              quotationsByLead[k].push(q);
+            }
+          }
+        }
+
+        // Fetch activities
+        let activitiesByLead: Record<string, any[]> = {};
+        if (leadIds.length > 0) {
+          const { data: activities } = await supabaseFetch(
+            `lead_activities?lead_id=in.(${leadIds.map((id: string) => encodeURIComponent(id)).join(",")})&order=created_at.asc`
+          );
+          if (Array.isArray(activities)) {
+            for (const act of activities) {
+              const k = String(act.lead_id);
+              if (!activitiesByLead[k]) activitiesByLead[k] = [];
+              activitiesByLead[k].push(act);
+            }
+          }
+        }
+
+        dbConversations = vendorLeads.map((lead: any) => {
+          const v = lead.vendors || {};
+          const leadQuotes = quotationsByLead[String(lead.id)] || [];
+          const leadActs = activitiesByLead[String(lead.id)] || [];
+
+          const msgs: ChatMessage[] = [];
+          if (lead.message) {
+            msgs.push({
+              id: `vlead-msg-${lead.id}-inquiry`,
+              sender: "customer",
+              senderName: lead.customer_name || "Client",
+              text: lead.message,
+              createdAt: lead.created_at ? new Date(lead.created_at).toLocaleString("en-IN") : "Recently",
+              isRead: lead.status !== "new",
+            });
+          }
+
+          for (const act of leadActs) {
+            if (act.activity_type === "vendor_message") {
+              msgs.push({
+                id: `act-${act.id}`,
+                sender: "vendor",
+                senderName: v.name || "You",
+                senderAvatar: v.logo || "",
+                text: act.description,
+                createdAt: act.created_at ? new Date(act.created_at).toLocaleString("en-IN") : "Recently",
+                isRead: true,
+              });
+            } else if (act.activity_type === "client_message") {
+              msgs.push({
+                id: `act-${act.id}`,
+                sender: "customer",
+                senderName: lead.customer_name || "Client",
+                text: act.description,
+                createdAt: act.created_at ? new Date(act.created_at).toLocaleString("en-IN") : "Recently",
+                isRead: true,
+              });
+            }
+          }
+
+          for (const quote of leadQuotes) {
+            msgs.push({
+              id: `vlead-quote-${quote.id}`,
+              sender: "vendor",
+              senderName: v.name || "You",
+              senderAvatar: v.logo || "",
+              text: `Official quotation submitted.`,
+              createdAt: quote.created_at ? new Date(quote.created_at).toLocaleString("en-IN") : "Recently",
+              isRead: true,
+              quotation: {
+                amount: Number(quote.total_amount || 0),
+                title: quote.title || "Vendor Quotation",
+                details: quote.notes || quote.terms || "",
+                status: quote.status || "pending",
+              },
+            });
+          }
+
+          if (msgs.length === 0) {
+            msgs.push({
               id: `vlead-msg-${lead.id}`,
               sender: "customer",
               senderName: lead.customer_name || "Client",
-              text: lead.message || "Inquiry submitted through Cloche profile.",
+              text: "Inquiry submitted through Cloche profile.",
               createdAt: lead.created_at ? new Date(lead.created_at).toLocaleString("en-IN") : "Recently",
               isRead: lead.status !== "new",
-            },
-          ],
-        }));
+            });
+          }
+
+          const latestMsg = msgs[msgs.length - 1];
+
+          return {
+            id: `conv-vendor-lead-${lead.id}`,
+            leadId: String(lead.id),
+            vendorId: String(vendorId),
+            vendorName: v.name || "Your Business",
+            vendorCategory: v.category || "Vendor",
+            vendorAvatar: v.logo || "",
+            vendorCity: lead.city || v.city || "Kerala",
+            customerName: lead.customer_name || "New Client",
+            customerEmail: lead.customer_email,
+            customerPhone: lead.customer_phone,
+            eventType: lead.event_type || "Wedding",
+            eventDate: lead.event_date,
+            guestCount: lead.guest_count,
+            estimatedBudget: lead.estimated_budget,
+            status: leadQuotes.length > 0 ? "quoted" : lead.status || "new",
+            unreadCount: lead.status === "new" ? 1 : 0,
+            lastMessageSnippet: latestMsg ? latestMsg.text : (lead.message || "Customer requested quote."),
+            lastMessageTime: latestMsg ? latestMsg.createdAt : "Recently",
+            messages: msgs,
+          };
+        });
       }
     }
 
-    // Merge database conversations with default conversations if user has fewer than 2
-    let finalConversations = dbConversations;
-    if (finalConversations.length === 0) {
-      finalConversations = DEFAULT_CONVERSATIONS;
-    } else {
-      // Append sample conversations if customer has just 1 or 2 to give rich experience
-      const existingVendorIds = new Set(finalConversations.map((c) => c.vendorId));
-      for (const sample of DEFAULT_CONVERSATIONS) {
-        if (!existingVendorIds.has(sample.vendorId)) {
-          finalConversations.push(sample);
-        }
-      }
-    }
-
-    const totalUnread = finalConversations.reduce((sum, c) => sum + c.unreadCount, 0);
+    const totalUnread = dbConversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
 
     return NextResponse.json({
       success: true,
       statusCode: 200,
       data: {
-        conversations: finalConversations,
+        conversations: dbConversations,
         totalUnread,
-        authenticatedUser: customerUser ? { name: customerUser.fullName, email: customerUser.email, role: "customer" } : null,
+        authenticatedUser: customerUser
+          ? { name: customerUser.fullName, email: customerUser.email, role: "customer" }
+          : (vendorAuth ? { name: vendorAuth.businessName || "Vendor", role: "vendor" } : null),
       },
     });
   } catch (err: any) {
@@ -396,8 +350,8 @@ export async function GET(req: Request) {
       success: true,
       statusCode: 200,
       data: {
-        conversations: DEFAULT_CONVERSATIONS,
-        totalUnread: 2,
+        conversations: [],
+        totalUnread: 0,
         authenticatedUser: null,
       },
     });
@@ -418,13 +372,20 @@ export async function POST(req: Request) {
 
     const trimmedText = text.trim();
 
-    // If attached to a genuine database lead, record activity
+    // If attached to a genuine database lead, record activity in Supabase
     if (leadId) {
-      await saveLeadActivityToDb(
-        leadId,
-        sender === "vendor" ? "vendor_message" : "client_message",
-        trimmedText
-      ).catch(() => null);
+      await supabaseFetch(`lead_activities`, {
+        method: "POST",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify({
+          lead_id: leadId,
+          activity_type: sender === "vendor" ? "vendor_message" : "client_message",
+          description: trimmedText,
+        }),
+      }).catch((e) => {
+        console.warn("[MESSAGES_API_POST] lead_activities write warning:", e);
+        return null;
+      });
     }
 
     const newMessage: ChatMessage = {
@@ -432,7 +393,7 @@ export async function POST(req: Request) {
       sender,
       senderName: sender === "customer" ? "You" : "Vendor Team",
       text: trimmedText,
-      createdAt: "Just now",
+      createdAt: new Date().toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" }),
       isRead: true,
     };
 
@@ -452,4 +413,3 @@ export async function POST(req: Request) {
     );
   }
 }
-
