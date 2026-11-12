@@ -40,6 +40,9 @@ const DEMO_CONVERSATION_IDS = new Set([
   "v-mandap-flora",
 ]);
 
+const STOREFRONT_CHAT_PREFIX = "cloche_vendor_chat_";
+const STOREFRONT_CHAT_OWNER_KEY = "cloche_vendor_chat_owner";
+
 function isDemoId(id: string): boolean {
   if (!id) return false;
   return (
@@ -245,6 +248,7 @@ export default function MessagesPage() {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const selectedConvIdRef = useRef<string>("");
   const urlDeepLinkAppliedRef = useRef<boolean>(false);
+  const attemptedStorefrontMsgsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     selectedConvIdRef.current = selectedConvId;
@@ -297,21 +301,163 @@ export default function MessagesPage() {
             (c: ConversationItem) => !isDemoId(c.id) && !isDemoId(c.vendorId)
           );
 
-          // Enforce strict per-user cache hygiene for pending client messages only
+          // Enforce strict per-user cache hygiene and backfill any unsynced storefront messages
           try {
             const ownerKey = currentUser
               ? `${currentUser.role}:${currentUser.id || currentUser.email}`
               : "";
+            const ownerIdentity = currentUser
+              ? String(currentUser.email || currentUser.id || "").trim().toLowerCase()
+              : "";
             const prevOwner = localStorage.getItem("cloche_messages_owner") || "";
+            const prevStoreOwner =
+              (localStorage.getItem(STOREFRONT_CHAT_OWNER_KEY) || "").trim().toLowerCase();
+
+            const listStorefrontChatKeys = (): string[] => {
+              const keys: string[] = [];
+              for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (
+                  k &&
+                  k.startsWith(STOREFRONT_CHAT_PREFIX) &&
+                  k !== STOREFRONT_CHAT_OWNER_KEY
+                ) {
+                  keys.push(k);
+                }
+              }
+              return keys;
+            };
 
             if (!currentUser) {
               localStorage.removeItem("cloche_user_chat_messages");
               localStorage.removeItem("cloche_messages_owner");
-            } else if (prevOwner !== ownerKey) {
-              localStorage.removeItem("cloche_user_chat_messages");
-              localStorage.setItem("cloche_messages_owner", ownerKey);
+              attemptedStorefrontMsgsRef.current.clear();
+              if (prevOwner || prevStoreOwner) {
+                for (const k of listStorefrontChatKeys()) {
+                  localStorage.removeItem(k);
+                }
+                localStorage.removeItem(STOREFRONT_CHAT_OWNER_KEY);
+              }
             } else {
-              const localStored = localStorage.getItem("cloche_user_chat_messages");
+              const ownerMismatch =
+                (prevOwner && prevOwner !== ownerKey) ||
+                (prevStoreOwner && prevStoreOwner !== ownerIdentity);
+
+              if (ownerMismatch) {
+                localStorage.removeItem("cloche_user_chat_messages");
+                for (const k of listStorefrontChatKeys()) {
+                  localStorage.removeItem(k);
+                }
+                attemptedStorefrontMsgsRef.current.clear();
+              }
+
+              localStorage.setItem("cloche_messages_owner", ownerKey);
+              if (ownerIdentity) {
+                localStorage.setItem(STOREFRONT_CHAT_OWNER_KEY, ownerIdentity);
+              }
+
+              // Backfill any unsynced customer chats left in cloche_vendor_chat_<vendorId>
+              if (!ownerMismatch) {
+                const pendingBackfills: Array<{
+                  vendorId: string;
+                  text: string;
+                  signature: string;
+                }> = [];
+
+                for (const key of listStorefrontChatKeys()) {
+                  const vendorRef = key.slice(STOREFRONT_CHAT_PREFIX.length).trim();
+                  if (!vendorRef || vendorRef === "default" || isDemoId(vendorRef)) {
+                    continue;
+                  }
+
+                  let rawList: any[] = [];
+                  try {
+                    const parsedChat = JSON.parse(localStorage.getItem(key) || "[]");
+                    if (Array.isArray(parsedChat)) rawList = parsedChat;
+                  } catch {
+                    continue;
+                  }
+
+                  const existingConv = loaded.find(
+                    (c) =>
+                      c.viewerRole !== "vendor" &&
+                      (String(c.vendorId) === vendorRef ||
+                        String(c.vendorSlug || "") === vendorRef ||
+                        c.id === `conv-vendor-${vendorRef}`)
+                  );
+                  const existingCustomerTexts = new Set(
+                    (existingConv?.messages || [])
+                      .filter((m) => m.sender === "customer")
+                      .map((m) => String(m.text || "").trim())
+                      .filter(Boolean)
+                  );
+                  const seenInLocal = new Set<string>();
+
+                  for (const item of rawList) {
+                    const itemSender = String(item?.sender || "").toLowerCase();
+                    if (itemSender !== "user" && itemSender !== "customer") continue;
+                    const text = String(item?.text || "").trim();
+                    if (!text || seenInLocal.has(text)) continue;
+                    seenInLocal.add(text);
+
+                    const signature = `${vendorRef}::${text}`;
+                    if (
+                      existingCustomerTexts.has(text) ||
+                      attemptedStorefrontMsgsRef.current.has(signature)
+                    ) {
+                      continue;
+                    }
+                    pendingBackfills.push({ vendorId: vendorRef, text, signature });
+                  }
+                }
+
+                if (pendingBackfills.length > 0) {
+                  let didSyncAny = false;
+                  for (const item of pendingBackfills) {
+                    attemptedStorefrontMsgsRef.current.add(item.signature);
+                    try {
+                      const postRes = await fetch("/api/v1/messages", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          vendorId: item.vendorId,
+                          conversationId: `conv-vendor-${item.vendorId}`,
+                          text: item.text,
+                          sender: "customer",
+                        }),
+                      });
+                      if (postRes.ok) {
+                        didSyncAny = true;
+                      } else if (postRes.status >= 500) {
+                        attemptedStorefrontMsgsRef.current.delete(item.signature);
+                      }
+                    } catch {
+                      attemptedStorefrontMsgsRef.current.delete(item.signature);
+                    }
+                  }
+
+                  if (didSyncAny) {
+                    const refreshed = await fetch("/api/v1/messages", {
+                      cache: "no-store",
+                    })
+                      .then((r) => r.json())
+                      .catch(() => null);
+                    if (
+                      refreshed?.success &&
+                      Array.isArray(refreshed.data?.conversations)
+                    ) {
+                      loaded = refreshed.data.conversations.filter(
+                        (c: ConversationItem) =>
+                          !isDemoId(c.id) && !isDemoId(c.vendorId)
+                      );
+                    }
+                  }
+                }
+              }
+
+              const localStored = ownerMismatch
+                ? null
+                : localStorage.getItem("cloche_user_chat_messages");
               if (localStored) {
                 const parsed = JSON.parse(localStored);
                 if (typeof parsed === "object" && parsed !== null) {
@@ -520,13 +666,20 @@ export default function MessagesPage() {
   }, [conversations, searchQuery]);
 
   const isVendorMode = authUser?.role === "vendor";
+  const isVendorThread = useCallback(
+    (conv?: ConversationItem | null) =>
+      conv?.viewerRole ? conv.viewerRole === "vendor" : isVendorMode,
+    [isVendorMode]
+  );
+  const selectedIsVendor = isVendorThread(selectedConversation);
 
   const handleSendMessage = async (textToSend?: string) => {
     const content = (textToSend ?? inputText).trim();
     if (!content || !selectedConversation || isSending) return;
 
     const targetConvId = selectedConversation.id;
-    const senderRole: "customer" | "vendor" = isVendorMode ? "vendor" : "customer";
+    const threadIsVendor = isVendorThread(selectedConversation);
+    const senderRole: "customer" | "vendor" = threadIsVendor ? "vendor" : "customer";
     const nowIso = new Date().toISOString();
     const optimisticId = `local-msg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 
@@ -665,7 +818,7 @@ export default function MessagesPage() {
 
   const handleQuotationResponse = async (
     msg: ChatMessage,
-    newStatus: "customer_interested" | "revision_requested"
+    newStatus: "accepted" | "customer_interested" | "revision_requested"
   ) => {
     const q = msg.quotation;
     if (!q) return;
@@ -673,19 +826,26 @@ export default function MessagesPage() {
     setQuoteActionBusyId(msg.id);
     if (q.id) {
       try {
-        const res = await fetch("/api/v1/customer/quotations", {
+        const res = await fetch("/api/v1/messages", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ quotation_id: q.id, status: newStatus }),
+          body: JSON.stringify({
+            action: "quotation_response",
+            quotationId: q.id,
+            responseStatus: newStatus,
+          }),
         }).then((r) => r.json());
 
         if (res?.success) {
+          const resolvedStatus =
+            res?.data?.status ||
+            (newStatus === "revision_requested" ? "revision_requested" : "accepted");
           setConversations((prev) =>
             prev.map((c) => ({
               ...c,
               messages: c.messages.map((m) =>
                 m.id === msg.id && m.quotation
-                  ? { ...m, quotation: { ...m.quotation, status: newStatus } }
+                  ? { ...m, quotation: { ...m.quotation, status: resolvedStatus } }
                   : m
               ),
             }))
@@ -695,7 +855,7 @@ export default function MessagesPage() {
     }
 
     const followUp =
-      newStatus === "customer_interested"
+      newStatus === "accepted" || newStatus === "customer_interested"
         ? `We would like to move forward with "${q.title}" (₹${q.amount.toLocaleString("en-IN")}). Please share the booking confirmation steps and payment schedule.`
         : `Thank you for sharing "${q.title}". Could we discuss a custom revision for our wedding requirements?`;
 
@@ -848,7 +1008,8 @@ export default function MessagesPage() {
                 filteredConversations.map((item) => {
                   const isSelected = item.id === selectedConversation?.id;
                   const hasUnread = item.unreadCount > 0;
-                  const counterpartyName = isVendorMode
+                  const itemIsVendor = isVendorThread(item);
+                  const counterpartyName = itemIsVendor
                     ? item.customerName
                     : item.vendorName;
                   const badge = getReplyBadge(item);
@@ -856,7 +1017,7 @@ export default function MessagesPage() {
                     item.lastActivityAt,
                     item.lastMessageTime
                   );
-                  const isOwnLastMsg = isVendorMode
+                  const isOwnLastMsg = itemIsVendor
                     ? item.lastMessageSender === "vendor"
                     : item.lastMessageSender === "customer";
 
@@ -876,7 +1037,7 @@ export default function MessagesPage() {
                       {/* Avatar with Unread Dot */}
                       <div className="relative shrink-0">
                         <VendorAvatar
-                          src={isVendorMode ? "" : item.vendorAvatar}
+                          src={itemIsVendor ? "" : item.vendorAvatar}
                           name={counterpartyName}
                           sizeClass="w-12 h-12"
                           textClass="text-sm"
@@ -898,7 +1059,7 @@ export default function MessagesPage() {
                             }`}
                           >
                             <span className="truncate">{counterpartyName}</span>
-                            {!isVendorMode && (
+                            {!itemIsVendor && (
                               <CheckCircle2 className="w-3.5 h-3.5 text-[#C8A96A] shrink-0" />
                             )}
                           </h4>
@@ -915,7 +1076,7 @@ export default function MessagesPage() {
 
                         <div className="flex flex-wrap items-center gap-1.5 mb-1">
                           <span className="text-[10px] font-semibold uppercase tracking-wider text-[#0F4C45] bg-[#0F4C45]/8 px-2 py-0.5 rounded-md truncate max-w-[140px]">
-                            {isVendorMode ? item.eventType : item.vendorCategory}
+                            {itemIsVendor ? item.eventType : item.vendorCategory}
                           </span>
                           <span
                             className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${badge.cls}`}
@@ -984,9 +1145,9 @@ export default function MessagesPage() {
                   </button>
 
                   <VendorAvatar
-                    src={isVendorMode ? "" : selectedConversation.vendorAvatar}
+                    src={selectedIsVendor ? "" : selectedConversation.vendorAvatar}
                     name={
-                      isVendorMode
+                      selectedIsVendor
                         ? selectedConversation.customerName
                         : selectedConversation.vendorName
                     }
@@ -997,17 +1158,17 @@ export default function MessagesPage() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
                       <h3 className="font-display font-bold text-sm sm:text-base text-[#082F2C] truncate">
-                        {isVendorMode
+                        {selectedIsVendor
                           ? selectedConversation.customerName
                           : selectedConversation.vendorName}
                       </h3>
-                      {!isVendorMode && (
+                      {!selectedIsVendor && (
                         <CheckCircle2 className="w-4 h-4 text-[#C8A96A] shrink-0" />
                       )}
                     </div>
                     <p className="text-[11px] text-[#082F2C]/60 flex items-center gap-1 truncate">
                       <span>
-                        {isVendorMode
+                        {selectedIsVendor
                           ? selectedConversation.eventType
                           : selectedConversation.vendorCategory}
                       </span>
@@ -1022,7 +1183,7 @@ export default function MessagesPage() {
 
                 {/* Header CTA actions */}
                 <div className="flex items-center gap-2 shrink-0">
-                  {!isVendorMode && selectedConversation.vendorPhone && (
+                  {!selectedIsVendor && selectedConversation.vendorPhone && (
                     <a
                       href={`tel:${selectedConversation.vendorPhone}`}
                       className="hidden sm:flex items-center gap-1.5 bg-[#FAF7F2] hover:bg-[#C8A96A]/15 border border-[#C8A96A]/30 text-[#0F4C45] text-xs font-semibold px-3 py-1.5 rounded-full transition-colors"
@@ -1033,7 +1194,7 @@ export default function MessagesPage() {
                     </a>
                   )}
 
-                  {isVendorMode ? (
+                  {selectedIsVendor ? (
                     <Link
                       href="/vendor/leads"
                       className="flex items-center gap-1 bg-[#0F4C45] hover:bg-[#12584C] text-white text-xs font-semibold px-3.5 py-1.5 rounded-full transition-colors shadow-xs"
@@ -1111,7 +1272,7 @@ export default function MessagesPage() {
                 </div>
 
                 {selectedConversation.messages.map((msg, idx) => {
-                  const isOwnBubble = isVendorMode
+                  const isOwnBubble = selectedIsVendor
                     ? msg.sender === "vendor"
                     : msg.sender === "customer";
 
@@ -1147,13 +1308,13 @@ export default function MessagesPage() {
                           {!isOwnBubble && (
                             <VendorAvatar
                               src={
-                                isVendorMode
+                                selectedIsVendor
                                   ? ""
                                   : msg.senderAvatar ||
                                     selectedConversation.vendorAvatar
                               }
                               name={
-                                isVendorMode
+                                selectedIsVendor
                                   ? selectedConversation.customerName
                                   : selectedConversation.vendorName
                               }
@@ -1234,7 +1395,7 @@ export default function MessagesPage() {
                                     </p>
                                   )}
 
-                                  {!isVendorMode && (
+                                  {!selectedIsVendor && (
                                     <div className="pt-1 flex flex-wrap items-center gap-2">
                                       {isQuoteResponded && (
                                         <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
@@ -1245,10 +1406,7 @@ export default function MessagesPage() {
                                         type="button"
                                         disabled={quoteActionBusyId === msg.id}
                                         onClick={() =>
-                                          handleQuotationResponse(
-                                            msg,
-                                            "customer_interested"
-                                          )
+                                          handleQuotationResponse(msg, "accepted")
                                         }
                                         className="bg-[#0F4C45] hover:bg-[#12584C] disabled:opacity-50 text-white font-bold text-[11px] px-3.5 py-1.5 rounded-full transition-colors flex items-center gap-1 cursor-pointer"
                                       >
@@ -1315,7 +1473,7 @@ export default function MessagesPage() {
               )}
 
               {/* Quick Action Suggestion Chips */}
-              {!isVendorMode && (
+              {!selectedIsVendor && (
                 <div className="px-4 py-2 bg-[#FAF7F2]/60 border-t border-[#C8A96A]/15 flex items-center gap-2 overflow-x-auto scrollbar-none text-[11px] shrink-0">
                   <span className="text-[#082F2C]/50 font-semibold shrink-0">
                     Quick reply:
@@ -1380,7 +1538,7 @@ export default function MessagesPage() {
                       }
                     }}
                     placeholder={`Message ${
-                      isVendorMode
+                      selectedIsVendor
                         ? selectedConversation.customerName
                         : selectedConversation.vendorName
                     }...`}

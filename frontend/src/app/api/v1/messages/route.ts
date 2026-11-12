@@ -45,6 +45,7 @@ export interface ConversationItem {
   id: string;
   leadId?: string;
   leadIds?: string[];
+  viewerRole?: "customer" | "vendor";
   vendorId: string;
   vendorName: string;
   vendorSlug?: string;
@@ -303,14 +304,14 @@ async function resolveVerifiedCustomerProfile(
 
   if (cleanUserId && cleanEmail) {
     const res = await supabaseFetch(
-      `users?or=(id.eq.${encodeURIComponent(cleanUserId)},email.ilike.${encodeURIComponent(cleanEmail)})&select=id,email,full_name,name,phone&limit=2`
+      `users?or=(id.eq.${encodeURIComponent(cleanUserId)},supabase_user_id.eq.${encodeURIComponent(cleanUserId)},email.ilike.${encodeURIComponent(cleanEmail)})&select=id,email,full_name,name,phone&limit=2`
     );
     if (Array.isArray(res.data) && res.data.length > 0) {
       userRow = res.data.find((u: any) => u.id === cleanUserId) || res.data[0];
     }
   } else if (cleanUserId) {
     const res = await supabaseFetch(
-      `users?id=eq.${encodeURIComponent(cleanUserId)}&select=id,email,full_name,name,phone&limit=1`
+      `users?or=(id.eq.${encodeURIComponent(cleanUserId)},supabase_user_id.eq.${encodeURIComponent(cleanUserId)})&select=id,email,full_name,name,phone&limit=1`
     );
     if (Array.isArray(res.data) && res.data.length > 0) userRow = res.data[0];
   } else if (cleanEmail) {
@@ -355,11 +356,44 @@ async function resolveVerifiedCustomerProfile(
 async function resolveSessionContext(req: Request) {
   const cookies = extractCookieMap(req);
   const roleCookie = String(cookies["user_role"] || "").toLowerCase();
+  const hasAnyAuthCredential = Boolean(
+    cookies["cloche_auth_token"] ||
+      cookies["auth_token"] ||
+      cookies["user_data"] ||
+      req.headers.get("authorization") ||
+      req.headers.get("x-auth-token") ||
+      req.headers.get("x-user-id")
+  );
 
-  const [customerUser, vendorAuth] = await Promise.all([
-    getAuthenticatedCustomerUser(req).catch(() => null),
-    requireAuthenticatedVendor(req).catch(() => null),
-  ]);
+  if (!hasAnyAuthCredential) {
+    return {
+      mode: "guest" as const,
+      vendorId: null,
+      vendorUser: null,
+      dbUserId: null,
+      customer: null,
+    };
+  }
+
+  let customerUser = null;
+  let vendorAuth = null;
+
+  if (roleCookie === "vendor" || roleCookie === "partner") {
+    vendorAuth = await requireAuthenticatedVendor(req).catch(() => null);
+    if (!vendorAuth?.vendorId) {
+      customerUser = await getAuthenticatedCustomerUser(req).catch(() => null);
+    }
+  } else if (roleCookie === "user" || roleCookie === "customer") {
+    customerUser = await getAuthenticatedCustomerUser(req).catch(() => null);
+    if (!customerUser?.userId && !customerUser?.email) {
+      vendorAuth = await requireAuthenticatedVendor(req).catch(() => null);
+    }
+  } else {
+    [customerUser, vendorAuth] = await Promise.all([
+      getAuthenticatedCustomerUser(req).catch(() => null),
+      requireAuthenticatedVendor(req).catch(() => null),
+    ]);
+  }
 
   const hasVendorId = Boolean(vendorAuth && vendorAuth.vendorId);
   const isVendorMode =
@@ -377,7 +411,7 @@ async function resolveSessionContext(req: Request) {
       vendorId: vendorAuth.vendorId,
       vendorUser: vendorAuth.user,
       dbUserId: dbVendorUser?.dbUserId || null,
-      customer: null,
+      customer: dbVendorUser,
     };
   }
 
@@ -425,6 +459,25 @@ async function resolveSessionContext(req: Request) {
   };
 }
 
+const PLACEHOLDER_PHONE_DIGITS = new Set([
+  "0000000000",
+  "1111111111",
+  "1234567890",
+  "9876543210",
+  "9999999999",
+]);
+
+function normalizeVerifiedPhone10(rawPhone?: string | null): string | null {
+  if (!rawPhone) return null;
+  const digits = String(rawPhone).replace(/\D/g, "");
+  if (digits.length < 10) return null;
+  const last10 = digits.slice(-10);
+  if (/^(\d)\1{9}$/.test(last10) || PLACEHOLDER_PHONE_DIGITS.has(last10)) {
+    return null;
+  }
+  return last10;
+}
+
 function customerOwnsLead(lead: any, customer: VerifiedDbCustomer): boolean {
   if (!lead) return false;
   if (customer.dbUserId && lead.customer_id && String(lead.customer_id) === customer.dbUserId) {
@@ -437,6 +490,22 @@ function customerOwnsLead(lead: any, customer: VerifiedDbCustomer): boolean {
   ) {
     return true;
   }
+
+  const noConflictingUserId =
+    !lead.customer_id || (customer.dbUserId && String(lead.customer_id) === customer.dbUserId);
+  const noConflictingEmail =
+    !lead.customer_email ||
+    (customer.email &&
+      String(lead.customer_email).trim().toLowerCase() === customer.email.toLowerCase());
+
+  if (noConflictingUserId && noConflictingEmail) {
+    const custPhone10 = normalizeVerifiedPhone10(customer.phone);
+    const leadPhone10 = normalizeVerifiedPhone10(lead.customer_phone);
+    if (custPhone10 && leadPhone10 && custPhone10 === leadPhone10) {
+      return true;
+    }
+  }
+
   return false;
 }
 
@@ -447,6 +516,10 @@ async function fetchCustomerLeads(customer: VerifiedDbCustomer) {
   }
   if (customer.email) {
     filters.push(`customer_email.ilike.${encodeURIComponent(customer.email)}`);
+  }
+  const custPhone10 = normalizeVerifiedPhone10(customer.phone);
+  if (custPhone10) {
+    filters.push(`customer_phone.ilike.*${custPhone10}`);
   }
   if (filters.length === 0) return [];
 
@@ -560,7 +633,7 @@ function buildConversationForGroup(
       if (act.activity_type === readActivityType) {
         const descMs = parseTimestamp(act.description);
         const createdMs = parseTimestamp(act.created_at);
-        const watermark = descMs || createdMs;
+        const watermark = Math.max(descMs, createdMs);
         if (watermark > latestReadMs) latestReadMs = watermark;
       }
     }
@@ -660,6 +733,17 @@ function buildConversationForGroup(
       const qMs = parseTimestamp(quote.created_at);
       const qStatus = String(quote.status || "sent").toLowerCase();
       const formattedQuote = formatQuotationPayload(quote);
+      const hasRevisionReq =
+        qStatus === "sent" &&
+        leadActs.some(
+          (a: any) =>
+            String(a.activity_type || "").toLowerCase() === "revision_requested" &&
+            parseTimestamp(a.created_at) >= qMs &&
+            String(a.description || "").includes(`[quote:${quote.id}]`)
+        );
+      if (hasRevisionReq) {
+        formattedQuote.status = "revision_requested";
+      }
       msgs.push({
         id: `db-msg-${leadId}-quote-${quote.id}`,
         sender: "vendor",
@@ -676,7 +760,7 @@ function buildConversationForGroup(
           viewerMode === "vendor"
             ? true
             : qMs <= latestReadMs ||
-              ["customer_interested", "accepted", "declined", "archived"].includes(qStatus),
+              ["customer_interested", "accepted", "declined", "rejected", "archived"].includes(qStatus),
         leadId,
         quotation: formattedQuote,
       });
@@ -757,6 +841,7 @@ function buildConversationForGroup(
         : `conv-vendor-lead-${latestLead.id}`,
     leadId: String(latestLead.id),
     leadIds: sortedLeads.map((l) => String(l.id)),
+    viewerRole: viewerMode,
     vendorId: String(vendorId),
     vendorName: meta.vendorName,
     vendorSlug: meta.vendorSlug,
@@ -836,159 +921,160 @@ async function resolveVendorByAnyIdentifier(rawIdentifier: string) {
   return null;
 }
 
-async function computeTotalUnreadForSession(session: Awaited<ReturnType<typeof resolveSessionContext>>) {
+async function loadSessionConversations(
+  session: Awaited<ReturnType<typeof resolveSessionContext>>
+): Promise<{
+  conversations: ConversationItem[];
+  authenticatedUser: AuthenticatedInboxUser | null;
+}> {
+  let conversations: ConversationItem[] = [];
+  let authenticatedUser: AuthenticatedInboxUser | null = null;
+
   if (session.mode === "customer" && session.customer) {
+    authenticatedUser = {
+      id: session.customer.dbUserId || session.customer.email,
+      name: session.customer.fullName,
+      email: session.customer.email,
+      role: "customer",
+    };
+
     const leads = await fetchCustomerLeads(session.customer);
-    if (leads.length === 0) return 0;
-    const leadIds = leads.map((l: any) => String(l.id));
-    const { quotationsByLead, activitiesByLead } = await fetchRelatedQuotationsAndActivities(leadIds);
-    const byVendor = new Map<string, any[]>();
-    for (const l of leads) {
-      const k = String(l.vendor_id || l.vendors?.id || l.id);
-      if (!byVendor.has(k)) byVendor.set(k, []);
-      byVendor.get(k)!.push(l);
-    }
-    let total = 0;
-    for (const [vId, group] of byVendor.entries()) {
-      const conv = buildConversationForGroup(
-        vId,
-        group,
-        quotationsByLead,
-        activitiesByLead,
-        "customer",
-        session.customer.fullName
-      );
-      total += conv.unreadCount;
-    }
-    return total;
-  }
+    if (leads.length > 0) {
+      const leadIds = leads.map((l: any) => String(l.id));
+      const { quotationsByLead, activitiesByLead } = await fetchRelatedQuotationsAndActivities(leadIds);
 
-  if (session.mode === "vendor" && session.vendorId) {
-    const { data: vendorLeads } = await supabaseFetch(
-      `leads?vendor_id=eq.${encodeURIComponent(session.vendorId)}&deleted_at=is.null&order=created_at.desc&select=${LEADS_EMBED_SELECT}`
+      const leadsByVendor = new Map<string, any[]>();
+      for (const lead of leads) {
+        const vId = String(lead.vendor_id || lead.vendors?.id || lead.id);
+        if (!leadsByVendor.has(vId)) leadsByVendor.set(vId, []);
+        leadsByVendor.get(vId)!.push(lead);
+      }
+
+      conversations = Array.from(leadsByVendor.entries()).map(([vendorId, group]) =>
+        buildConversationForGroup(
+          vendorId,
+          group,
+          quotationsByLead,
+          activitiesByLead,
+          "customer",
+          session.customer!.fullName
+        )
+      );
+    }
+  } else if (session.mode === "vendor" && session.vendorId) {
+    const [vendorLeadsRes, rawCustomerLeads] = await Promise.all([
+      supabaseFetch(
+        `leads?vendor_id=eq.${encodeURIComponent(session.vendorId)}&deleted_at=is.null&order=created_at.desc&select=${LEADS_EMBED_SELECT}`
+      ),
+      session.customer ? fetchCustomerLeads(session.customer) : Promise.resolve([]),
+    ]);
+
+    const vendorLeads = Array.isArray(vendorLeadsRes.data) ? vendorLeadsRes.data : [];
+    const outgoingCustomerLeads = (Array.isArray(rawCustomerLeads) ? rawCustomerLeads : []).filter(
+      (l: any) => String(l.vendor_id || "") !== String(session.vendorId)
     );
-    const rows = Array.isArray(vendorLeads) ? vendorLeads : [];
-    if (rows.length === 0) return 0;
-    const leadIds = rows.map((l: any) => String(l.id));
-    const { quotationsByLead, activitiesByLead } = await fetchRelatedQuotationsAndActivities(leadIds);
-    return rows.reduce((sum: number, lead: any) => {
-      const conv = buildConversationForGroup(
-        session.vendorId!,
-        [lead],
-        quotationsByLead,
-        activitiesByLead,
-        "vendor"
+
+    authenticatedUser = {
+      id: session.dbUserId || session.vendorId,
+      name:
+        session.vendorUser?.fullName ||
+        session.vendorUser?.email ||
+        "Vendor",
+      email: session.vendorUser?.email || "",
+      role:
+        vendorLeads.length === 0 && outgoingCustomerLeads.length > 0
+          ? "customer"
+          : "vendor",
+    };
+
+    const combinedLeadIds = Array.from(
+      new Set([
+        ...vendorLeads.map((l: any) => String(l.id)),
+        ...outgoingCustomerLeads.map((l: any) => String(l.id)),
+      ])
+    );
+
+    if (combinedLeadIds.length > 0) {
+      const { quotationsByLead, activitiesByLead } =
+        await fetchRelatedQuotationsAndActivities(combinedLeadIds);
+
+      const vendorConvs = vendorLeads.map((lead: any) =>
+        buildConversationForGroup(
+          session.vendorId!,
+          [lead],
+          quotationsByLead,
+          activitiesByLead,
+          "vendor"
+        )
       );
-      return sum + conv.unreadCount;
-    }, 0);
+
+      const leadsByVendor = new Map<string, any[]>();
+      for (const lead of outgoingCustomerLeads) {
+        const vId = String(lead.vendor_id || lead.vendors?.id || lead.id);
+        if (!leadsByVendor.has(vId)) leadsByVendor.set(vId, []);
+        leadsByVendor.get(vId)!.push(lead);
+      }
+
+      const customerConvs = Array.from(leadsByVendor.entries()).map(([vendorId, group]) =>
+        buildConversationForGroup(
+          vendorId,
+          group,
+          quotationsByLead,
+          activitiesByLead,
+          "customer",
+          session.customer?.fullName || session.vendorUser?.fullName || "You"
+        )
+      );
+
+      conversations = [...vendorConvs, ...customerConvs];
+    }
   }
 
-  return 0;
-}
-
-async function upsertReadActivity(leadId: string, activityType: "client_read" | "vendor_read", readIso: string, performedBy: string | null) {
-  const existingRes = await supabaseFetch(
-    `lead_activities?lead_id=eq.${encodeURIComponent(leadId)}&activity_type=eq.${activityType}&order=created_at.desc&limit=1&select=id`
+  conversations.sort(
+    (a, b) => parseTimestamp(b.lastActivityAt) - parseTimestamp(a.lastActivityAt)
   );
 
-  const existingId = Array.isArray(existingRes.data) && existingRes.data[0]?.id;
-  if (existingId) {
-    await supabaseFetch(`lead_activities?id=eq.${encodeURIComponent(existingId)}`, {
-      method: "PATCH",
-      body: JSON.stringify({
-        description: readIso,
-        created_at: readIso,
-        ...(performedBy ? { performed_by: performedBy } : {}),
-      }),
-    });
-  } else {
-    await supabaseFetch(`lead_activities`, {
-      method: "POST",
-      body: JSON.stringify({
-        lead_id: leadId,
-        activity_type: activityType,
-        description: readIso,
-        performed_by: performedBy,
-        created_at: readIso,
-      }),
-    });
+  return { conversations, authenticatedUser };
+}
+
+async function computeTotalUnreadForSession(session: Awaited<ReturnType<typeof resolveSessionContext>>) {
+  const { conversations } = await loadSessionConversations(session);
+  return conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
+}
+
+async function upsertReadActivity(
+  leadId: string,
+  activityType: "client_read" | "vendor_read",
+  performedBy: string | null,
+  minWatermarkIso?: string | null
+): Promise<string> {
+  // Omit `created_at` so PostgreSQL DEFAULT now() timestamps read watermarks on the same clock as messages & quotations
+  const insertRes = await supabaseFetch(`lead_activities`, {
+    method: "POST",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify({
+      lead_id: leadId,
+      activity_type: activityType,
+      description: minWatermarkIso || "Read",
+      performed_by: performedBy,
+    }),
+  });
+
+  const saved = Array.isArray(insertRes.data) ? insertRes.data[0] : insertRes.data;
+  if (saved?.id) {
+    await supabaseFetch(
+      `lead_activities?lead_id=eq.${encodeURIComponent(leadId)}&activity_type=eq.${activityType}&id=neq.${encodeURIComponent(saved.id)}`,
+      { method: "DELETE" }
+    ).catch(() => null);
   }
+
+  return saved?.created_at || minWatermarkIso || new Date().toISOString();
 }
 
 export async function GET(req: Request) {
   try {
     const session = await resolveSessionContext(req);
-    let conversations: ConversationItem[] = [];
-    let authenticatedUser: AuthenticatedInboxUser | null = null;
-
-    if (session.mode === "customer" && session.customer) {
-      authenticatedUser = {
-        id: session.customer.dbUserId || session.customer.email,
-        name: session.customer.fullName,
-        email: session.customer.email,
-        role: "customer",
-      };
-
-      const leads = await fetchCustomerLeads(session.customer);
-      if (leads.length > 0) {
-        const leadIds = leads.map((l: any) => String(l.id));
-        const { quotationsByLead, activitiesByLead } = await fetchRelatedQuotationsAndActivities(leadIds);
-
-        // Group all leads belonging to the same vendor into a single unified thread
-        const leadsByVendor = new Map<string, any[]>();
-        for (const lead of leads) {
-          const vId = String(lead.vendor_id || lead.vendors?.id || lead.id);
-          if (!leadsByVendor.has(vId)) leadsByVendor.set(vId, []);
-          leadsByVendor.get(vId)!.push(lead);
-        }
-
-        conversations = Array.from(leadsByVendor.entries()).map(([vendorId, group]) =>
-          buildConversationForGroup(
-            vendorId,
-            group,
-            quotationsByLead,
-            activitiesByLead,
-            "customer",
-            session.customer!.fullName
-          )
-        );
-      }
-    } else if (session.mode === "vendor" && session.vendorId) {
-      authenticatedUser = {
-        id: session.dbUserId || session.vendorId,
-        name:
-          session.vendorUser?.fullName ||
-          session.vendorUser?.email ||
-          "Vendor",
-        email: session.vendorUser?.email || "",
-        role: "vendor",
-      };
-
-      const { data: vendorLeads } = await supabaseFetch(
-        `leads?vendor_id=eq.${encodeURIComponent(session.vendorId)}&deleted_at=is.null&order=created_at.desc&select=${LEADS_EMBED_SELECT}`
-      );
-
-      if (Array.isArray(vendorLeads) && vendorLeads.length > 0) {
-        const leadIds = vendorLeads.map((l: any) => String(l.id));
-        const { quotationsByLead, activitiesByLead } = await fetchRelatedQuotationsAndActivities(leadIds);
-
-        conversations = vendorLeads.map((lead: any) =>
-          buildConversationForGroup(
-            session.vendorId!,
-            [lead],
-            quotationsByLead,
-            activitiesByLead,
-            "vendor"
-          )
-        );
-      }
-    }
-
-    // Sort newest message activity first across the entire inbox
-    conversations.sort(
-      (a, b) => parseTimestamp(b.lastActivityAt) - parseTimestamp(a.lastActivityAt)
-    );
-
+    const { conversations, authenticatedUser } = await loadSessionConversations(session);
     const totalUnread = conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
 
     return NextResponse.json({
@@ -1070,7 +1156,6 @@ export async function POST(req: Request) {
         );
       }
 
-      const nowIso = new Date().toISOString();
       const actRes = await supabaseFetch(`lead_activities`, {
         method: "POST",
         headers: { Prefer: "return=representation" },
@@ -1079,7 +1164,6 @@ export async function POST(req: Request) {
           activity_type: "vendor_message",
           description: trimmedText,
           performed_by: session.dbUserId,
-          created_at: nowIso,
         }),
       });
 
@@ -1091,17 +1175,17 @@ export async function POST(req: Request) {
       }
 
       const savedAct = Array.isArray(actRes.data) ? actRes.data[0] : actRes.data;
+      const createdAtIso = savedAct?.created_at || new Date().toISOString();
       const nextStatus = String(targetLead.status || "new").toLowerCase() === "new" ? "contacted" : targetLead.status;
 
       await Promise.all([
         supabaseFetch(`leads?id=eq.${encodeURIComponent(targetLead.id)}`, {
           method: "PATCH",
-          body: JSON.stringify({ status: nextStatus, updated_at: nowIso }),
+          body: JSON.stringify({ status: nextStatus, updated_at: createdAtIso }),
         }),
-        upsertReadActivity(targetLead.id, "vendor_read", nowIso, session.dbUserId),
+        upsertReadActivity(targetLead.id, "vendor_read", session.dbUserId, savedAct?.created_at || null),
       ]).catch(() => null);
 
-      const createdAtIso = savedAct?.created_at || nowIso;
       const newMessage: ChatMessage = {
         id: savedAct?.id ? `act-${savedAct.id}` : `msg-${Date.now()}`,
         sender: "vendor",
@@ -1151,7 +1235,7 @@ export async function POST(req: Request) {
     // 1. Verify direct leadId if provided (must belong to authenticated customer)
     if (leadId && UUID_REGEX.test(String(leadId))) {
       const leadRes = await supabaseFetch(
-        `leads?id=eq.${encodeURIComponent(String(leadId))}&deleted_at=is.null&select=id,vendor_id,customer_id,customer_email,message,created_at&limit=1`
+        `leads?id=eq.${encodeURIComponent(String(leadId))}&deleted_at=is.null&select=id,vendor_id,customer_id,customer_email,customer_phone,message,created_at&limit=1`
       );
       const found = Array.isArray(leadRes.data) ? leadRes.data[0] : null;
       if (found && customerOwnsLead(found, customer)) {
@@ -1193,8 +1277,7 @@ export async function POST(req: Request) {
         );
         activeLead = matchingVendorLeads[0];
       } else {
-        // Create brand new genuine lead with all required NOT NULL fields
-        const nowIso = new Date().toISOString();
+        // Create brand new genuine lead with all required NOT NULL fields (let Postgres DEFAULT now() set timestamps)
         const leadPayload: Record<string, any> = {
           vendor_id: resolvedVendorId,
           customer_name: customer.fullName.slice(0, 150),
@@ -1206,8 +1289,6 @@ export async function POST(req: Request) {
           message: trimmedText,
           source: "vendor_storefront_chat",
           status: "new",
-          created_at: nowIso,
-          updated_at: nowIso,
         };
         if (customer.dbUserId) {
           leadPayload.customer_id = customer.dbUserId;
@@ -1237,15 +1318,11 @@ export async function POST(req: Request) {
       }
     }
 
-    const nowMs = Date.now();
-    const nowIso = new Date(nowMs).toISOString();
     let createdMsgId = `db-msg-${activeLead.id}-inquiry`;
-    let createdMsgIso = activeLead.created_at || nowIso;
+    let createdMsgIso = activeLead.created_at || new Date().toISOString();
 
     if (isBrandNewLead) {
-      // Persist audit log & automatic initial vendor acknowledgment to Supabase
-      const autoReplyMs = Math.max(nowMs, parseTimestamp(activeLead.created_at)) + 5;
-      const autoReplyIso = new Date(autoReplyMs).toISOString();
+      // Persist audit log & automatic initial vendor acknowledgment to Supabase on PostgreSQL clock
       const autoReplyText = `Hi! Thank you for reaching out to ${vendorDisplayName}. We have received your message and will get back to you with pricing and availability shortly.`;
 
       await Promise.all([
@@ -1256,7 +1333,7 @@ export async function POST(req: Request) {
             activity_type: "lead_created",
             description: `Inquiry started by ${customer.fullName}`,
             performed_by: customer.dbUserId,
-            created_at: activeLead.created_at || nowIso,
+            ...(activeLead.created_at ? { created_at: activeLead.created_at } : {}),
           }),
         }),
         supabaseFetch(`lead_activities`, {
@@ -1265,16 +1342,20 @@ export async function POST(req: Request) {
             lead_id: activeLead.id,
             activity_type: "vendor_auto_reply",
             description: autoReplyText,
-            created_at: autoReplyIso,
           }),
         }),
-        upsertReadActivity(activeLead.id, "client_read", autoReplyIso, customer.dbUserId),
+        upsertReadActivity(
+          activeLead.id,
+          "client_read",
+          customer.dbUserId,
+          activeLead.created_at || null
+        ),
       ]).catch((e) => {
         console.warn("[MESSAGES_API_POST] Initial activity logging warning:", e);
         return null;
       });
     } else {
-      // Follow-up message on an existing thread -> save to lead_activities
+      // Follow-up message on an existing thread -> save to lead_activities using PostgreSQL DEFAULT now()
       const actRes = await supabaseFetch(`lead_activities`, {
         method: "POST",
         headers: { Prefer: "return=representation" },
@@ -1283,7 +1364,6 @@ export async function POST(req: Request) {
           activity_type: "client_message",
           description: trimmedText,
           performed_by: customer.dbUserId,
-          created_at: nowIso,
         }),
       });
 
@@ -1296,9 +1376,9 @@ export async function POST(req: Request) {
 
       const savedAct = Array.isArray(actRes.data) ? actRes.data[0] : actRes.data;
       if (savedAct?.id) createdMsgId = `act-${savedAct.id}`;
-      if (savedAct?.created_at) createdMsgIso = savedAct.created_at;
+      createdMsgIso = savedAct?.created_at || new Date().toISOString();
 
-      const leadPatch: Record<string, any> = { updated_at: nowIso };
+      const leadPatch: Record<string, any> = { updated_at: createdMsgIso };
       if (!activeLead.customer_id && customer.dbUserId) {
         leadPatch.customer_id = customer.dbUserId;
       }
@@ -1308,7 +1388,12 @@ export async function POST(req: Request) {
           method: "PATCH",
           body: JSON.stringify(leadPatch),
         }),
-        upsertReadActivity(activeLead.id, "client_read", nowIso, customer.dbUserId),
+        upsertReadActivity(
+          activeLead.id,
+          "client_read",
+          customer.dbUserId,
+          savedAct?.created_at || null
+        ),
       ]).catch(() => null);
     }
 
@@ -1351,7 +1436,7 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   try {
     const body = await req.json();
-    const { conversationId, vendorId, leadId, leadIds } = body || {};
+    const { action, quotationId, responseStatus, conversationId, vendorId, leadId, leadIds } = body || {};
 
     const session = await resolveSessionContext(req);
     if (session.mode === "guest") {
@@ -1362,71 +1447,182 @@ export async function PATCH(req: Request) {
     }
 
     const nowIso = new Date().toISOString();
-    const targetLeadIds: string[] = [];
 
-    if (session.mode === "customer" && session.customer) {
+    if (action === "quotation_response" && quotationId) {
+      if (!session.customer) {
+        return NextResponse.json(
+          { success: false, statusCode: 403, error: { message: "Customer authentication required." } },
+          { status: 403 }
+        );
+      }
+
       const myLeads = await fetchCustomerLeads(session.customer);
+      const myLeadSet = new Set(
+        myLeads
+          .filter((l: any) => !session.vendorId || String(l.vendor_id || "") !== String(session.vendorId))
+          .map((l: any) => String(l.id))
+      );
+
+      const qCheck = await supabaseFetch(
+        `quotations?id=eq.${encodeURIComponent(String(quotationId))}&select=id,lead_id,vendor_id,quotation_number,status&limit=1`
+      );
+      const targetQuote = Array.isArray(qCheck.data) ? qCheck.data[0] : null;
+      if (!targetQuote || !myLeadSet.has(String(targetQuote.lead_id))) {
+        return NextResponse.json(
+          { success: false, statusCode: 404, error: { message: "Quotation not found." } },
+          { status: 404 }
+        );
+      }
+
+      const isAccept =
+        responseStatus === "accepted" || responseStatus === "customer_interested";
+      const mappedDbStatus = isAccept ? "accepted" : targetQuote.status || "sent";
+      const uiStatus = isAccept ? "accepted" : "revision_requested";
+
+      const updateRes = await supabaseFetch(
+        `quotations?id=eq.${encodeURIComponent(targetQuote.id)}`,
+        {
+          method: "PATCH",
+          headers: { Prefer: "return=representation" },
+          body: JSON.stringify({
+            status: mappedDbStatus,
+            updated_at: nowIso,
+          }),
+        }
+      );
+
+      if (updateRes.error) {
+        return NextResponse.json(
+          { success: false, statusCode: 500, error: { message: updateRes.error.message } },
+          { status: 500 }
+        );
+      }
+
+      await Promise.all([
+        supabaseFetch(`lead_activities`, {
+          method: "POST",
+          body: JSON.stringify({
+            lead_id: targetQuote.lead_id,
+            activity_type: isAccept ? "customer_interested" : "revision_requested",
+            description: isAccept
+              ? `Customer accepted quotation ${targetQuote.quotation_number || targetQuote.id} [quote:${targetQuote.id}].`
+              : `Customer requested revision on quotation ${targetQuote.quotation_number || targetQuote.id} [quote:${targetQuote.id}].`,
+            performed_by: session.customer.dbUserId,
+          }),
+        }),
+        upsertReadActivity(
+          targetQuote.lead_id,
+          "client_read",
+          session.customer.dbUserId
+        ),
+      ]).catch(() => null);
+
+      return NextResponse.json({
+        success: true,
+        statusCode: 200,
+        data: {
+          quotationId: targetQuote.id,
+          status: uiStatus,
+          dbStatus: mappedDbStatus,
+        },
+      });
+    }
+
+    const targetLeadIds: string[] = [];
+    let persistedReadIso: string | null = null;
+
+    const markCustomerLeadsRead = async (
+      customerProfile: VerifiedDbCustomer,
+      excludeVendorId?: string | null
+    ) => {
+      const rawLeads = await fetchCustomerLeads(customerProfile);
+      const myLeads = excludeVendorId
+        ? rawLeads.filter((l: any) => String(l.vendor_id || "") !== String(excludeVendorId))
+        : rawLeads;
       const myLeadSet = new Set(myLeads.map((l: any) => String(l.id)));
 
       const cleanVendorId =
         vendorId ||
-        (typeof conversationId === "string" && conversationId.startsWith("conv-vendor-")
+        (typeof conversationId === "string" &&
+        conversationId.startsWith("conv-vendor-") &&
+        !conversationId.startsWith("conv-vendor-lead-")
           ? conversationId.replace(/^conv-vendor-/, "")
           : "");
 
+      const matchedIds: string[] = [];
       if (cleanVendorId) {
         for (const l of myLeads) {
           if (String(l.vendor_id) === String(cleanVendorId)) {
-            targetLeadIds.push(String(l.id));
+            matchedIds.push(String(l.id));
           }
         }
       }
 
       if (Array.isArray(leadIds)) {
         for (const id of leadIds) {
-          if (myLeadSet.has(String(id)) && !targetLeadIds.includes(String(id))) {
-            targetLeadIds.push(String(id));
+          if (myLeadSet.has(String(id)) && !matchedIds.includes(String(id))) {
+            matchedIds.push(String(id));
           }
         }
       }
 
-      if (leadId && myLeadSet.has(String(leadId)) && !targetLeadIds.includes(String(leadId))) {
-        targetLeadIds.push(String(leadId));
+      if (leadId && myLeadSet.has(String(leadId)) && !matchedIds.includes(String(leadId))) {
+        matchedIds.push(String(leadId));
       }
 
-      await Promise.all(
-        targetLeadIds.map(async (id) => {
+      if (matchedIds.length === 0) return false;
+
+      targetLeadIds.push(...matchedIds);
+      const readResults = await Promise.all(
+        matchedIds.map(async (id) => {
           const lead = myLeads.find((l: any) => String(l.id) === id);
-          if (lead && !lead.customer_id && session.customer?.dbUserId) {
+          if (lead && !lead.customer_id && customerProfile.dbUserId) {
             await supabaseFetch(`leads?id=eq.${encodeURIComponent(id)}`, {
               method: "PATCH",
-              body: JSON.stringify({ customer_id: session.customer.dbUserId }),
+              body: JSON.stringify({ customer_id: customerProfile.dbUserId }),
             }).catch(() => null);
           }
-          await upsertReadActivity(id, "client_read", nowIso, session.customer?.dbUserId || null);
+          return upsertReadActivity(id, "client_read", customerProfile.dbUserId || null);
         })
       );
+      if (readResults.length > 0) persistedReadIso = readResults[0];
+      return true;
+    };
+
+    if (session.mode === "customer" && session.customer) {
+      await markCustomerLeadsRead(session.customer);
     } else if (session.mode === "vendor" && session.vendorId) {
-      const candidateIds = new Set<string>();
-      if (leadId) candidateIds.add(String(leadId));
-      if (Array.isArray(leadIds)) {
-        for (const id of leadIds) candidateIds.add(String(id));
-      }
+      const isVendorLeadThread =
+        typeof conversationId === "string" && conversationId.startsWith("conv-vendor-lead-");
 
-      if (candidateIds.size > 0) {
-        const res = await supabaseFetch(
-          `leads?id=in.(${Array.from(candidateIds).map((id) => encodeURIComponent(id)).join(",")})&vendor_id=eq.${encodeURIComponent(session.vendorId)}&deleted_at=is.null&select=id`
-        );
-        if (Array.isArray(res.data)) {
-          for (const r of res.data) targetLeadIds.push(String(r.id));
+      const handledAsOutgoingCustomer =
+        !isVendorLeadThread && session.customer
+          ? await markCustomerLeadsRead(session.customer, session.vendorId)
+          : false;
+
+      if (!handledAsOutgoingCustomer) {
+        const candidateIds = new Set<string>();
+        if (leadId) candidateIds.add(String(leadId));
+        if (Array.isArray(leadIds)) {
+          for (const id of leadIds) candidateIds.add(String(id));
         }
-      }
 
-      await Promise.all(
-        targetLeadIds.map((id) =>
-          upsertReadActivity(id, "vendor_read", nowIso, session.dbUserId)
-        )
-      );
+        if (candidateIds.size > 0) {
+          const res = await supabaseFetch(
+            `leads?id=in.(${Array.from(candidateIds).map((id) => encodeURIComponent(id)).join(",")})&vendor_id=eq.${encodeURIComponent(session.vendorId)}&deleted_at=is.null&select=id`
+          );
+          if (Array.isArray(res.data)) {
+            for (const r of res.data) targetLeadIds.push(String(r.id));
+          }
+        }
+
+        const readResults = await Promise.all(
+          targetLeadIds.map((id) =>
+            upsertReadActivity(id, "vendor_read", session.dbUserId)
+          )
+        );
+        if (readResults.length > 0) persistedReadIso = readResults[0];
+      }
     }
 
     const totalUnread = await computeTotalUnreadForSession(session);
@@ -1437,7 +1633,7 @@ export async function PATCH(req: Request) {
       data: {
         conversationId,
         markedLeadIds: targetLeadIds,
-        readAt: nowIso,
+        readAt: persistedReadIso || nowIso,
         totalUnread,
       },
     });
