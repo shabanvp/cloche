@@ -6,6 +6,7 @@ export interface AuthenticatedCustomer {
   userId: string;
   email: string;
   fullName: string;
+  avatarUrl?: string;
   phone?: string;
   city?: string;
   weddingDate?: string;
@@ -102,7 +103,7 @@ export async function getAuthenticatedCustomerUser(req?: Request): Promise<Authe
     if (url && apiKey) {
       try {
         const filter = userId ? `id=eq.${encodeURIComponent(userId)}` : `email=eq.${encodeURIComponent(email!)}`;
-        const dbRes = await fetch(`${url}/rest/v1/users?${filter}&select=id,email,full_name,name,phone`, {
+        const dbRes = await fetch(`${url}/rest/v1/users?${filter}&select=id,email,full_name,name,phone,avatar_url`, {
           headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
           cache: "no-store",
         });
@@ -133,6 +134,7 @@ export async function getAuthenticatedCustomerUser(req?: Request): Promise<Authe
               userId: u.id,
               email: u.email,
               fullName: u.full_name || u.name || (u.email ? u.email.split("@")[0] : "Customer"),
+              avatarUrl: u.avatar_url || undefined,
               phone: u.phone || phone || undefined,
               city: prefCity || undefined,
               weddingDate: prefWeddingDate || undefined,

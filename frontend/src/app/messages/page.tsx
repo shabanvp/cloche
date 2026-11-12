@@ -279,6 +279,11 @@ export default function MessagesPage() {
         }),
       });
       window.dispatchEvent(new Event("cloche_messages_updated"));
+      try {
+        const ch = new BroadcastChannel("cloche_messages_realtime");
+        ch.postMessage({ type: "read_update", leadId: conv.leadId, vendorId: conv.vendorId });
+        ch.close();
+      } catch {}
     } catch (e) {
       console.warn("[MessagesPage] Failed to persist read state:", e);
     }
@@ -591,7 +596,15 @@ export default function MessagesPage() {
       if (typeof document !== "undefined" && document.visibilityState === "visible") {
         loadConversations({ silent: true });
       }
-    }, 12000);
+    }, 3000);
+
+    let channel: BroadcastChannel | null = null;
+    try {
+      channel = new BroadcastChannel("cloche_messages_realtime");
+      channel.onmessage = () => {
+        loadConversations({ silent: true });
+      };
+    } catch {}
 
     const handleVisibilityOrFocus = () => {
       if (typeof document === "undefined" || document.visibilityState === "visible") {
@@ -604,6 +617,7 @@ export default function MessagesPage() {
 
     return () => {
       clearInterval(interval);
+      channel?.close();
       window.removeEventListener("focus", handleVisibilityOrFocus);
       document.removeEventListener("visibilitychange", handleVisibilityOrFocus);
     };
@@ -782,6 +796,11 @@ export default function MessagesPage() {
       } catch {}
 
       window.dispatchEvent(new Event("cloche_messages_updated"));
+      try {
+        const ch = new BroadcastChannel("cloche_messages_realtime");
+        ch.postMessage({ type: "new_message", leadId: selectedConversation.leadId, vendorId: selectedConversation.vendorId });
+        ch.close();
+      } catch {}
     } catch (e: any) {
       setSendError(e?.message || "Could not send message. Please try again.");
       // Revert failed optimistic message and restore draft so the user never loses their message
@@ -1037,7 +1056,7 @@ export default function MessagesPage() {
                       {/* Avatar with Unread Dot */}
                       <div className="relative shrink-0">
                         <VendorAvatar
-                          src={itemIsVendor ? "" : item.vendorAvatar}
+                          src={itemIsVendor ? item.customerAvatar : item.vendorAvatar}
                           name={counterpartyName}
                           sizeClass="w-12 h-12"
                           textClass="text-sm"
@@ -1145,7 +1164,7 @@ export default function MessagesPage() {
                   </button>
 
                   <VendorAvatar
-                    src={selectedIsVendor ? "" : selectedConversation.vendorAvatar}
+                    src={selectedIsVendor ? selectedConversation.customerAvatar : selectedConversation.vendorAvatar}
                     name={
                       selectedIsVendor
                         ? selectedConversation.customerName
@@ -1309,7 +1328,7 @@ export default function MessagesPage() {
                             <VendorAvatar
                               src={
                                 selectedIsVendor
-                                  ? ""
+                                  ? msg.senderAvatar || selectedConversation.customerAvatar
                                   : msg.senderAvatar ||
                                     selectedConversation.vendorAvatar
                               }

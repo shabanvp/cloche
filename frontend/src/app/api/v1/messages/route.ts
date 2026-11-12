@@ -56,6 +56,7 @@ export interface ConversationItem {
   vendorPhone?: string;
   isVerified?: boolean;
   customerName: string;
+  customerAvatar?: string;
   customerEmail?: string;
   customerPhone?: string;
   eventType: string;
@@ -286,6 +287,7 @@ interface VerifiedDbCustomer {
   dbUserId: string | null;
   email: string;
   fullName: string;
+  avatarUrl?: string;
   phone?: string;
   preferredCity?: string;
   weddingDate?: string;
@@ -304,19 +306,19 @@ async function resolveVerifiedCustomerProfile(
 
   if (cleanUserId && cleanEmail) {
     const res = await supabaseFetch(
-      `users?or=(id.eq.${encodeURIComponent(cleanUserId)},supabase_user_id.eq.${encodeURIComponent(cleanUserId)},email.ilike.${encodeURIComponent(cleanEmail)})&select=id,email,full_name,name,phone&limit=2`
+      `users?or=(id.eq.${encodeURIComponent(cleanUserId)},supabase_user_id.eq.${encodeURIComponent(cleanUserId)},email.ilike.${encodeURIComponent(cleanEmail)})&select=id,email,full_name,name,phone,avatar_url&limit=2`
     );
     if (Array.isArray(res.data) && res.data.length > 0) {
       userRow = res.data.find((u: any) => u.id === cleanUserId) || res.data[0];
     }
   } else if (cleanUserId) {
     const res = await supabaseFetch(
-      `users?or=(id.eq.${encodeURIComponent(cleanUserId)},supabase_user_id.eq.${encodeURIComponent(cleanUserId)})&select=id,email,full_name,name,phone&limit=1`
+      `users?or=(id.eq.${encodeURIComponent(cleanUserId)},supabase_user_id.eq.${encodeURIComponent(cleanUserId)})&select=id,email,full_name,name,phone,avatar_url&limit=1`
     );
     if (Array.isArray(res.data) && res.data.length > 0) userRow = res.data[0];
   } else if (cleanEmail) {
     const res = await supabaseFetch(
-      `users?email=ilike.${encodeURIComponent(cleanEmail)}&select=id,email,full_name,name,phone&limit=1`
+      `users?email=ilike.${encodeURIComponent(cleanEmail)}&select=id,email,full_name,name,phone,avatar_url&limit=1`
     );
     if (Array.isArray(res.data) && res.data.length > 0) userRow = res.data[0];
   }
@@ -347,6 +349,7 @@ async function resolveVerifiedCustomerProfile(
           fallbackName ||
           (resolvedEmail ? resolvedEmail.split("@")[0] : "Cloche Member")
       ).trim() || "Cloche Member",
+    avatarUrl: userRow?.avatar_url || undefined,
     phone: userRow?.phone ? String(userRow.phone).trim() : undefined,
     preferredCity,
     weddingDate,
@@ -356,6 +359,9 @@ async function resolveVerifiedCustomerProfile(
 async function resolveSessionContext(req: Request) {
   const cookies = extractCookieMap(req);
   const roleCookie = String(cookies["user_role"] || "").toLowerCase();
+  const urlObj = new URL(req.url, "http://localhost:3000");
+  const queryVendorId = urlObj.searchParams.get("vendorId")?.trim() || null;
+
   const hasAnyAuthCredential = Boolean(
     cookies["cloche_auth_token"] ||
       cookies["auth_token"] ||
@@ -378,7 +384,7 @@ async function resolveSessionContext(req: Request) {
   let customerUser = null;
   let vendorAuth = null;
 
-  if (roleCookie === "vendor" || roleCookie === "partner") {
+  if (queryVendorId || roleCookie === "vendor" || roleCookie === "partner") {
     vendorAuth = await requireAuthenticatedVendor(req).catch(() => null);
     if (!vendorAuth?.vendorId) {
       customerUser = await getAuthenticatedCustomerUser(req).catch(() => null);
@@ -396,11 +402,12 @@ async function resolveSessionContext(req: Request) {
   }
 
   const hasVendorId = Boolean(vendorAuth && vendorAuth.vendorId);
+  const targetVendorId = queryVendorId && hasVendorId ? queryVendorId : vendorAuth?.vendorId || null;
   const isVendorMode =
     hasVendorId &&
-    (roleCookie === "vendor" || roleCookie === "partner" || (!customerUser?.userId && !customerUser?.email));
+    (Boolean(queryVendorId) || roleCookie === "vendor" || roleCookie === "partner" || (!customerUser?.userId && !customerUser?.email));
 
-  if (isVendorMode && vendorAuth?.vendorId) {
+  if (isVendorMode && targetVendorId && vendorAuth) {
     const dbVendorUser = await resolveVerifiedCustomerProfile(
       vendorAuth.user?.userId || vendorAuth.user?.id,
       vendorAuth.user?.email,
@@ -408,7 +415,7 @@ async function resolveSessionContext(req: Request) {
     );
     return {
       mode: "vendor" as const,
-      vendorId: vendorAuth.vendorId,
+      vendorId: targetVendorId,
       vendorUser: vendorAuth.user,
       dbUserId: dbVendorUser?.dbUserId || null,
       customer: dbVendorUser,
@@ -591,7 +598,8 @@ function buildConversationForGroup(
   quotationsByLead: Record<string, any[]>,
   activitiesByLead: Record<string, any[]>,
   viewerMode: "customer" | "vendor",
-  customerNameFallback?: string
+  customerNameFallback?: string,
+  customerAvatarFallback?: string
 ): ConversationItem {
   const sortedLeads = [...groupLeads].sort(
     (a, b) => parseTimestamp(a.created_at) - parseTimestamp(b.created_at)
@@ -618,7 +626,7 @@ function buildConversationForGroup(
   for (const lead of sortedLeads) {
     const leadId = String(lead.id);
     const leadCustName =
-      String(lead.customer_name || customerNameFallback || (viewerMode === "customer" ? "You" : "Client")).trim();
+      String(customerNameFallback || lead.customer_name || (viewerMode === "customer" ? "You" : "Client")).trim();
     const leadActs = activitiesByLead[leadId] || [];
     const leadQuotes = (quotationsByLead[leadId] || []).filter(
       (q) => String(q.status || "").toLowerCase() !== "draft"
@@ -646,6 +654,7 @@ function buildConversationForGroup(
         id: `db-msg-${leadId}-inquiry`,
         sender: "customer",
         senderName: viewerMode === "customer" ? "You" : leadCustName,
+        senderAvatar: customerAvatarFallback || undefined,
         text: initialMsgText,
         createdAt: formatMessageTime(lead.created_at),
         rawCreatedAt: lead.created_at,
@@ -673,6 +682,7 @@ function buildConversationForGroup(
           id: `act-${act.id}`,
           sender: "customer",
           senderName: viewerMode === "customer" ? "You" : leadCustName,
+          senderAvatar: customerAvatarFallback || undefined,
           text: desc,
           createdAt: formatMessageTime(act.created_at),
           rawCreatedAt: act.created_at,
@@ -851,7 +861,8 @@ function buildConversationForGroup(
     vendorCity: meta.vendorCity,
     vendorPhone: meta.vendorPhone || undefined,
     isVerified: meta.isVerified,
-    customerName: String(latestLead.customer_name || customerNameFallback || "Customer").trim(),
+    customerName: String(customerNameFallback || latestLead.customer_name || "Customer").trim(),
+    customerAvatar: customerAvatarFallback || undefined,
     customerEmail: latestLead.customer_email || undefined,
     customerPhone: latestLead.customer_phone || undefined,
     eventType: String(latestLead.event_type || "Wedding"),
@@ -957,7 +968,8 @@ async function loadSessionConversations(
           quotationsByLead,
           activitiesByLead,
           "customer",
-          session.customer!.fullName
+          session.customer!.fullName,
+          session.customer!.avatarUrl
         )
       );
     }
@@ -998,15 +1010,91 @@ async function loadSessionConversations(
       const { quotationsByLead, activitiesByLead } =
         await fetchRelatedQuotationsAndActivities(combinedLeadIds);
 
-      const vendorConvs = vendorLeads.map((lead: any) =>
-        buildConversationForGroup(
-          session.vendorId!,
-          [lead],
-          quotationsByLead,
-          activitiesByLead,
-          "vendor"
+      // Resolve actual registered profile names and avatars for all customers in vendor inbox
+      const custUserIds = Array.from(
+        new Set(
+          vendorLeads
+            .map((l: any) => l.customer_id)
+            .filter((id: any) => id && UUID_REGEX.test(String(id)))
         )
       );
+      const custEmails = Array.from(
+        new Set(
+          vendorLeads
+            .map((l: any) => (l.customer_email ? String(l.customer_email).trim().toLowerCase() : ""))
+            .filter(Boolean)
+        )
+      );
+
+      const userMapById = new Map<string, any>();
+      const userMapByEmail = new Map<string, any>();
+
+      const userFilters: string[] = [];
+      if (custUserIds.length > 0) {
+        userFilters.push(`id.in.(${custUserIds.map((id) => encodeURIComponent(String(id))).join(",")})`);
+      }
+      if (custEmails.length > 0) {
+        userFilters.push(`email.in.(${custEmails.map((e) => encodeURIComponent(String(e))).join(",")})`);
+      }
+
+      if (userFilters.length > 0) {
+        const queryParams =
+          userFilters.length === 1
+            ? userFilters[0].replace(".in.", "=in.")
+            : `or=(${userFilters.join(",")})`;
+        const userRes = await supabaseFetch(
+          `users?${queryParams}&select=id,email,full_name,name,avatar_url,phone`
+        );
+        if (Array.isArray(userRes.data)) {
+          for (const u of userRes.data) {
+            if (u.id) userMapById.set(String(u.id), u);
+            if (u.email) userMapByEmail.set(String(u.email).trim().toLowerCase(), u);
+          }
+        }
+      }
+
+      // Group vendor leads by genuine customer identity so conversations don't duplicate
+      const leadsByCustomer = new Map<string, any[]>();
+      for (const lead of vendorLeads) {
+        const matchedUser =
+          (lead.customer_id && userMapById.get(String(lead.customer_id))) ||
+          (lead.customer_email && userMapByEmail.get(String(lead.customer_email).trim().toLowerCase()));
+        const groupKey =
+          matchedUser?.id ||
+          (lead.customer_id && String(lead.customer_id)) ||
+          (lead.customer_email && String(lead.customer_email).trim().toLowerCase()) ||
+          String(lead.id);
+
+        if (!leadsByCustomer.has(groupKey)) leadsByCustomer.set(groupKey, []);
+        leadsByCustomer.get(groupKey)!.push(lead);
+      }
+
+      const vendorConvs = Array.from(leadsByCustomer.entries()).map(([custKey, group]) => {
+        const repLead = group[0];
+        const matchedUser =
+          group.map((l: any) => l.customer_id && userMapById.get(String(l.customer_id))).find(Boolean) ||
+          group.map((l: any) => l.customer_email && userMapByEmail.get(String(l.customer_email).trim().toLowerCase())).find(Boolean) ||
+          null;
+
+        const actualName = String(
+          matchedUser?.full_name ||
+          matchedUser?.name ||
+          group.map((l: any) => l.customer_name).find(Boolean) ||
+          (repLead.customer_email ? repLead.customer_email.split("@")[0] : "Client")
+        ).trim();
+
+        const actualAvatar = matchedUser?.avatar_url || "";
+
+        return buildConversationForGroup(
+          session.vendorId!,
+          group,
+          quotationsByLead,
+          activitiesByLead,
+          "vendor",
+          actualName,
+          actualAvatar
+        );
+      });
 
       const leadsByVendor = new Map<string, any[]>();
       for (const lead of outgoingCustomerLeads) {
@@ -1022,7 +1110,8 @@ async function loadSessionConversations(
           quotationsByLead,
           activitiesByLead,
           "customer",
-          session.customer?.fullName || session.vendorUser?.fullName || "You"
+          session.customer?.fullName || session.vendorUser?.fullName || "You",
+          session.customer?.avatarUrl
         )
       );
 
@@ -1382,6 +1471,9 @@ export async function POST(req: Request) {
       if (!activeLead.customer_id && customer.dbUserId) {
         leadPatch.customer_id = customer.dbUserId;
       }
+      if (customer.fullName && (!activeLead.customer_name || activeLead.customer_name === "Customer" || activeLead.customer_name === "Wedding Customer")) {
+        leadPatch.customer_name = customer.fullName.slice(0, 150);
+      }
 
       await Promise.all([
         supabaseFetch(`leads?id=eq.${encodeURIComponent(activeLead.id)}`, {
@@ -1403,6 +1495,7 @@ export async function POST(req: Request) {
       id: createdMsgId,
       sender: "customer",
       senderName: "You",
+      senderAvatar: customer.avatarUrl || undefined,
       text: trimmedText,
       createdAt: formatMessageTime(createdMsgIso),
       rawCreatedAt: createdMsgIso,
