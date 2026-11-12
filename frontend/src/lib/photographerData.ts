@@ -129,7 +129,11 @@ export interface PhotographerPortfolioMeta {
   albumCategories?: Record<string, string>;
   galleryAlbums?: Record<string, string>;
   galleryCategories?: Record<string, string>;
+  galleryDescriptions?: Record<string, string>;
   videoCategories?: Record<string, string>;
+  hiddenPhotoIds?: string[];
+  hiddenAlbumIds?: string[];
+  hiddenVideoIds?: string[];
 }
 
 export interface PhotographerPackageExtra {
@@ -1109,8 +1113,12 @@ export async function listPhotographerPortfolio(vendorId: string) {
 
   const galleryAlbums = meta.galleryAlbums || {};
   const galleryCategories = meta.galleryCategories || {};
+  const galleryDescriptions = meta.galleryDescriptions || {};
   const albumCategories = meta.albumCategories || {};
   const videoCategories = meta.videoCategories || {};
+  const hiddenPhotos = new Set(Array.isArray(meta.hiddenPhotoIds) ? meta.hiddenPhotoIds : []);
+  const hiddenAlbums = new Set(Array.isArray(meta.hiddenAlbumIds) ? meta.hiddenAlbumIds : []);
+  const hiddenVideos = new Set(Array.isArray(meta.hiddenVideoIds) ? meta.hiddenVideoIds : []);
 
   const photos = gList
     .map((g) => ({
@@ -1118,8 +1126,10 @@ export async function listPhotographerPortfolio(vendorId: string) {
       mediaId: g.media_id,
       imageUrl: mediaMap.get(g.media_id) || "",
       caption: g.caption || "",
+      description: galleryDescriptions[g.id] || "",
       sortOrder: Number(g.sort_order ?? 0),
       isCover: Boolean(g.is_cover),
+      isPublic: !hiddenPhotos.has(g.id),
       albumId: galleryAlbums[g.id] || null,
       category: galleryCategories[g.id] || "Wedding",
       createdAt: g.created_at,
@@ -1138,6 +1148,7 @@ export async function listPhotographerPortfolio(vendorId: string) {
       photos.find((p) => p.albumId === a.id)?.imageUrl ||
       "",
     category: albumCategories[a.id] || "Wedding",
+    isPublic: !hiddenAlbums.has(a.id),
     photoCount: photos.filter((p) => p.albumId === a.id).length,
     createdAt: a.created_at,
   }));
@@ -1149,6 +1160,7 @@ export async function listPhotographerPortfolio(vendorId: string) {
     thumbnailUrl: v.thumbnail_url || "",
     platform: v.platform || "youtube",
     category: videoCategories[v.id] || "Cinematic",
+    isPublic: !hiddenVideos.has(v.id),
     sortOrder: Number(v.sort_order ?? 0),
     createdAt: v.created_at,
   }));
@@ -1162,6 +1174,7 @@ export async function addGalleryPhotoItem(
   payload: {
     mediaId: string;
     caption?: string;
+    description?: string;
     category?: string;
     albumId?: string | null;
     isCover?: boolean;
@@ -1199,12 +1212,14 @@ export async function addGalleryPhotoItem(
   const meta = await readVersionSection<PhotographerPortfolioMeta>(vendorId, "portfolio");
   const galleryCategories = { ...(meta.galleryCategories || {}), [created.id]: payload.category || "Wedding" };
   const galleryAlbums = { ...(meta.galleryAlbums || {}) };
+  const galleryDescriptions = { ...(meta.galleryDescriptions || {}) };
   if (payload.albumId) galleryAlbums[created.id] = payload.albumId;
+  if (payload.description?.trim()) galleryDescriptions[created.id] = payload.description.trim();
 
   await upsertVersionSection(
     vendorId,
     "portfolio",
-    { galleryCategories, galleryAlbums },
+    { galleryCategories, galleryAlbums, galleryDescriptions },
     userId
   );
 
@@ -1227,7 +1242,15 @@ export async function updateGalleryPhotoItem(
   vendorId: string,
   userId: string,
   galleryId: string,
-  payload: { caption?: string; category?: string; albumId?: string | null; isCover?: boolean; sortOrder?: number }
+  payload: {
+    caption?: string;
+    description?: string;
+    category?: string;
+    albumId?: string | null;
+    isCover?: boolean;
+    isPublic?: boolean;
+    sortOrder?: number;
+  }
 ) {
   const patch: Record<string, any> = {};
   if (payload.caption !== undefined) patch.caption = payload.caption.trim();
@@ -1249,16 +1272,43 @@ export async function updateGalleryPhotoItem(
     );
   }
 
-  if (payload.category !== undefined || payload.albumId !== undefined) {
+  if (
+    payload.category !== undefined ||
+    payload.albumId !== undefined ||
+    payload.description !== undefined ||
+    payload.isPublic !== undefined
+  ) {
     const meta = await readVersionSection<PhotographerPortfolioMeta>(vendorId, "portfolio");
     const galleryCategories = { ...(meta.galleryCategories || {}) };
     const galleryAlbums = { ...(meta.galleryAlbums || {}) };
+    const galleryDescriptions = { ...(meta.galleryDescriptions || {}) };
+    const hiddenSet = new Set(Array.isArray(meta.hiddenPhotoIds) ? meta.hiddenPhotoIds : []);
+
     if (payload.category !== undefined) galleryCategories[galleryId] = payload.category;
     if (payload.albumId !== undefined) {
       if (payload.albumId) galleryAlbums[galleryId] = payload.albumId;
       else delete galleryAlbums[galleryId];
     }
-    await upsertVersionSection(vendorId, "portfolio", { galleryCategories, galleryAlbums }, userId);
+    if (payload.description !== undefined) {
+      if (payload.description.trim()) galleryDescriptions[galleryId] = payload.description.trim();
+      else delete galleryDescriptions[galleryId];
+    }
+    if (payload.isPublic !== undefined) {
+      if (payload.isPublic) hiddenSet.delete(galleryId);
+      else hiddenSet.add(galleryId);
+    }
+
+    await upsertVersionSection(
+      vendorId,
+      "portfolio",
+      {
+        galleryCategories,
+        galleryAlbums,
+        galleryDescriptions,
+        hiddenPhotoIds: Array.from(hiddenSet),
+      },
+      userId
+    );
   }
 }
 
@@ -2142,11 +2192,26 @@ export async function getPhotographerOverviewData(context: PhotographerAuthConte
     ]);
 
   const unreadMessagesCount = leads.filter((l) => l.isUnread).length;
+  const pendingInquiriesCount = leads.filter(
+    (l) => l.isUnread || l.stage === "New" || l.stage === "Follow-up Required"
+  ).length;
   const profileViewsCount = Array.isArray(viewsRes.data) ? viewsRes.data.length : 0;
-  const publishedPortfolioCount = portfolio.photos.length + portfolio.videos.length;
+  const publishedPortfolioCount =
+    portfolio.photos.filter((p) => p.isPublic !== false).length +
+    portfolio.videos.filter((v) => v.isPublic !== false).length;
   const activeServicesCount = services.filter((s) => s.is_active).length;
   const activePackagesCount = packages.filter((p) => p.isActive).length;
   const pendingQuestionsCount = faqsData.customerQuestions.filter((q) => q.status === "pending").length;
+
+  const missingSteps: Array<{ label: string; tab: string }> = [];
+  if (!profile.coverUrl) missingSteps.push({ label: "Upload a studio cover photo", tab: "profile" });
+  if (!profile.logoUrl) missingSteps.push({ label: "Upload your studio logo / portrait", tab: "profile" });
+  if (profile.about.trim().length < 30) missingSteps.push({ label: "Complete your studio bio", tab: "profile" });
+  if (portfolio.photos.length + portfolio.videos.length < 3) {
+    missingSteps.push({ label: "Add at least 3 portfolio items", tab: "portfolio" });
+  }
+  if (!services.some((s) => s.is_active)) missingSteps.push({ label: "Add a photography service", tab: "services" });
+  if (!packages.some((p) => p.isActive)) missingSteps.push({ label: "Create a pricing package", tab: "packages" });
 
   const completion = await calculateAndSyncCompletion(vendorId);
 
@@ -2155,10 +2220,16 @@ export async function getPhotographerOverviewData(context: PhotographerAuthConte
     businessName: profile.businessName,
     slug: profile.slug,
     vendorId,
+    logoUrl: profile.logoUrl,
+    coverUrl: profile.coverUrl,
+    intro: profile.intro,
+    tagline: profile.tagline,
     publicationStatus: profile.publicationStatus,
     profileCompletion: completion,
+    completionHints: missingSteps.slice(0, 3),
     metrics: {
       uniqueLeadsCount: leads.length,
+      pendingInquiriesCount,
       totalInquiriesCount: leads.length,
       unreadMessagesCount,
       profileViewsCount,
@@ -2187,6 +2258,10 @@ export async function getPublicPhotographerExtras(vendorId: string) {
     listPhotographerFaqs(vendorId),
   ]);
 
+  const visiblePhotos = portfolio.photos.filter((p) => p.isPublic !== false);
+  const visibleAlbums = portfolio.albums.filter((a) => a.isPublic !== false);
+  const visibleVideos = portfolio.videos.filter((v) => v.isPublic !== false);
+
   return {
     profileExtras: {
       ownerName: profile.ownerName,
@@ -2208,9 +2283,9 @@ export async function getPublicPhotographerExtras(vendorId: string) {
       website: profile.website,
     },
     services: services.filter((s) => s.is_active),
-    albums: portfolio.albums,
-    photos: portfolio.photos,
-    videos: portfolio.videos,
+    albums: visibleAlbums,
+    photos: visiblePhotos,
+    videos: visibleVideos,
     packages: packages.filter((p) => p.isActive),
     reviewsSummary: {
       averageRating: reviewsData.averageRating,

@@ -101,14 +101,16 @@ export default async function PhotographerDetailPage({ params, searchParams }: P
     logo_url: existingProfile.logo_url || existingProfile.logo || "",
     cover_image:
       existingProfile.cover_image || coverFromPhoto || existingProfile.storefront?.coverImage || "",
+    highlights: galleryPhotos.map((p) => ({
+      name: p.caption || "Showcase Photo",
+      image: p.url,
+    })),
+    galleryImages: galleryPhotos.map((p) => p.url).filter(Boolean),
     storefront: {
       ...(existingProfile.storefront || {}),
       coverImage:
         existingProfile.storefront?.coverImage || existingProfile.cover_image || coverFromPhoto || "",
-      gallery:
-        galleryPhotos.length > 0
-          ? galleryPhotos
-          : existingProfile.storefront?.gallery || [],
+      gallery: galleryPhotos,
     },
   };
 

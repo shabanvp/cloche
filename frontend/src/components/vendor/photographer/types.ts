@@ -71,8 +71,10 @@ export interface PhotographerPhotoItem {
   mediaId: string;
   imageUrl: string;
   caption: string;
+  description?: string;
   sortOrder: number;
   isCover: boolean;
+  isPublic?: boolean;
   albumId: string | null;
   category: string;
   createdAt: string;
@@ -87,6 +89,7 @@ export interface PhotographerAlbumItem {
   coverMediaId: string | null;
   coverUrl: string;
   category: string;
+  isPublic?: boolean;
   photoCount: number;
   createdAt: string;
 }
@@ -98,6 +101,7 @@ export interface PhotographerVideoItem {
   thumbnailUrl: string;
   platform: "youtube" | "vimeo" | "instagram" | "custom";
   category: string;
+  isPublic?: boolean;
   sortOrder: number;
   createdAt: string;
 }
@@ -196,10 +200,16 @@ export interface PhotographerOverviewBundle {
   businessName: string;
   slug: string;
   vendorId: string;
+  logoUrl?: string;
+  coverUrl?: string;
+  intro?: string;
+  tagline?: string;
   publicationStatus: string;
   profileCompletion: number;
+  completionHints?: Array<{ label: string; tab: PhotographerTab | string }>;
   metrics: {
     uniqueLeadsCount: number;
+    pendingInquiriesCount?: number;
     totalInquiriesCount: number;
     unreadMessagesCount: number;
     profileViewsCount: number;

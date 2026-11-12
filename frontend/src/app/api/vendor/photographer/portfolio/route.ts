@@ -241,27 +241,52 @@ export async function PATCH(req: Request) {
         `vendor_portfolio?id=eq.${encodeURIComponent(id)}&vendor_id=eq.${encodeURIComponent(context.vendorId)}`,
         { method: "PATCH", body: JSON.stringify(patch) }
       );
+      const meta = await readVersionSection<PhotographerPortfolioMeta>(context.vendorId, "portfolio");
+      const nextMeta: Record<string, any> = {};
       if (body.category !== undefined) {
-        const meta = await readVersionSection<PhotographerPortfolioMeta>(context.vendorId, "portfolio");
-        await upsertVersionSection(
-          context.vendorId,
-          "portfolio",
-          { albumCategories: { ...(meta.albumCategories || {}), [id]: String(body.category) } },
-          context.userId
-        );
+        nextMeta.albumCategories = { ...(meta.albumCategories || {}), [id]: String(body.category) };
+      }
+      if (body.isPublic !== undefined) {
+        const hiddenSet = new Set(Array.isArray(meta.hiddenAlbumIds) ? meta.hiddenAlbumIds : []);
+        if (body.isPublic) hiddenSet.delete(id);
+        else hiddenSet.add(id);
+        nextMeta.hiddenAlbumIds = Array.from(hiddenSet);
+      }
+      if (Object.keys(nextMeta).length > 0) {
+        await upsertVersionSection(context.vendorId, "portfolio", nextMeta, context.userId);
       }
     } else if (kind === "video") {
       const owned = await verifyVendorOwnedRow("vendor_videos", id, context.vendorId);
       if (!owned) return NextResponse.json({ error: "Forbidden: Video not found." }, { status: 403 });
       const patch: Record<string, any> = {};
       if (body.title !== undefined) patch.title = String(body.title).trim();
-      if (body.videoUrl !== undefined) patch.video_url = String(body.videoUrl).trim();
+      if (body.videoUrl !== undefined) {
+        const vUrl = String(body.videoUrl).trim();
+        patch.video_url = vUrl;
+        if (/youtu\.?be/i.test(vUrl)) patch.platform = "youtube";
+        else if (/vimeo\.com/i.test(vUrl)) patch.platform = "vimeo";
+        else if (/instagram\.com/i.test(vUrl)) patch.platform = "instagram";
+      }
       if (body.thumbnailUrl !== undefined) patch.thumbnail_url = String(body.thumbnailUrl).trim() || null;
       if (Object.keys(patch).length > 0) {
         await supabaseFetch(
           `vendor_videos?id=eq.${encodeURIComponent(id)}&vendor_id=eq.${encodeURIComponent(context.vendorId)}`,
           { method: "PATCH", body: JSON.stringify(patch) }
         );
+      }
+      if (body.category !== undefined || body.isPublic !== undefined) {
+        const meta = await readVersionSection<PhotographerPortfolioMeta>(context.vendorId, "portfolio");
+        const nextMeta: Record<string, any> = {};
+        if (body.category !== undefined) {
+          nextMeta.videoCategories = { ...(meta.videoCategories || {}), [id]: String(body.category) };
+        }
+        if (body.isPublic !== undefined) {
+          const hiddenSet = new Set(Array.isArray(meta.hiddenVideoIds) ? meta.hiddenVideoIds : []);
+          if (body.isPublic) hiddenSet.delete(id);
+          else hiddenSet.add(id);
+          nextMeta.hiddenVideoIds = Array.from(hiddenSet);
+        }
+        await upsertVersionSection(context.vendorId, "portfolio", nextMeta, context.userId);
       }
     } else {
       const owned = await verifyVendorOwnedRow("vendor_gallery", id, context.vendorId);

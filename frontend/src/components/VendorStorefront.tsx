@@ -1402,6 +1402,32 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
         </div>
       )}
 
+      {/* ── 1. EDITORIAL PHOTOGRAPHER STOREFRONT OR GENERIC HERO + STOREFRONT ── */}
+      {categoryType === "photographer" ? (
+        <PhotographerPublicView
+          vendor={vendor}
+          displayName={displayName}
+          coverUrl={coverUrl}
+          location={location}
+          rating={rating}
+          reviewsCount={reviewsCount}
+          isWishlisted={isWishlisted}
+          onToggleWishlist={() => setIsWishlisted((w) => !w)}
+          onShare={handleShare}
+          onBack={() => {
+            if (previewMode) return;
+            if (typeof window !== "undefined" && window.history.length > 1) {
+              router.back();
+            } else {
+              router.push(getCategoryListingHref(categoryType));
+            }
+          }}
+          onOpenMessage={handleOpenMessage}
+          onOpenQuote={() => setActiveModal("quote")}
+          previewMode={previewMode}
+        />
+      ) : (
+        <>
       {/* ── 1. LUXURY STOREFRONT HERO HEADER ── */}
 
       {/* DESKTOP/LAPTOP HERO LAYOUT (100% Frozen & Untouched) */}
@@ -2932,16 +2958,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
           </>
         )}
 
-        {/* ════════════════════════════════════════════════════════════════ */}
-        {/* 5. PHOTOGRAPHER STOREFRONT SECTIONS                             */}
-        {/* ════════════════════════════════════════════════════════════════ */}
-        {categoryType === "photographer" && (
-          <PhotographerPublicView
-            vendor={vendor}
-            onOpenMessage={handleOpenMessage}
-            onOpenQuote={() => setActiveModal("quote")}
-          />
-        )}
+        {/* Photographer storefront now renders its full editorial hero + layout above */}
 
         {/* ════════════════════════════════════════════════════════════════ */}
         {/* 6. MAKEUP ARTIST STOREFRONT SECTIONS                            */}
@@ -3957,6 +3974,8 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
         )}
 
       </div>
+        </>
+      )}
       {/* ── WEDMEGOOD-STYLE STICKY MOBILE ACTION BAR ── */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/98 backdrop-blur-md border-t border-gold/20 px-3 py-2 pb-[max(env(safe-area-inset-bottom),10px)] shadow-2xl">
         <div className="flex items-center gap-2 max-w-lg mx-auto">

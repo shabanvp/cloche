@@ -204,8 +204,16 @@ export function PhotographerVendorDashboard() {
     <div className="flex flex-col h-full bg-[#FFFFFF] border-r border-[#E6DDD0]">
       <div className="p-5 border-b border-[#F0EAE0]">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#0F4C45] text-[#FAF7F2] flex items-center justify-center shrink-0">
-            <Camera className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl bg-[#26201D] text-[#FAF7F2] overflow-hidden border border-[#E5DAC8] flex items-center justify-center shrink-0">
+            {profile?.logoUrl || overview?.logoUrl ? (
+              <img
+                src={profile?.logoUrl || overview?.logoUrl}
+                alt={profile?.businessName || overview?.businessName || "Studio"}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <Camera className="w-5 h-5 text-[#C8A96A]" />
+            )}
           </div>
           <div className="min-w-0">
             <p className="font-serif font-semibold text-sm text-[#2B2523] truncate">
@@ -349,9 +357,9 @@ export function PhotographerVendorDashboard() {
               overview={overview}
               loading={loading}
               onNavigateTab={setActiveTab}
-              onOpenConversation={handleOpenConversation}
               onTogglePublication={handleTogglePublication}
               togglingVisibility={togglingVis}
+              showToast={showToast}
             />
           )}
 
@@ -427,7 +435,12 @@ export function PhotographerVendorDashboard() {
             <PhotographerMessagesSection
               vendorId={profile?.vendorId || overview?.vendorId || ""}
               initialLeadId={selectedChatLeadId}
-              onUnreadCountChange={setUnreadMessages}
+              onUnreadCountChange={(count) => {
+                if (count !== unreadMessages) {
+                  setUnreadMessages(count);
+                  refreshAll();
+                }
+              }}
               showToast={showToast}
             />
           )}
