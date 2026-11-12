@@ -3763,32 +3763,34 @@
           const email = p.email || `${digits10(p.phone)}@partner.cloche.luxury`;
           const phone = p.phone ? digits10(p.phone) : '';
 
-          let { data, error } = await sb.auth.signUp({
-            email: email,
-            password: S.password,
-            options: {
-              data: {
-                phone: phone,
-                role: 'vendor'
-              }
-            }
+          const regRes = await fetch('/api/v1/vendor/partner-signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: email,
+              phone: phone,
+              password: S.password
+            })
           });
+          const regJson = await regRes.json().catch(() => ({}));
 
           // If user already registered, automatically log in with their credentials!
-          if (error && (error.message.includes('already registered') || error.message.includes('already exists') || error.status === 422)) {
+          if (regRes.status === 409 || regJson?.code === 'ALREADY_EXISTS' || String(regJson?.error || '').toLowerCase().includes('already')) {
             return ACT.login(t);
           }
 
-          if (error) {
-            S.err.contact = error.message || 'Could not create account. Please try again.';
+          if (!regRes.ok || !regJson?.success) {
+            S.err.contact = regJson?.error || 'Could not create account. Please try again.';
             return fail(S.err.contact);
           }
 
-          if (!data?.session) {
-            try {
-              const signRes = await sb.auth.signInWithPassword({ email: email, password: S.password });
-              if (signRes?.data?.user) data = signRes.data;
-            } catch (e) {}
+          let data = null;
+          try {
+            const signRes = await sb.auth.signInWithPassword({ email: email, password: S.password });
+            if (signRes?.data?.user) data = signRes.data;
+          } catch (e) {}
+          if (!data?.user && regJson?.data?.userId) {
+            data = { user: { id: regJson.data.userId, email: email, phone: phone } };
           }
           S.user = data.user || (data.session && data.session.user);
           if (p.email) S.biz.email = p.email;

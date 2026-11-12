@@ -144,18 +144,19 @@ export async function POST(req: Request) {
         }),
       });
 
-      // Keep Supabase Auth user in sync if linked
-      if (userRow.supabase_user_id) {
+      // Keep Supabase Auth user in sync (users registered via /api/v1/vendor/register store auth id directly in users.id)
+      const authTargetId = userRow.supabase_user_id || context.userId;
+      if (authTargetId) {
         const { url, serviceKey } = getSupabaseConfig();
         if (url && serviceKey) {
-          await fetch(`${url}/auth/v1/admin/users/${encodeURIComponent(userRow.supabase_user_id)}`, {
+          await fetch(`${url}/auth/v1/admin/users/${encodeURIComponent(authTargetId)}`, {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
               apikey: serviceKey,
               Authorization: `Bearer ${serviceKey}`,
             },
-            body: JSON.stringify({ password: newPassword }),
+            body: JSON.stringify({ password: newPassword, email_confirm: true }),
           }).catch(() => {});
         }
       }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { hashPassword } from "@/lib/auth";
-import { getSupabaseConfig, signUpWithSupabaseAuth, deleteAdminSupabaseUser } from "@/lib/supabase";
+import { getSupabaseConfig, deleteAdminSupabaseUser } from "@/lib/supabase";
 
 function generateSlug(text: string): string {
   const base = text
@@ -199,36 +199,30 @@ export async function POST(req: Request) {
     const passwordHash = hashPassword(userPassword);
     let targetUserId: string = "";
 
-    // 1A. Create Supabase Auth User via Admin API
-    let authUserId: string | null = null;
-    const authAdminRes = await fetch(`${url}/auth/v1/admin/users`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: apiKey,
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        email: userEmail,
-        password: userPassword,
-        email_confirm: true,
-        user_metadata: { full_name: owner || businessName, role: "vendor" },
-      }),
-    }).catch(() => null);
-
-    if (authAdminRes && authAdminRes.ok) {
-      const authData = await authAdminRes.json().catch(() => null);
-      if (authData?.id) {
-        authUserId = authData.id;
-        createdAuthUserId = authUserId;
-      }
-    }
-
+    // 1A. Create Supabase Auth User via Admin API only if not already existing (avoids GoTrue email rate limits)
+    let authUserId: string | null = existingUser ? existingUser.id : null;
     if (!authUserId) {
-      const authResult = await signUpWithSupabaseAuth(userEmail, userPassword, { full_name: owner || businessName, role: "vendor" });
-      if (authResult.user?.id) {
-        authUserId = authResult.user.id;
-        createdAuthUserId = authUserId;
+      const authAdminRes = await fetch(`${url}/auth/v1/admin/users`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          email: userEmail,
+          password: userPassword,
+          email_confirm: true,
+          user_metadata: { full_name: owner || businessName, role: "vendor" },
+        }),
+      }).catch(() => null);
+
+      if (authAdminRes && authAdminRes.ok) {
+        const authData = await authAdminRes.json().catch(() => null);
+        if (authData?.id) {
+          authUserId = authData.id;
+          createdAuthUserId = authUserId;
+        }
       }
     }
 
