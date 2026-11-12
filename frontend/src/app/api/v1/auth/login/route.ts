@@ -321,6 +321,25 @@ export async function POST(req: Request) {
       role: primaryRole,
     };
 
+    let redirectTo = "/vendor/dashboard";
+    let vendorCategory: string | null = null;
+    if ((requestedRole === "vendor" || requestedRole === "partner") && userId) {
+      const catRes = await fetch(
+        `${url}/rest/v1/vendors?user_id=eq.${encodeURIComponent(userId)}&deleted_at=is.null&select=id,vendor_categories(slug,name)&limit=1`,
+        { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` }, cache: "no-store" }
+      ).catch(() => null);
+      if (catRes && catRes.ok) {
+        const rows = await catRes.json();
+        const row = Array.isArray(rows) ? rows[0] : null;
+        const catObj = Array.isArray(row?.vendor_categories) ? row.vendor_categories[0] : row?.vendor_categories;
+        const tok = `${catObj?.slug || ""} ${catObj?.name || ""}`.toLowerCase();
+        if (tok.includes("photograph")) {
+          vendorCategory = "photographers";
+          redirectTo = "/vendor/photographer";
+        }
+      }
+    }
+
     const response = NextResponse.json(
       {
         success: true,
@@ -331,6 +350,8 @@ export async function POST(req: Request) {
           token: jwtToken,
           supabaseSession: authResult?.session || null,
           vendor: vendorRecord || null,
+          redirectTo,
+          vendorCategory,
         },
       },
       { status: 200 }

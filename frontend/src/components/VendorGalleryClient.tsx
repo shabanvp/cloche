@@ -21,11 +21,12 @@ import { fetchPublicVendorProfileFromDb } from "@/lib/supabase";
 interface VendorGalleryClientProps {
   identifier: string;
   category?: string;
+  initialVendor?: any;
 }
 
-export function VendorGalleryClient({ identifier, category }: VendorGalleryClientProps) {
-  const [vendor, setVendor] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+export function VendorGalleryClient({ identifier, category, initialVendor }: VendorGalleryClientProps) {
+  const [vendor, setVendor] = useState<any>(initialVendor || null);
+  const [loading, setLoading] = useState(!initialVendor);
   const [error, setError] = useState<string | null>(null);
 
   // Lightbox state
@@ -37,8 +38,9 @@ export function VendorGalleryClient({ identifier, category }: VendorGalleryClien
   // Touch Swipe tracking
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
-  // Fetch Vendor Data
+  // Fetch Vendor Data if not pre-loaded server-side
   useEffect(() => {
+    if (initialVendor) return;
     async function loadData() {
       try {
         setLoading(true);
@@ -55,7 +57,7 @@ export function VendorGalleryClient({ identifier, category }: VendorGalleryClien
       }
     }
     if (identifier) loadData();
-  }, [identifier]);
+  }, [identifier, initialVendor]);
 
   // Extract all gallery photos
   const photos: Array<{ url: string; caption?: string }> = useMemo(() => {

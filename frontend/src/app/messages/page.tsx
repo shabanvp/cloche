@@ -1562,7 +1562,9 @@ export default function MessagesPage() {
                 <MessageSquare className="w-8 h-8" />
               </div>
               <h3 className="font-display font-bold text-xl text-[#082F2C]">
-                {isGuest
+                {isLoading
+                  ? "Loading your inbox..."
+                  : isGuest
                   ? "Sign in to access your inbox"
                   : conversations.length === 0
                   ? "No conversations yet"
@@ -1573,29 +1575,32 @@ export default function MessagesPage() {
                   : "Select a conversation"}
               </h3>
               <p className="text-xs text-[#082F2C]/60 max-w-sm leading-relaxed">
-                {isGuest
+                {isLoading
+                  ? "Retrieving your vendor inquiries, replies, and quotations."
+                  : isGuest
                   ? "Log in to see all vendor replies, booking updates, and custom wedding quotations in one centralized inbox."
                   : conversations.length === 0
                   ? "Reach out to wedding photographers, venues, makeup artists, decorators, and studios to receive quotes and start chatting."
                   : "Choose a conversation from the inbox on the left to read replies, inspect quotations, and message vendors directly."}
               </p>
-              {isGuest ? (
-                <Link
-                  href="/login?redirect=/messages"
-                  className="inline-flex items-center gap-1.5 bg-[#0F4C45] hover:bg-[#12584C] text-white text-xs font-semibold px-5 py-2.5 rounded-full transition-colors shadow-xs"
-                >
-                  <span>Log In to Messages</span>
-                </Link>
-              ) : (
-                conversations.length === 0 && (
+              {!isLoading &&
+                (isGuest ? (
                   <Link
-                    href="/venues"
+                    href="/login?redirect=/messages"
                     className="inline-flex items-center gap-1.5 bg-[#0F4C45] hover:bg-[#12584C] text-white text-xs font-semibold px-5 py-2.5 rounded-full transition-colors shadow-xs"
                   >
-                    <span>Explore Wedding Vendors</span>
+                    <span>Log In to Messages</span>
                   </Link>
-                )
-              )}
+                ) : (
+                  conversations.length === 0 && (
+                    <Link
+                      href="/venues"
+                      className="inline-flex items-center gap-1.5 bg-[#0F4C45] hover:bg-[#12584C] text-white text-xs font-semibold px-5 py-2.5 rounded-full transition-colors shadow-xs"
+                    >
+                      <span>Explore Wedding Vendors</span>
+                    </Link>
+                  )
+                ))}
             </div>
           )}
         </div>

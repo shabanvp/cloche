@@ -1061,9 +1061,9 @@ async function upsertReadActivity(
   });
 
   const saved = Array.isArray(insertRes.data) ? insertRes.data[0] : insertRes.data;
-  if (saved?.id) {
+  if (saved?.id && saved?.created_at) {
     await supabaseFetch(
-      `lead_activities?lead_id=eq.${encodeURIComponent(leadId)}&activity_type=eq.${activityType}&id=neq.${encodeURIComponent(saved.id)}`,
+      `lead_activities?lead_id=eq.${encodeURIComponent(leadId)}&activity_type=eq.${activityType}&id=neq.${encodeURIComponent(saved.id)}&created_at=lt.${encodeURIComponent(saved.created_at)}`,
       { method: "DELETE" }
     ).catch(() => null);
   }

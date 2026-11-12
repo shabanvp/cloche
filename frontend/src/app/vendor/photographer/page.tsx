@@ -1,7 +1,7 @@
 "use client";
 
-import { UnifiedVendorDashboard } from "@/components/vendor/UnifiedVendorDashboard";
+import { PhotographerVendorDashboard } from "@/components/vendor/photographer/PhotographerVendorDashboard";
 
 export default function PhotographerVendorDashboardPage() {
-  return <UnifiedVendorDashboard categoryKey="photographers" />;
+  return <PhotographerVendorDashboard />;
 }

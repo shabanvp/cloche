@@ -742,6 +742,45 @@ export async function POST(req: Request) {
       insertedVersionId = newVersions[0].id;
     }
 
+    // Initialize Photographer extension details & owner metadata cleanly when registering as Photographer
+    if (canonicalSlug === "photographers") {
+      await fetch(`${url}/rest/v1/photographer_details`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          vendor_id: newVendor.id,
+          candid_photography: true,
+          cinematic_video: true,
+          drone_coverage: false,
+          delivery_days: 30,
+        }),
+      }).catch(() => null);
+
+      if (insertedVersionId) {
+        const resolvedOwner = owner || businessName;
+        await fetch(`${url}/rest/v1/vendor_profile_version_sections`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: apiKey,
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            version_id: insertedVersionId,
+            section_name: "basic_info",
+            section_payload: {
+              ownerName: resolvedOwner,
+              contactName: resolvedOwner,
+            },
+          }),
+        }).catch(() => null);
+      }
+    }
+
     return NextResponse.json(
       {
         success: true,

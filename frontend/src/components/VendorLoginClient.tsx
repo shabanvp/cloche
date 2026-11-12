@@ -45,7 +45,7 @@ export function VendorLoginClient() {
     if (res?.error) {
       setErrorMsg(res.error);
     } else {
-      window.location.href = "/vendor/dashboard";
+      window.location.href = (res as any)?.redirectTo || "/vendor/dashboard";
     }
   };
 

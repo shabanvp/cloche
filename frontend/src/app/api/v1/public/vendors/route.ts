@@ -109,6 +109,9 @@ export async function GET(req: Request) {
     if (categorySlug && categorySlug.toLowerCase() !== "all") {
       const targetNorm = normalizeCategory(categorySlug);
       const targetCanonicalSlug = targetNorm?.slug || categorySlug.toLowerCase().trim();
+      if (targetCanonicalSlug === "photographers") {
+        filter = `deleted_at=is.null&status=eq.active&publication_status=eq.published`;
+      }
       const matchingSlugs = getMatchingSlugs(targetCanonicalSlug);
       const allCats = await getCachedVendorCategories();
       const matchedCatIds = allCats

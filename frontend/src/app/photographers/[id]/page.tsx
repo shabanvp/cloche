@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
-import { fetchPublicVendorProfileFromDb } from "@/lib/supabase";
+import { getAuthenticatedUser } from "@/lib/rbac";
+import { fetchPublicVendorProfileFromDb, supabaseFetch } from "@/lib/supabase";
+import { isPhotographerCategory } from "@/lib/photographerAuth";
+import { getPublicPhotographerExtras } from "@/lib/photographerData";
 import { VendorProfileDispatcher } from "@/components/VendorProfileDispatcher";
 
 export const dynamic = "force-dynamic";
@@ -8,11 +12,38 @@ export const revalidate = 0;
 
 interface Props {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<{ preview?: string }>;
+}
+
+async function resolvePhotographerVisibility(identifier: string) {
+  const { data: profile } = await fetchPublicVendorProfileFromDb(identifier, {
+    includeNonActive: true,
+  });
+  if (!profile) return { profile: null, isPublished: false, ownerUserId: null };
+
+  const { data: vRows } = await supabaseFetch<any[]>(
+    `vendors?id=eq.${encodeURIComponent(profile.id)}&deleted_at=is.null&select=id,user_id,status,publication_status,vendor_categories(slug,name)&limit=1`
+  );
+  const vRow = Array.isArray(vRows) ? vRows[0] : null;
+  if (!vRow) return { profile: null, isPublished: false, ownerUserId: null };
+
+  const cat = Array.isArray(vRow.vendor_categories)
+    ? vRow.vendor_categories[0]
+    : vRow.vendor_categories;
+  if (!isPhotographerCategory(cat?.slug) && !isPhotographerCategory(cat?.name)) {
+    return { profile: null, isPublished: false, ownerUserId: null };
+  }
+
+  const isPublished = vRow.status === "active" && vRow.publication_status === "published";
+  return { profile, isPublished, ownerUserId: vRow.user_id || null };
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const { data: profile } = await fetchPublicVendorProfileFromDb(id);
+  const { profile, isPublished } = await resolvePhotographerVisibility(id);
+  if (!profile || !isPublished) {
+    return { title: "Photographer | Cloche Luxury Weddings" };
+  }
   const name = profile?.name || (profile as any)?.business_name || "Wedding Photographer";
   return {
     title: `${name} | Cloche Wedding Photographers`,
@@ -20,13 +51,66 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function PhotographerDetailPage({ params }: Props) {
+export default async function PhotographerDetailPage({ params, searchParams }: Props) {
   const { id } = await params;
-  const { data: profile } = await fetchPublicVendorProfileFromDb(id);
+  const sp = (await searchParams) || {};
+  const { profile, isPublished, ownerUserId } = await resolvePhotographerVisibility(id);
 
   if (!profile) {
     notFound();
   }
 
-  return <VendorProfileDispatcher profile={profile} forcedCategory="photographers" />;
+  const cookieStore = await cookies();
+  const authUser = getAuthenticatedUser({ cookies: cookieStore });
+  const callerUserId = authUser?.userId || authUser?.id || null;
+  const isOwner = Boolean(callerUserId && ownerUserId && callerUserId === ownerUserId);
+
+  if (!isPublished && !isOwner) {
+    notFound();
+  }
+
+  const extras = await getPublicPhotographerExtras(profile.id);
+  const galleryPhotos = extras.photos.map((p) => ({
+    id: p.id,
+    url: p.imageUrl,
+    image_url: p.imageUrl,
+    caption: p.caption,
+    category: p.category,
+    albumId: p.albumId,
+  }));
+
+  const coverFromPhoto = extras.photos.find((p) => p.isCover)?.imageUrl;
+  const existingProfile: any = profile;
+
+  const enrichedProfile = {
+    ...existingProfile,
+    isDraftPreview: !isPublished && isOwner && Boolean(sp?.preview || isOwner),
+    photographerExtras: extras,
+    services: extras.services,
+    packages: extras.packages,
+    faqs: extras.faqs,
+    userReviews: extras.reviewsList,
+    reviewsList: extras.reviewsList,
+    rating:
+      extras.reviewsSummary.totalReviews > 0
+        ? extras.reviewsSummary.averageRating
+        : existingProfile.rating || 0,
+    reviewCount: extras.reviewsSummary.totalReviews,
+    phone: existingProfile.phone || existingProfile.contact_phone || "",
+    email: existingProfile.email || existingProfile.contact_email || "",
+    logo_url: existingProfile.logo_url || existingProfile.logo || "",
+    cover_image:
+      existingProfile.cover_image || coverFromPhoto || existingProfile.storefront?.coverImage || "",
+    storefront: {
+      ...(existingProfile.storefront || {}),
+      coverImage:
+        existingProfile.storefront?.coverImage || existingProfile.cover_image || coverFromPhoto || "",
+      gallery:
+        galleryPhotos.length > 0
+          ? galleryPhotos
+          : existingProfile.storefront?.gallery || [],
+    },
+  };
+
+  return <VendorProfileDispatcher profile={enrichedProfile} forcedCategory="photographers" />;
 }
