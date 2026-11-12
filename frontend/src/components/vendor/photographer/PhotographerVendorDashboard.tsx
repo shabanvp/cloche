@@ -150,6 +150,10 @@ export function PhotographerVendorDashboard() {
     setMobileMenuOpen(false);
   }, []);
 
+  const handleUnreadCountChange = useCallback((count: number) => {
+    setUnreadMessages((prev) => (prev !== count ? count : prev));
+  }, []);
+
   const handleTogglePublication = async (status: "published" | "draft") => {
     setTogglingVis(true);
     try {
@@ -460,12 +464,7 @@ export function PhotographerVendorDashboard() {
             <PhotographerMessagesSection
               vendorId={profile?.vendorId || overview?.vendorId || ""}
               initialLeadId={selectedChatLeadId}
-              onUnreadCountChange={(count) => {
-                if (count !== unreadMessages) {
-                  setUnreadMessages(count);
-                  refreshAll();
-                }
-              }}
+              onUnreadCountChange={handleUnreadCountChange}
               showToast={showToast}
             />
           )}

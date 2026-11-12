@@ -47,18 +47,32 @@ export async function supabaseFetch<T = any>(
     return { data: null, error: new Error("Supabase is not configured yet.") };
   }
 
-  try {
-    const res = await fetch(`${url}/rest/v1/${endpoint}`, {
-      ...options,
-      cache: options.cache || "no-store",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: serviceKey,
-        Authorization: `Bearer ${serviceKey}`,
-        ...options.headers,
-      },
-    });
+  let res: Response | null = null;
+  let lastErr: any = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      res = await fetch(`${url}/rest/v1/${endpoint}`, {
+        ...options,
+        cache: options.cache || "no-store",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+          ...options.headers,
+        },
+      });
+      break;
+    } catch (err: any) {
+      lastErr = err;
+      if (attempt < 2) await new Promise((r) => setTimeout(r, 350));
+    }
+  }
 
+  if (!res) {
+    return { data: null, error: lastErr || new Error("Supabase fetch failed after retries.") };
+  }
+
+  try {
     if (!res.ok) {
       const errText = await res.text();
       return { data: null, error: new Error(`Supabase API error (${res.status}): ${errText}`) };

@@ -46,6 +46,8 @@ export function PhotographerMessagesSection({
   const [replyText, setReplyText] = useState("");
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const onUnreadRef = useRef(onUnreadCountChange);
+  onUnreadRef.current = onUnreadCountChange;
 
   const loadThreads = useCallback(
     async (silent = false) => {
@@ -64,13 +66,13 @@ export function PhotographerMessagesSection({
         setThreads(vendorThreads);
 
         const totalUnread = vendorThreads.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
-        onUnreadCountChange?.(totalUnread);
+        onUnreadRef.current?.(totalUnread);
 
         if (initialLeadId) {
           const matched = vendorThreads.find((c) => c.leadId === initialLeadId);
           if (matched) setActiveId(matched.id);
-        } else if (!activeId && vendorThreads.length > 0) {
-          setActiveId(vendorThreads[0].id);
+        } else {
+          setActiveId((curr) => curr || (vendorThreads.length > 0 ? vendorThreads[0].id : null));
         }
       } catch {
         // silent poll retry
@@ -78,7 +80,7 @@ export function PhotographerMessagesSection({
         if (!silent) setLoading(false);
       }
     },
-    [vendorId, initialLeadId, activeId, onUnreadCountChange]
+    [vendorId, initialLeadId]
   );
 
   useEffect(() => {

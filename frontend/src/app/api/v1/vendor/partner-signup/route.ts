@@ -152,8 +152,9 @@ export async function POST(req: Request) {
       { status: 201 }
     );
   } catch (err: any) {
+    console.error("[PartnerSignup] Error caught:", err?.message, err?.cause || err);
     return NextResponse.json(
-      { success: false, error: err?.message || "Unexpected error during partner signup." },
+      { success: false, error: err?.message || "Unexpected error during partner signup.", details: String(err?.cause || err) },
       { status: 500 }
     );
   }

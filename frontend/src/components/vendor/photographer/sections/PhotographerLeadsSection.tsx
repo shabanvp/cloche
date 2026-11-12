@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Calendar, Mail, MapPin, MessageSquare, Phone, Search, X } from "lucide-react";
 import type { PhotographerLeadItem } from "../types";
 import { formatInr, formatShortDate } from "../types";
@@ -37,26 +37,44 @@ export function PhotographerLeadsSection({
   showToast,
 }: Props) {
   const [search, setSearch] = useState("");
-  const [stageFilter, setStageFilter] = useState<string>("All");
-  const [selectedLead, setSelectedLead] = useState<PhotographerLeadItem | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>("All");
+  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [noteInput, setNoteInput] = useState("");
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [localStageOverrides, setLocalStageOverrides] = useState<Record<string, PhotographerLeadItem["stage"]>>({});
 
-  const filtered = leads.filter((l) => {
-    if (stageFilter !== "All" && l.stage !== stageFilter) return false;
-    if (!search.trim()) return true;
-    const q = search.toLowerCase();
-    return (
-      l.customerName.toLowerCase().includes(q) ||
-      l.customerEmail.toLowerCase().includes(q) ||
-      l.customerPhone.toLowerCase().includes(q) ||
-      l.location.toLowerCase().includes(q) ||
-      l.eventType.toLowerCase().includes(q)
-    );
-  });
+  const uniqueLeads = useMemo(() => {
+    const seen = new Set<string>();
+    return leads
+      .filter((l) => {
+        if (!l.id || seen.has(l.id)) return false;
+        seen.add(l.id);
+        return true;
+      })
+      .map((l) => (localStageOverrides[l.id] ? { ...l, stage: localStageOverrides[l.id] } : l));
+  }, [leads, localStageOverrides]);
+
+  const selectedLead = useMemo(
+    () => (selectedLeadId ? uniqueLeads.find((l) => l.id === selectedLeadId) || null : null),
+    [uniqueLeads, selectedLeadId]
+  );
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return uniqueLeads.filter((l) => {
+      if (statusFilter !== "All" && l.stage !== statusFilter) return false;
+      if (!q) return true;
+      return (
+        l.customerName.toLowerCase().includes(q) ||
+        l.eventType.toLowerCase().includes(q) ||
+        (l.location || "").toLowerCase().includes(q)
+      );
+    });
+  }, [uniqueLeads, statusFilter, search]);
 
   const handleStageChange = async (leadId: string, stage: PhotographerLeadItem["stage"]) => {
     setSavingId(leadId);
+    setLocalStageOverrides((prev) => ({ ...prev, [leadId]: stage }));
     try {
       const res = await fetch("/api/vendor/photographer/leads", {
         method: "PATCH",
@@ -65,14 +83,11 @@ export function PhotographerLeadsSection({
         body: JSON.stringify({ leadId, stage }),
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json?.error || "Failed to update lead stage");
+      if (!res.ok) throw new Error(json?.error || "Failed to update lead status");
       await onRefresh();
-      if (selectedLead?.id === leadId) {
-        setSelectedLead((prev) => (prev ? { ...prev, stage } : null));
-      }
       showToast(`Lead marked as ${stage}`, "success");
     } catch (err: any) {
-      showToast(err?.message || "Failed to update lead stage", "error");
+      showToast(err?.message || "Failed to update lead status", "error");
     } finally {
       setSavingId(null);
     }
@@ -93,9 +108,7 @@ export function PhotographerLeadsSection({
       if (!res.ok) throw new Error(json?.error || "Failed to save note");
       setNoteInput("");
       await onRefresh();
-      const updated = (json.data || []).find((x: PhotographerLeadItem) => x.id === selectedLead.id);
-      if (updated) setSelectedLead(updated);
-      showToast("Lead note saved", "success");
+      showToast("Note saved", "success");
     } catch (err: any) {
       showToast(err?.message || "Failed to save note", "error");
     } finally {
@@ -104,161 +117,202 @@ export function PhotographerLeadsSection({
   };
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="font-serif text-2xl font-semibold text-[#2B2523]">Leads Management</h2>
-          <p className="text-xs text-[#7A6F67] mt-0.5">
-            Track wedding photography prospects without duplicate threads
-          </p>
-        </div>
-        <div className="text-xs font-medium text-[#5E544D] bg-white border border-[#E6DDD0] rounded-xl px-3.5 py-2">
-          Total Active Leads: <span className="font-semibold text-[#2B2523]">{leads.length}</span>
+    <div className="space-y-4">
+      {/* Compact Header */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="font-serif text-xl sm:text-2xl font-semibold text-[#2B2523]">Leads</h2>
+        <div className="inline-flex items-center gap-1.5 rounded-xl border border-[#E6DDD0] bg-white px-3.5 py-1.5 text-xs font-medium text-[#5E544D] shadow-xs">
+          <span>Total Leads:</span>
+          <span className="font-semibold text-[#2B2523]">{uniqueLeads.length}</span>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-3">
+      {/* Compact Toolbar: Search + Single Status Dropdown */}
+      <div className="flex flex-col sm:flex-row gap-2.5">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-[#7A6F67] absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#7A6F67] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by customer name, email, city, or event..."
-            className="w-full rounded-xl border border-[#E6DDD0] bg-white pl-10 pr-4 py-2.5 text-sm text-[#2B2523] focus:outline-none focus:border-[#0F4C45]"
+            placeholder="Search customer or event..."
+            aria-label="Search leads"
+            className="w-full rounded-xl border border-[#E6DDD0] bg-white pl-9 pr-3 py-2 text-sm text-[#2B2523] placeholder:text-[#9A8F86] focus:outline-none focus:border-[#0F4C45]"
           />
         </div>
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          {["All", ...STAGES].map((st) => (
-            <button
-              key={st}
-              type="button"
-              onClick={() => setStageFilter(st)}
-              className={`shrink-0 rounded-xl px-3 py-2 text-xs font-medium border transition-colors ${
-                stageFilter === st
-                  ? "bg-[#2B2523] text-white border-[#2B2523]"
-                  : "bg-white text-[#5E544D] border-[#E6DDD0] hover:border-[#C8A96A]"
-              }`}
-            >
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          aria-label="Filter leads by status"
+          className="sm:w-52 rounded-xl border border-[#E6DDD0] bg-white px-3 py-2 text-sm font-medium text-[#2B2523] focus:outline-none focus:border-[#0F4C45]"
+        >
+          <option value="All">All Statuses</option>
+          {STAGES.map((st) => (
+            <option key={st} value={st}>
               {st}
-            </button>
+            </option>
           ))}
-        </div>
+        </select>
       </div>
 
-      {/* Leads List */}
+      {/* Empty State or Clean 6-Column Leads Table */}
       {filtered.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[#DED4C6] bg-white p-10 text-center">
-          <p className="text-sm font-medium text-[#2B2523]">No matching leads found</p>
-          <p className="text-xs text-[#7A6F67] mt-1">
-            When couples contact or message you from your photographer storefront, their lead appears here automatically.
+        <div className="rounded-2xl border border-[#E6DDD0] bg-white py-8 px-4 text-center shadow-xs">
+          <p className="text-sm font-medium text-[#5E544D]">
+            {uniqueLeads.length === 0 ? "No leads yet" : "No matching leads"}
           </p>
         </div>
       ) : (
-        <div className="rounded-2xl border border-[#E6DDD0] bg-white overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead className="bg-[#FAF7F2] border-b border-[#E6DDD0] text-[11px] font-semibold uppercase tracking-wider text-[#7A6F67]">
-                <tr>
-                  <th className="py-3.5 px-4">Couple / Client</th>
-                  <th className="py-3.5 px-4">Event & Location</th>
-                  <th className="py-3.5 px-4">Inquiry Date</th>
-                  <th className="py-3.5 px-4">Stage</th>
-                  <th className="py-3.5 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#F0EAE0] text-sm">
-                {filtered.map((lead) => (
-                  <tr key={lead.id} className="hover:bg-[#FAF7F2]/60 transition-colors">
-                    <td className="py-3.5 px-4 align-top">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-[#2B2523]">{lead.customerName}</span>
-                        {lead.isUnread && (
-                          <span className="h-2 w-2 rounded-full bg-[#C8A96A]" title="Unread reply" />
-                        )}
-                      </div>
-                      <div className="text-xs text-[#7A6F67] mt-0.5 space-y-0.5">
-                        {lead.customerPhone && <div>{lead.customerPhone}</div>}
-                        {lead.customerEmail && <div>{lead.customerEmail}</div>}
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4 align-top">
-                      <div className="font-medium text-[#2B2523]">{lead.eventType}</div>
-                      <div className="text-xs text-[#7A6F67] mt-0.5">
-                        Event: {formatShortDate(lead.eventDate)}
-                        {lead.location ? ` · ${lead.location}` : ""}
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4 align-top text-xs text-[#5E544D]">
-                      {formatShortDate(lead.createdAt)}
-                    </td>
-                    <td className="py-3.5 px-4 align-top">
-                      <select
-                        disabled={savingId === lead.id}
-                        value={lead.stage}
-                        onChange={(e) =>
-                          handleStageChange(lead.id, e.target.value as PhotographerLeadItem["stage"])
-                        }
-                        aria-label={`Update status for ${lead.customerName}`}
-                        className={`rounded-lg border px-2.5 py-1.5 text-xs font-medium focus:outline-none ${
-                          STAGE_STYLES[lead.stage]
-                        }`}
-                      >
-                        {STAGES.map((st) => (
-                          <option key={st} value={st}>
-                            {st}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="py-3.5 px-4 align-top text-right space-x-2 whitespace-nowrap">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedLead(lead)}
-                        className="rounded-lg border border-[#E6DDD0] bg-white px-2.5 py-1.5 text-xs font-medium text-[#2B2523] hover:border-[#C8A96A]"
-                      >
-                        Details
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onOpenConversation(lead.id)}
-                        className="inline-flex items-center gap-1 rounded-lg bg-[#0F4C45] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#0C3D38]"
-                      >
-                        <MessageSquare className="w-3.5 h-3.5" />
-                        Chat
-                      </button>
-                    </td>
+        <>
+          {/* Desktop / Tablet Clean Table */}
+          <div className="hidden sm:block rounded-2xl border border-[#E6DDD0] bg-white shadow-xs overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-[#FAF7F2] border-b border-[#E6DDD0] text-[11px] font-semibold uppercase tracking-wider text-[#7A6F67]">
+                  <tr>
+                    <th className="py-3 px-4">Customer Name</th>
+                    <th className="py-3 px-4">Event Type</th>
+                    <th className="py-3 px-4">Event Date</th>
+                    <th className="py-3 px-4">Inquiry Received Date</th>
+                    <th className="py-3 px-4">Lead Status</th>
+                    <th className="py-3 px-4 text-right">Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-[#F0EAE0] text-sm">
+                  {filtered.map((lead) => (
+                    <tr key={lead.id} className="hover:bg-[#FAF7F2]/60 transition-colors">
+                      <td className="py-3 px-4 font-semibold text-[#2B2523] whitespace-nowrap">
+                        <span className="inline-flex items-center gap-2">
+                          {lead.customerName}
+                          {lead.isUnread && (
+                            <span className="h-2 w-2 rounded-full bg-[#C8A96A]" title="Unread" />
+                          )}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-[#4A3F3A] whitespace-nowrap">
+                        {lead.eventType}
+                      </td>
+                      <td className="py-3 px-4 text-[#5E544D] whitespace-nowrap text-xs">
+                        {formatShortDate(lead.eventDate)}
+                      </td>
+                      <td className="py-3 px-4 text-[#5E544D] whitespace-nowrap text-xs">
+                        {formatShortDate(lead.createdAt)}
+                      </td>
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        <span
+                          className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${STAGE_STYLES[lead.stage]}`}
+                        >
+                          {lead.stage}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-right whitespace-nowrap">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedLeadId(lead.id)}
+                          className="rounded-lg border border-[#E6DDD0] bg-white px-3 py-1.5 text-xs font-semibold text-[#2B2523] hover:border-[#0F4C45] hover:text-[#0F4C45] transition-colors"
+                        >
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+
+          {/* Mobile Compact List (<640px) */}
+          <div className="sm:hidden space-y-2.5">
+            {filtered.map((lead) => (
+              <div
+                key={lead.id}
+                className="rounded-xl border border-[#E6DDD0] bg-white p-3.5 shadow-xs space-y-2.5"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm text-[#2B2523] truncate">
+                      {lead.customerName}
+                    </p>
+                    <p className="text-xs text-[#7A6F67] mt-0.5">{lead.eventType}</p>
+                  </div>
+                  <span
+                    className={`shrink-0 inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${STAGE_STYLES[lead.stage]}`}
+                  >
+                    {lead.stage}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs text-[#5E544D] pt-1 border-t border-[#F4EFE6]">
+                  <div className="space-y-0.5">
+                    <p>Event: {formatShortDate(lead.eventDate)}</p>
+                    <p>Received: {formatShortDate(lead.createdAt)}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedLeadId(lead.id)}
+                    className="rounded-lg border border-[#E6DDD0] bg-[#FAF7F2] px-3 py-1.5 text-xs font-semibold text-[#2B2523]"
+                  >
+                    View
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
-      {/* Details Modal */}
+      {/* Lead Details Panel */}
       {selectedLead && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4">
           <div className="w-full max-w-lg rounded-2xl bg-white border border-[#E6DDD0] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between px-6 py-4 bg-[#FAF7F2] border-b border-[#E6DDD0]">
-              <div>
-                <h3 className="font-serif text-xl font-semibold text-[#2B2523]">
+            <div className="flex items-center justify-between px-5 py-4 bg-[#FAF7F2] border-b border-[#E6DDD0]">
+              <div className="min-w-0">
+                <h3 className="font-serif text-lg font-semibold text-[#2B2523] truncate">
                   {selectedLead.customerName}
                 </h3>
-                <p className="text-xs text-[#7A6F67]">{selectedLead.eventType}</p>
+                <p className="text-xs text-[#7A6F67]">
+                  Received {formatShortDate(selectedLead.createdAt)}
+                </p>
               </div>
               <button
                 type="button"
-                onClick={() => setSelectedLead(null)}
+                onClick={() => setSelectedLeadId(null)}
+                aria-label="Close details"
                 className="p-1.5 rounded-lg text-[#7A6F67] hover:bg-[#EDE6DA]"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-6 space-y-5 overflow-y-auto">
-              <div className="grid grid-cols-2 gap-3 text-xs">
+            <div className="p-5 space-y-4 overflow-y-auto">
+              {/* Lead Status Update */}
+              <div className="flex items-center justify-between gap-3 rounded-xl border border-[#E6DDD0] bg-[#FAF7F2]/60 px-3.5 py-2.5">
+                <label
+                  htmlFor="lead-status-select"
+                  className="text-xs font-semibold uppercase tracking-wider text-[#7A6F67]"
+                >
+                  Lead Status
+                </label>
+                <select
+                  id="lead-status-select"
+                  disabled={savingId === selectedLead.id}
+                  value={selectedLead.stage}
+                  onChange={(e) =>
+                    handleStageChange(selectedLead.id, e.target.value as PhotographerLeadItem["stage"])
+                  }
+                  className={`rounded-lg border px-2.5 py-1.5 text-xs font-semibold focus:outline-none ${
+                    STAGE_STYLES[selectedLead.stage]
+                  }`}
+                >
+                  {STAGES.map((st) => (
+                    <option key={st} value={st}>
+                      {st}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Customer & Event Info */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
                 <div className="rounded-xl bg-[#FAF7F2] p-3">
                   <span className="text-[#7A6F67] flex items-center gap-1">
                     <Phone className="w-3.5 h-3.5" /> Phone
@@ -277,10 +331,10 @@ export function PhotographerLeadsSection({
                 </div>
                 <div className="rounded-xl bg-[#FAF7F2] p-3">
                   <span className="text-[#7A6F67] flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5" /> Event Date
+                    <Calendar className="w-3.5 h-3.5" /> Event
                   </span>
                   <p className="font-medium text-[#2B2523] mt-1">
-                    {formatShortDate(selectedLead.eventDate)}
+                    {selectedLead.eventType} · {formatShortDate(selectedLead.eventDate)}
                   </p>
                 </div>
                 <div className="rounded-xl bg-[#FAF7F2] p-3">
@@ -288,31 +342,33 @@ export function PhotographerLeadsSection({
                     <MapPin className="w-3.5 h-3.5" /> Location / Budget
                   </span>
                   <p className="font-medium text-[#2B2523] mt-1">
-                    {selectedLead.location || "TBD"} ·{" "}
-                    {selectedLead.estimatedBudget ? formatInr(selectedLead.estimatedBudget) : "Flexible"}
+                    {selectedLead.location || "Not specified"}
+                    {selectedLead.estimatedBudget ? ` · ${formatInr(selectedLead.estimatedBudget)}` : ""}
                   </p>
                 </div>
               </div>
 
+              {/* Related Inquiry */}
               <div>
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-[#7A6F67] mb-1.5">
-                  Inquiry Requirements
+                  Related Inquiry
                 </h4>
-                <div className="rounded-xl border border-[#E6DDD0] bg-[#FAF7F2]/60 p-3.5 text-sm text-[#2B2523]">
+                <div className="rounded-xl border border-[#E6DDD0] bg-[#FAF7F2]/60 p-3 text-sm text-[#2B2523]">
                   {selectedLead.message || selectedLead.latestMessage || "Direct inquiry via Cloche."}
                 </div>
               </div>
 
+              {/* Internal Notes */}
               <div>
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-[#7A6F67] mb-2">
-                  Internal Studio Notes
+                  Studio Notes
                 </h4>
                 <form onSubmit={handleAddNote} className="flex gap-2">
                   <input
                     type="text"
                     value={noteInput}
                     onChange={(e) => setNoteInput(e.target.value)}
-                    placeholder="Add private note (quoted pricing, preferences)..."
+                    placeholder="Add a note..."
                     className="flex-1 rounded-xl border border-[#E6DDD0] px-3 py-2 text-xs text-[#2B2523] focus:outline-none focus:border-[#0F4C45]"
                   />
                   <button
@@ -320,16 +376,16 @@ export function PhotographerLeadsSection({
                     disabled={savingId === selectedLead.id || !noteInput.trim()}
                     className="rounded-xl bg-[#2B2523] px-3.5 py-2 text-xs font-medium text-white disabled:opacity-50"
                   >
-                    Add Note
+                    Save
                   </button>
                 </form>
 
                 {selectedLead.notes.length > 0 && (
-                  <div className="mt-3 space-y-2">
+                  <div className="mt-2.5 space-y-1.5">
                     {selectedLead.notes.map((n) => (
                       <div key={n.id} className="rounded-lg bg-[#FAF7F2] px-3 py-2 text-xs text-[#2B2523]">
                         <p>{n.note_text}</p>
-                        <p className="text-[10px] text-[#7A6F67] mt-1">
+                        <p className="text-[10px] text-[#7A6F67] mt-0.5">
                           {formatShortDate(n.created_at)}
                         </p>
                       </div>
@@ -339,11 +395,11 @@ export function PhotographerLeadsSection({
               </div>
             </div>
 
-            <div className="px-6 py-3.5 bg-[#FAF7F2] border-t border-[#E6DDD0] flex items-center justify-between">
+            <div className="px-5 py-3.5 bg-[#FAF7F2] border-t border-[#E6DDD0] flex items-center justify-between">
               <button
                 type="button"
-                onClick={() => setSelectedLead(null)}
-                className="text-xs font-medium text-[#7A6F67] hover:text-[#2B2523]"
+                onClick={() => setSelectedLeadId(null)}
+                className="rounded-lg border border-[#E6DDD0] bg-white px-3.5 py-1.5 text-xs font-medium text-[#5E544D] hover:text-[#2B2523]"
               >
                 Close
               </button>
@@ -351,7 +407,7 @@ export function PhotographerLeadsSection({
                 type="button"
                 onClick={() => {
                   const id = selectedLead.id;
-                  setSelectedLead(null);
+                  setSelectedLeadId(null);
                   onOpenConversation(id);
                 }}
                 className="inline-flex items-center gap-1.5 rounded-xl bg-[#0F4C45] px-4 py-2 text-xs font-semibold text-white hover:bg-[#0C3D38]"
@@ -366,4 +422,3 @@ export function PhotographerLeadsSection({
     </div>
   );
 }
-

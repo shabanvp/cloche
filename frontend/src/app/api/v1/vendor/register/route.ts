@@ -171,10 +171,19 @@ export async function POST(req: Request) {
       }
     };
 
-    // Step 1: Check if user or vendor already exists for this email
-    const checkEmailRes = await fetch(`${url}/rest/v1/users?email=eq.${encodeURIComponent(userEmail)}&select=id,is_verified,vendors(id),user_roles(roles(name))`, {
-      headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-    });
+    // Step 1: Check if user or vendor already exists for this email (with resilience against transient network resets)
+    let checkEmailRes: Response;
+    try {
+      checkEmailRes = await fetch(`${url}/rest/v1/users?email=eq.${encodeURIComponent(userEmail)}&select=id,is_verified,vendors(id),user_roles(roles(name))`, {
+        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+      });
+    } catch (netErr) {
+      // Retry once after brief pause if transient connection reset
+      await new Promise((r) => setTimeout(r, 500));
+      checkEmailRes = await fetch(`${url}/rest/v1/users?email=eq.${encodeURIComponent(userEmail)}&select=id,is_verified,vendors(id),user_roles(roles(name))`, {
+        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+      });
+    }
 
     let existingUser: any = null;
 
