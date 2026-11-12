@@ -28,6 +28,7 @@ interface ConversationThreadItem {
   leadId: string;
   leadIds?: string[];
   viewerRole: "customer" | "vendor";
+  customerId?: string;
   customerName: string;
   customerAvatar?: string;
   customerEmail?: string;
@@ -286,6 +287,11 @@ export function PhotographerMessagesSection({
           sender: "vendor",
           leadId: activeThread.leadId,
           conversationId: activeThread.id,
+          leadIds: activeThread.leadIds,
+          customerId: activeThread.customerId,
+          customerEmail: activeThread.customerEmail,
+          customerName: activeThread.customerName,
+          vendorId: vendorId,
           text: textToSend,
         }),
       });

@@ -55,6 +55,7 @@ export interface ConversationItem {
   vendorCity: string;
   vendorPhone?: string;
   isVerified?: boolean;
+  customerId?: string;
   customerName: string;
   customerAvatar?: string;
   customerEmail?: string;
@@ -861,6 +862,7 @@ function buildConversationForGroup(
     vendorCity: meta.vendorCity,
     vendorPhone: meta.vendorPhone || undefined,
     isVerified: meta.isVerified,
+    customerId: latestLead.customer_id ? String(latestLead.customer_id) : undefined,
     customerName: String(customerNameFallback || latestLead.customer_name || "Customer").trim(),
     customerAvatar: customerAvatarFallback || undefined,
     customerEmail: latestLead.customer_email || undefined,
@@ -1221,23 +1223,161 @@ export async function POST(req: Request) {
     // VENDOR REPLY BRANCH
     if (sender === "vendor") {
       const vendorAuth = await requireAuthenticatedVendor(req).catch(() => null);
-      if (!vendorAuth?.vendorId) {
+
+      // 1. Resolve authorized vendor accounts for the current user
+      const authorizedVendorIds = new Set<string>();
+      const currentUserId = vendorAuth?.user?.userId || vendorAuth?.user?.id || session.dbUserId;
+      const currentUserEmail = (vendorAuth?.user?.email || session.vendorUser?.email || "").trim().toLowerCase();
+
+      if (vendorAuth?.vendorId) authorizedVendorIds.add(String(vendorAuth.vendorId));
+      if (session.vendorId) authorizedVendorIds.add(String(session.vendorId));
+
+      if (currentUserId) {
+        const vRes = await supabaseFetch(
+          `vendors?user_id=eq.${encodeURIComponent(String(currentUserId))}&deleted_at=is.null&select=id`
+        );
+        if (Array.isArray(vRes.data)) {
+          for (const v of vRes.data) {
+            if (v?.id) authorizedVendorIds.add(String(v.id));
+          }
+        }
+      }
+
+      if (currentUserEmail && authorizedVendorIds.size === 0) {
+        const uRes = await supabaseFetch(
+          `users?email=ilike.${encodeURIComponent(currentUserEmail)}&select=id,vendors(id)`
+        );
+        if (Array.isArray(uRes.data) && uRes.data[0]) {
+          const rawVendors = uRes.data[0].vendors;
+          const vList = Array.isArray(rawVendors) ? rawVendors : rawVendors ? [rawVendors] : [];
+          for (const v of vList) {
+            if (v?.id) authorizedVendorIds.add(String(v.id));
+          }
+        }
+      }
+
+      if (authorizedVendorIds.size === 0) {
         return NextResponse.json(
           { success: false, statusCode: 403, error: { message: "Vendor authorization required." } },
           { status: 403 }
         );
       }
-      if (!leadId) {
-        return NextResponse.json(
-          { success: false, statusCode: 400, error: { message: "Lead ID is required for vendor reply." } },
-          { status: 400 }
+
+      // 2. Extract and sanitize candidate lead & conversation identifiers
+      const extractUuids = (val: any): string[] => {
+        if (!val) return [];
+        const str = String(val).trim();
+        const matches = str.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi);
+        return matches ? matches.map((m) => m.toLowerCase()) : [];
+      };
+
+      const candidateLeadIds = Array.from(
+        new Set([
+          ...extractUuids(leadId),
+          ...extractUuids(conversationId),
+          ...(Array.isArray(body.leadIds) ? body.leadIds.flatMap(extractUuids) : []),
+        ])
+      );
+
+      let targetLead: any = null;
+
+      // 3. Attempt direct lookup by candidate lead ID(s)
+      if (candidateLeadIds.length > 0) {
+        const inList = candidateLeadIds.map((id) => encodeURIComponent(id)).join(",");
+        const leadRes = await supabaseFetch(
+          `leads?id=in.(${inList})&deleted_at=is.null&select=id,vendor_id,customer_id,customer_name,customer_email,customer_phone,status,created_at`
         );
+        const rows = Array.isArray(leadRes.data) ? leadRes.data : [];
+        targetLead = rows.find((r: any) => authorizedVendorIds.has(String(r.vendor_id))) || null;
       }
 
-      const leadCheck = await supabaseFetch(
-        `leads?id=eq.${encodeURIComponent(String(leadId))}&vendor_id=eq.${encodeURIComponent(vendorAuth.vendorId)}&deleted_at=is.null&select=id,status,vendor_id&limit=1`
+      // 4. Fallback lookup: Identify conversation by Customer User ID or Customer Email
+      const candidateCustomerIds = Array.from(
+        new Set([
+          ...extractUuids(body.customerId),
+          ...extractUuids(body.customerUserId),
+        ])
       );
-      const targetLead = Array.isArray(leadCheck.data) ? leadCheck.data[0] : null;
+      const candidateCustomerEmail = (body.customerEmail || "").trim().toLowerCase();
+
+      const vendorIdList = Array.from(authorizedVendorIds);
+      const vendorInClause = vendorIdList.map((id) => encodeURIComponent(id)).join(",");
+
+      if (!targetLead && (candidateCustomerIds.length > 0 || candidateCustomerEmail)) {
+        const custFilters: string[] = [];
+        if (candidateCustomerIds.length > 0) {
+          custFilters.push(
+            `customer_id.in.(${candidateCustomerIds.map((id) => encodeURIComponent(id)).join(",")})`
+          );
+        }
+        if (candidateCustomerEmail) {
+          custFilters.push(`customer_email.ilike.${encodeURIComponent(candidateCustomerEmail)}`);
+        }
+        const custQuery =
+          custFilters.length === 1
+            ? custFilters[0].replace(".in.", "=in.").replace(".ilike.", "=ilike.")
+            : `or=(${custFilters.join(",")})`;
+
+        const custLeadsRes = await supabaseFetch(
+          `leads?vendor_id=in.(${vendorInClause})&${custQuery}&deleted_at=is.null&order=created_at.desc&select=id,vendor_id,customer_id,customer_name,customer_email,customer_phone,status,created_at&limit=1`
+        );
+        if (Array.isArray(custLeadsRes.data) && custLeadsRes.data[0]) {
+          targetLead = custLeadsRes.data[0];
+        }
+      }
+
+      // 5. Fallback lookup: If conversationId is "conv-vendor-<vendorId>" or references a vendor, find latest active lead for that vendor
+      if (!targetLead && typeof conversationId === "string" && conversationId.startsWith("conv-vendor-")) {
+        const rawVendorSlugOrId = conversationId.replace(/^conv-vendor-/, "");
+        const matchedVendor = await resolveVendorByAnyIdentifier(rawVendorSlugOrId);
+        const targetVId = matchedVendor?.id || rawVendorSlugOrId;
+        if (authorizedVendorIds.has(String(targetVId))) {
+          const recentLeadRes = await supabaseFetch(
+            `leads?vendor_id=eq.${encodeURIComponent(String(targetVId))}&deleted_at=is.null&order=created_at.desc&select=id,vendor_id,customer_id,customer_name,customer_email,customer_phone,status,created_at&limit=1`
+          );
+          if (Array.isArray(recentLeadRes.data) && recentLeadRes.data[0]) {
+            targetLead = recentLeadRes.data[0];
+          }
+        }
+      }
+
+      // 6. Safe lead association repair: If valid customer participant exists but no lead row, establish it safely
+      if (!targetLead && (candidateCustomerIds.length > 0 || candidateCustomerEmail)) {
+        const primaryVendorId = vendorIdList[0];
+        let custName = String(body.customerName || "").trim();
+        let custEmail = candidateCustomerEmail || null;
+        let custId = candidateCustomerIds[0] || null;
+
+        if (custId && !custName) {
+          const uRes = await supabaseFetch(
+            `users?id=eq.${encodeURIComponent(custId)}&select=full_name,name,email&limit=1`
+          );
+          if (Array.isArray(uRes.data) && uRes.data[0]) {
+            custName = uRes.data[0].full_name || uRes.data[0].name || "Customer";
+            if (!custEmail) custEmail = uRes.data[0].email;
+          }
+        }
+
+        const createRes = await supabaseFetch(`leads`, {
+          method: "POST",
+          headers: { Prefer: "return=representation" },
+          body: JSON.stringify({
+            vendor_id: primaryVendorId,
+            customer_id: custId,
+            customer_name: (custName || "Customer").slice(0, 150),
+            customer_email: custEmail,
+            event_type: body.eventType || "Wedding",
+            event_date: defaultEventDateString(),
+            message: "Conversation started.",
+            source: "vendor_dashboard_reply",
+            status: "contacted",
+          }),
+        });
+        if (Array.isArray(createRes.data) && createRes.data[0]?.id) {
+          targetLead = createRes.data[0];
+        }
+      }
+
       if (!targetLead) {
         return NextResponse.json(
           { success: false, statusCode: 404, error: { message: "Conversation lead not found." } },
@@ -1245,6 +1385,21 @@ export async function POST(req: Request) {
         );
       }
 
+      // 7. Ensure customer user ID is resolved if available
+      if (!targetLead.customer_id && targetLead.customer_email) {
+        const uRes = await supabaseFetch(
+          `users?email=ilike.${encodeURIComponent(String(targetLead.customer_email).trim())}&select=id&limit=1`
+        );
+        if (Array.isArray(uRes.data) && uRes.data[0]?.id) {
+          targetLead.customer_id = uRes.data[0].id;
+          await supabaseFetch(`leads?id=eq.${encodeURIComponent(targetLead.id)}`, {
+            method: "PATCH",
+            body: JSON.stringify({ customer_id: uRes.data[0].id }),
+          }).catch(() => null);
+        }
+      }
+
+      // 8. Insert photographer's reply into lead_activities
       const actRes = await supabaseFetch(`lead_activities`, {
         method: "POST",
         headers: { Prefer: "return=representation" },
@@ -1252,7 +1407,7 @@ export async function POST(req: Request) {
           lead_id: targetLead.id,
           activity_type: "vendor_message",
           description: trimmedText,
-          performed_by: session.dbUserId,
+          performed_by: currentUserId || session.dbUserId || null,
         }),
       });
 
@@ -1265,20 +1420,26 @@ export async function POST(req: Request) {
 
       const savedAct = Array.isArray(actRes.data) ? actRes.data[0] : actRes.data;
       const createdAtIso = savedAct?.created_at || new Date().toISOString();
-      const nextStatus = String(targetLead.status || "new").toLowerCase() === "new" ? "contacted" : targetLead.status;
+      const nextStatus =
+        String(targetLead.status || "new").toLowerCase() === "new" ? "contacted" : targetLead.status;
 
       await Promise.all([
         supabaseFetch(`leads?id=eq.${encodeURIComponent(targetLead.id)}`, {
           method: "PATCH",
           body: JSON.stringify({ status: nextStatus, updated_at: createdAtIso }),
         }),
-        upsertReadActivity(targetLead.id, "vendor_read", session.dbUserId, savedAct?.created_at || null),
+        upsertReadActivity(
+          targetLead.id,
+          "vendor_read",
+          currentUserId || session.dbUserId,
+          createdAtIso
+        ),
       ]).catch(() => null);
 
       const newMessage: ChatMessage = {
         id: savedAct?.id ? `act-${savedAct.id}` : `msg-${Date.now()}`,
         sender: "vendor",
-        senderName: "Vendor Team",
+        senderName: session.vendorUser?.fullName || "Vendor Team",
         text: trimmedText,
         createdAt: formatMessageTime(createdAtIso),
         rawCreatedAt: createdAtIso,
@@ -1294,6 +1455,8 @@ export async function POST(req: Request) {
             message: newMessage,
             conversationId: conversationId || `conv-vendor-lead-${targetLead.id}`,
             leadId: targetLead.id,
+            vendorId: targetLead.vendor_id,
+            customerId: targetLead.customer_id || undefined,
           },
         },
         { status: 201 }
