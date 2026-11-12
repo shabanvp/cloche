@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { getAuthenticatedUser } from "@/lib/rbac";
 import { fetchPublicVendorProfileFromDb, supabaseFetch } from "@/lib/supabase";
 import { isPhotographerCategory } from "@/lib/photographerAuth";
-import { getPublicPhotographerExtras } from "@/lib/photographerData";
+import { enrichPhotographerPublicProfile } from "@/lib/photographerData";
 import { VendorProfileDispatcher } from "@/components/VendorProfileDispatcher";
 
 export const dynamic = "force-dynamic";
@@ -69,50 +69,9 @@ export default async function PhotographerDetailPage({ params, searchParams }: P
     notFound();
   }
 
-  const extras = await getPublicPhotographerExtras(profile.id);
-  const galleryPhotos = extras.photos.map((p) => ({
-    id: p.id,
-    url: p.imageUrl,
-    image_url: p.imageUrl,
-    caption: p.caption,
-    category: p.category,
-    albumId: p.albumId,
-  }));
-
-  const coverFromPhoto = extras.photos.find((p) => p.isCover)?.imageUrl;
-  const existingProfile: any = profile;
-
-  const enrichedProfile = {
-    ...existingProfile,
+  const enrichedProfile = await enrichPhotographerPublicProfile(profile, {
     isDraftPreview: !isPublished && isOwner && Boolean(sp?.preview || isOwner),
-    photographerExtras: extras,
-    services: extras.services,
-    packages: extras.packages,
-    faqs: extras.faqs,
-    userReviews: extras.reviewsList,
-    reviewsList: extras.reviewsList,
-    rating:
-      extras.reviewsSummary.totalReviews > 0
-        ? extras.reviewsSummary.averageRating
-        : existingProfile.rating || 0,
-    reviewCount: extras.reviewsSummary.totalReviews,
-    phone: existingProfile.phone || existingProfile.contact_phone || "",
-    email: existingProfile.email || existingProfile.contact_email || "",
-    logo_url: existingProfile.logo_url || existingProfile.logo || "",
-    cover_image:
-      existingProfile.cover_image || coverFromPhoto || existingProfile.storefront?.coverImage || "",
-    highlights: galleryPhotos.map((p) => ({
-      name: p.caption || "Showcase Photo",
-      image: p.url,
-    })),
-    galleryImages: galleryPhotos.map((p) => p.url).filter(Boolean),
-    storefront: {
-      ...(existingProfile.storefront || {}),
-      coverImage:
-        existingProfile.storefront?.coverImage || existingProfile.cover_image || coverFromPhoto || "",
-      gallery: galleryPhotos,
-    },
-  };
+  });
 
   return <VendorProfileDispatcher profile={enrichedProfile} forcedCategory="photographers" />;
 }

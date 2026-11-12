@@ -2302,3 +2302,52 @@ export async function getPublicPhotographerExtras(vendorId: string) {
 export async function recalculateRatingAfterCustomerReview(vendorId: string) {
   return recalculateVendorRatingInDb(vendorId);
 }
+
+export async function enrichPhotographerPublicProfile(
+  existingProfile: any,
+  options?: { isDraftPreview?: boolean }
+) {
+  const extras = await getPublicPhotographerExtras(existingProfile.id);
+  const galleryPhotos = extras.photos.map((p) => ({
+    id: p.id,
+    url: p.imageUrl,
+    image_url: p.imageUrl,
+    caption: p.caption,
+    category: p.category,
+    albumId: p.albumId,
+  }));
+
+  const coverFromPhoto = extras.photos.find((p) => p.isCover)?.imageUrl;
+
+  return {
+    ...existingProfile,
+    ...(options?.isDraftPreview !== undefined ? { isDraftPreview: options.isDraftPreview } : {}),
+    photographerExtras: extras,
+    services: extras.services,
+    packages: extras.packages,
+    faqs: extras.faqs,
+    userReviews: extras.reviewsList,
+    reviewsList: extras.reviewsList,
+    rating:
+      extras.reviewsSummary.totalReviews > 0
+        ? extras.reviewsSummary.averageRating
+        : existingProfile.rating || 0,
+    reviewCount: extras.reviewsSummary.totalReviews,
+    phone: existingProfile.phone || existingProfile.contact_phone || "",
+    email: existingProfile.email || existingProfile.contact_email || "",
+    logo_url: existingProfile.logo_url || existingProfile.logo || "",
+    cover_image:
+      existingProfile.cover_image || coverFromPhoto || existingProfile.storefront?.coverImage || "",
+    highlights: galleryPhotos.map((p) => ({
+      name: p.caption || "Showcase Photo",
+      image: p.url,
+    })),
+    galleryImages: galleryPhotos.map((p) => p.url).filter(Boolean),
+    storefront: {
+      ...(existingProfile.storefront || {}),
+      coverImage:
+        existingProfile.storefront?.coverImage || existingProfile.cover_image || coverFromPhoto || "",
+      gallery: galleryPhotos,
+    },
+  };
+}

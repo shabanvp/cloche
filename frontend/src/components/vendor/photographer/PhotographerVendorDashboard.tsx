@@ -49,6 +49,27 @@ import type {
 export function PhotographerVendorDashboard() {
   const [activeTab, setActiveTab] = useState<PhotographerTab>("overview");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const rawTab = new URLSearchParams(window.location.search).get("tab") as PhotographerTab | null;
+    const allowed: PhotographerTab[] = [
+      "overview",
+      "leads",
+      "inquiries",
+      "profile",
+      "services",
+      "portfolio",
+      "packages",
+      "reviews",
+      "faqs",
+      "messages",
+      "settings",
+    ];
+    if (rawTab && allowed.includes(rawTab)) {
+      setActiveTab(rawTab);
+    }
+  }, []);
   const [selectedChatLeadId, setSelectedChatLeadId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [togglingVis, setTogglingVis] = useState(false);
@@ -162,6 +183,10 @@ export function PhotographerVendorDashboard() {
       document.cookie = "user_data=; Max-Age=0; path=/";
       document.cookie = "cloche_auth_token=; Max-Age=0; path=/";
       document.cookie = "auth_token=; Max-Age=0; path=/";
+      if (typeof window !== "undefined" && window.self !== window.top) {
+        window.parent.postMessage({ type: "cloche-photographer-signout" }, window.location.origin);
+        return;
+      }
       window.location.href = "/vendor/login";
     }
   };

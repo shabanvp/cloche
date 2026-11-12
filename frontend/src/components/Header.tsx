@@ -19,6 +19,8 @@ export function Header({ session }: HeaderProps = {}) {
   const [unreadCount, setUnreadCount] = useState(1);
   const pathname = usePathname();
   const isAuthRoute = pathname === "/login" || pathname === "/signup";
+  const isPhotographerPortal =
+    pathname === "/vendor/photographer" || pathname?.startsWith("/vendor/photographer/");
 
   useEffect(() => {
     document.body.classList.toggle("mobile-menu-open", isMobileMenuOpen);
@@ -173,7 +175,7 @@ export function Header({ session }: HeaderProps = {}) {
     };
   }, [session]);
 
-  if (isAuthRoute) return null;
+  if (isAuthRoute || isPhotographerPortal) return null;
 
   let profileLink = "/dashboard";
   if (vendorState.isVendor || session?.role === "vendor" || session?.role === "partner") {

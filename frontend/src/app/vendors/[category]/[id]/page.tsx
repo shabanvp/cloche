@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { fetchPublicVendorProfileFromDb } from "@/lib/supabase";
+import { isPhotographerCategory } from "@/lib/photographerAuth";
+import { enrichPhotographerPublicProfile } from "@/lib/photographerData";
 import { VendorProfileDispatcher } from "@/components/VendorProfileDispatcher";
 
 export const dynamic = "force-dynamic";
@@ -28,5 +30,10 @@ export default async function DynamicVendorDetailPage({ params }: Props) {
     notFound();
   }
 
-  return <VendorProfileDispatcher profile={profile} forcedCategory={category} />;
+  const finalProfile =
+    isPhotographerCategory(category) || isPhotographerCategory((profile as any)?.category)
+      ? await enrichPhotographerPublicProfile(profile)
+      : profile;
+
+  return <VendorProfileDispatcher profile={finalProfile} forcedCategory={category} />;
 }
