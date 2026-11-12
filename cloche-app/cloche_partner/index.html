@@ -4,6 +4,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Cloche Partner</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -3790,9 +3793,12 @@
 
           if (!authed) {
             const rawMsg = (authError && authError.message) || 'Invalid mobile number, email, or password.';
-            const userMsg = (rawMsg.includes('Invalid login credentials') || rawMsg.includes('INVALID_CREDENTIALS'))
+            let userMsg = (rawMsg.includes('Invalid login credentials') || rawMsg.includes('INVALID_CREDENTIALS'))
               ? 'Invalid mobile number, email, or password. Please try again.'
               : rawMsg;
+            if (userMsg.toLowerCase().includes('rate limit')) {
+              userMsg = 'Too many attempts. Please wait a moment and try again.';
+            }
             S.err.password = userMsg;
             return fail(userMsg);
           }
@@ -3861,8 +3867,12 @@
           }
 
           if (!regRes.ok || !regJson?.success) {
-            S.err.contact = regJson?.error || 'Could not create account. Please try again.';
-            return fail(S.err.contact);
+            let errMsg = regJson?.error || 'Could not create account. Please try again.';
+            if (errMsg.toLowerCase().includes('rate limit')) {
+              errMsg = 'Too many attempts. Please try logging in with your password or wait a moment.';
+            }
+            S.err.contact = errMsg;
+            return fail(errMsg);
           }
 
           let data = null;

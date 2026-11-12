@@ -7,7 +7,6 @@ import { cleanVendorText } from "@/lib/vendorStore";
 import { useVendorOwnership } from "@/lib/vendorAuthClient";
 import { OwnerToolbar } from "@/components/vendor/storefront/OwnerToolbar";
 import { StorefrontSectionDrawer, SectionType } from "@/components/vendor/storefront/StorefrontSectionDrawer";
-import { PhotographerPublicView } from "@/components/vendor/photographer/PhotographerPublicView";
 import {
   ArrowRight,
   Sparkles,
@@ -532,6 +531,22 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
       try {
         localStorage.setItem(storedKey, JSON.stringify(updated));
       } catch (err) {}
+    }
+
+    if (vendor?.id) {
+      const endpoint = categoryType === "photographer"
+        ? `/api/public/photographers/${encodeURIComponent(vendor.id)}/reviews`
+        : `/api/v1/reviews`;
+      fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          rating: newReviewRating,
+          reviewText: newReviewText.trim(),
+          customerName: newReviewName.trim(),
+        }),
+      }).catch(() => null);
     }
 
     setNewReviewSubmitted(true);
@@ -1402,32 +1417,6 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
         </div>
       )}
 
-      {/* ── 1. EDITORIAL PHOTOGRAPHER STOREFRONT OR GENERIC HERO + STOREFRONT ── */}
-      {categoryType === "photographer" ? (
-        <PhotographerPublicView
-          vendor={vendor}
-          displayName={displayName}
-          coverUrl={coverUrl}
-          location={location}
-          rating={rating}
-          reviewsCount={reviewsCount}
-          isWishlisted={isWishlisted}
-          onToggleWishlist={() => setIsWishlisted((w) => !w)}
-          onShare={handleShare}
-          onBack={() => {
-            if (previewMode) return;
-            if (typeof window !== "undefined" && window.history.length > 1) {
-              router.back();
-            } else {
-              router.push(getCategoryListingHref(categoryType));
-            }
-          }}
-          onOpenMessage={handleOpenMessage}
-          onOpenQuote={() => setActiveModal("quote")}
-          previewMode={previewMode}
-        />
-      ) : (
-        <>
       {/* ── 1. LUXURY STOREFRONT HERO HEADER ── */}
 
       {/* DESKTOP/LAPTOP HERO LAYOUT (100% Frozen & Untouched) */}
@@ -2958,7 +2947,409 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
           </>
         )}
 
-        {/* Photographer storefront now renders its full editorial hero + layout above */}
+        {/* ════════════════════════════════════════════════════════════════ */}
+        {/* 5. PHOTOGRAPHER STOREFRONT SECTIONS                             */}
+        {/* ════════════════════════════════════════════════════════════════ */}
+        {categoryType === "photographer" && (
+          <>
+            {/* 1. OVERVIEW */}
+            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
+              <div>
+                <h3 className="font-serif font-bold text-lg sm:text-xl text-charcoal">
+                  Wedding Photography &amp; Cinematography
+                </h3>
+                <p className="text-xs sm:text-sm text-charcoal/70 font-medium mt-1">
+                  {vendor?.intro || vendor?.tagline || "Candid photography, traditional video, pre-wedding & drone coverage"}
+                </p>
+              </div>
+
+              {/* Dynamic feature highlights based on photographer fields */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1 text-xs font-bold text-charcoal">
+                {Boolean(vendor?.candidPhotography ?? vendor?.photographerProfile?.candidPhotography ?? true) && (
+                  <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                    <Camera className="w-4 h-4 text-[#0F4C45] shrink-0" />
+                    <span>Candid Captures</span>
+                  </div>
+                )}
+                {Boolean(vendor?.cinematicVideo ?? vendor?.photographerProfile?.cinematicVideo ?? true) && (
+                  <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                    <Film className="w-4 h-4 text-[#0F4C45] shrink-0" />
+                    <span>4K Cinematic Films</span>
+                  </div>
+                )}
+                {Boolean(vendor?.droneCoverage ?? vendor?.photographerProfile?.droneCoverage) && (
+                  <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[#0F4C45] shrink-0" />
+                    <span>Drone Coverage</span>
+                  </div>
+                )}
+                {(vendor?.experienceYears || vendor?.photographerProfile?.experienceYears) && (
+                  <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                    <Award className="w-4 h-4 text-[#0F4C45] shrink-0" />
+                    <span>{vendor?.experienceYears || vendor?.photographerProfile?.experienceYears}+ Years Exp.</span>
+                  </div>
+                )}
+                {(vendor?.deliveryDays || vendor?.photographerProfile?.deliveryDays) && (
+                  <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-[#0F4C45] shrink-0" />
+                    <span>{vendor?.deliveryDays || vendor?.photographerProfile?.deliveryDays}-Day Delivery</span>
+                  </div>
+                )}
+                {(vendor?.albumPages || vendor?.photographerProfile?.albumPages) && (
+                  <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                    <Package className="w-4 h-4 text-[#0F4C45] shrink-0" />
+                    <span>{vendor?.albumPages || vendor?.photographerProfile?.albumPages}-Page Album</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 2. GALLERY / PORTFOLIO */}
+            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
+              <div className="flex items-center justify-between border-b border-gold/10 pb-3">
+                <div className="flex items-center gap-2">
+                  <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Portfolio &amp; Wedding Highlights</h2>
+                  {galleryPhotos.length > 0 && (
+                    <span className="px-2.5 py-0.5 rounded-full bg-gold/15 text-[#0F4C45] text-xs font-extrabold">
+                      {galleryPhotos.length} photos
+                    </span>
+                  )}
+                </div>
+                {galleryPhotos.length > 0 && (
+                  <button
+                    onClick={() => setShowAllPhotosModal(true)}
+                    className="text-xs font-extrabold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    View All Photos <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+              {galleryPhotos.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  {galleryPhotos.slice(0, 4).map((photo, i) => (
+                    <div
+                      key={i}
+                      onClick={() => setLightboxIndex(i)}
+                      className="relative aspect-[4/3] rounded-xl overflow-hidden border border-gold/20 shadow-2xs cursor-pointer group bg-gray-100"
+                    >
+                      <img src={photo.url} alt={photo.caption || `Portfolio Photo ${i + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      {i === 3 && galleryPhotos.length > 4 && (
+                        <div
+                          onClick={(e) => { e.stopPropagation(); setShowAllPhotosModal(true); }}
+                          className="absolute inset-0 bg-black/60 backdrop-blur-xs flex flex-col items-center justify-center text-white font-extrabold text-xs sm:text-sm gap-1 group-hover:bg-black/70 transition-colors"
+                        >
+                          <ImageIcon className="w-5 h-5" />
+                          <span>+{galleryPhotos.length - 4} More</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <SectionEmptyState
+                  icon={Camera}
+                  title="No portfolio images uploaded yet"
+                  message="Portfolio captures and wedding highlights will appear here once uploaded."
+                  actionLabel="Request Portfolio Photos"
+                  onAction={() => handleOpenMessage()}
+                />
+              )}
+            </div>
+
+            {/* 3. WEDDING FILMS */}
+            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
+              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal border-b border-gold/10 pb-2.5">
+                Wedding Films &amp; Teasers
+              </h2>
+              {videoFilmsList.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {videoFilmsList.map((film, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => {
+                        const targetUrl = film.url || (film as any).videoUrl;
+                        if (targetUrl) window.open(targetUrl, "_blank", "noopener,noreferrer");
+                      }}
+                      className="relative aspect-[16/9] rounded-xl overflow-hidden bg-black group border border-gold/20 shadow-xs cursor-pointer"
+                    >
+                      <img
+                        src={film.thumbnail || galleryPhotos[0]?.url || "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=800&auto=format&fit=crop"}
+                        alt={film.title}
+                        className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-full bg-white/90 shadow-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <Play className="w-6 h-6 fill-[#0F4C45] text-[#0F4C45] ml-1" />
+                        </div>
+                      </div>
+                      <span className="absolute bottom-3 left-3 text-white text-xs font-bold bg-black/60 px-2.5 py-0.5 rounded-full">
+                        {film.title}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <SectionEmptyState
+                  icon={Film}
+                  title="No videos added yet"
+                  message="Wedding film teasers and cinema highlights have not been uploaded yet."
+                  actionLabel="Request Wedding Film Sample"
+                  onAction={() => handleOpenMessage()}
+                />
+              )}
+            </div>
+
+            {/* 4. PRICING */}
+            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
+              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal flex flex-wrap items-center justify-between gap-2 border-b border-gold/10 pb-2.5">
+                <span>Photography &amp; Film Pricing</span>
+                <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20">
+                  {Boolean(vendor?.contactForPricing ?? vendor?.contact_for_pricing ?? sf?.contactForPricing ?? false)
+                    ? "Contact for Pricing"
+                    : vendor?.startingPriceLabel || (vendor?.startingPrice ? (typeof vendor.startingPrice === "number" ? `Starting ₹${Number(vendor.startingPrice).toLocaleString("en-IN")}` : vendor.startingPrice) : "Contact for Pricing")}
+                </span>
+              </h2>
+              {vendorServicesList.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  {vendorServicesList.map((svc: any, idx: number) => {
+                    const price = svc.base_price || svc.price;
+                    const formatted = typeof price === "number" ? `₹${price.toLocaleString("en-IN")}` : price || "Custom Quote";
+                    return (
+                      <div key={svc.id || idx} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
+                        <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">{svc.name}</span>
+                        <div className="font-serif font-bold text-lg text-[#0F4C45]">{formatted}</div>
+                        {svc.description && <p className="text-charcoal/60">{svc.description}</p>}
+                        {svc.deliverables && <p className="text-[11px] text-[#0F4C45] font-medium pt-1">Deliverables: {svc.deliverables}</p>}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <SectionEmptyState
+                  icon={Tag}
+                  title="Contact for pricing"
+                  message="Day rates, deliverable timelines, and album options are quoted upon consultation."
+                  actionLabel="Request Pricing Quote"
+                  onAction={() => handleOpenMessage()}
+                />
+              )}
+            </div>
+
+            {/* 5. ABOUT */}
+            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3">
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2">About Team &amp; Equipment</h2>
+              {about ? (
+                <div className="space-y-3">
+                  <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">{about}</p>
+                  
+                  {/* Photography styles tags if provided */}
+                  {Array.isArray(vendor?.styles || vendor?.photographerProfile?.styles) && (vendor?.styles || vendor?.photographerProfile?.styles).length > 0 && (
+                    <div className="pt-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-charcoal/50 block mb-1.5">Styles &amp; Specializations</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {(vendor?.styles || vendor?.photographerProfile?.styles).map((style: string, sIdx: number) => (
+                          <span key={sIdx} className="px-2.5 py-1 rounded-full bg-[#0F4C45]/10 text-[#0F4C45] text-xs font-semibold">
+                            {style}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Camera gear / equipment if provided */}
+                  {Array.isArray(vendor?.equipment || vendor?.photographerProfile?.equipment) && (vendor?.equipment || vendor?.photographerProfile?.equipment).length > 0 && (
+                    <div className="pt-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-charcoal/50 block mb-1.5">Camera Equipment &amp; Gear</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {(vendor?.equipment || vendor?.photographerProfile?.equipment).map((item: string, eIdx: number) => (
+                          <span key={eIdx} className="px-2.5 py-1 rounded-full bg-[#FAF7F2] border border-gold/20 text-charcoal text-xs font-medium">
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Areas served if provided */}
+                  {Array.isArray(vendor?.areasServed || vendor?.photographerProfile?.areasServed) && (vendor?.areasServed || vendor?.photographerProfile?.areasServed).length > 0 && (
+                    <div className="pt-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-charcoal/50 block mb-1.5">Service Areas &amp; Destinations</span>
+                      <p className="text-xs text-charcoal/70">{(vendor?.areasServed || vendor?.photographerProfile?.areasServed).join(", ")}</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <SectionEmptyState
+                  icon={User}
+                  title="Business information not added yet"
+                  message="Equipment specifications, camera gear, and team size details have not been added yet."
+                />
+              )}
+            </div>
+
+            {/* 6. PACKAGES */}
+            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Wedding Photography Packages</h2>
+              {vendorPackagesList.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {vendorPackagesList.map((pkg: any, idx: number) => {
+                    const price = pkg.discount_price || pkg.price;
+                    const formatted = pkg.priceOnRequest || pkg.price_on_request
+                      ? "Price on Request"
+                      : typeof price === "number"
+                      ? `₹${price.toLocaleString("en-IN")}`
+                      : price || "Custom Quote";
+                    const feats = Array.isArray(pkg.features) ? pkg.features : [];
+                    return (
+                      <div key={pkg.id || idx} className="p-4.5 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2.5 flex flex-col justify-between">
+                        <div className="space-y-1.5">
+                          {Boolean(pkg.is_popular || pkg.isPopular) && (
+                            <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full inline-block">
+                              Most Popular
+                            </span>
+                          )}
+                          <h3 className="font-serif font-bold text-base text-charcoal">{pkg.name}</h3>
+                          {pkg.description && <p className="text-xs text-charcoal/70 leading-relaxed">{pkg.description}</p>}
+                          
+                          {/* Deliverables & Crew count */}
+                          {(pkg.photographersCount || pkg.photographers_count || pkg.coverageDuration || pkg.coverage_duration) && (
+                            <div className="flex flex-wrap gap-2 text-[11px] text-[#0F4C45] font-semibold pt-1">
+                              {(pkg.photographersCount || pkg.photographers_count) && (
+                                <span>{pkg.photographersCount || pkg.photographers_count} Photographers</span>
+                              )}
+                              {(pkg.coverageDuration || pkg.coverage_duration) && (
+                                <span>• {pkg.coverageDuration || pkg.coverage_duration}</span>
+                              )}
+                            </div>
+                          )}
+
+                          {feats.length > 0 && (
+                            <ul className="space-y-1 pt-1.5 text-xs text-charcoal/80">
+                              {feats.map((f: string, fIdx: number) => (
+                                <li key={fIdx} className="flex items-center gap-1.5">
+                                  <Check className="w-3.5 h-3.5 text-[#0F4C45] shrink-0" />
+                                  <span>{f}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                        <div className="pt-2 border-t border-gold/15 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
+                          <span className="text-sm font-serif">{formatted}</span>
+                          <button onClick={() => handleOpenMessage()} className="underline hover:text-[#09312d] cursor-pointer">
+                            Inquire Package
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <SectionEmptyState
+                  icon={Package}
+                  title="No packages available yet"
+                  message="Preset photography packages have not been published yet. Inquire for a custom coverage proposal."
+                  actionLabel="Inquire for Custom Package"
+                  onAction={() => handleOpenMessage()}
+                />
+              )}
+            </div>
+
+            {/* 7. REVIEWS */}
+            <section className="bg-white p-4.5 sm:p-6 rounded-2xl border border-gold/15 shadow-2xs space-y-4">
+              <div className="flex items-center justify-between border-b border-gold/10 pb-3">
+                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">
+                  Reviews {reviewsList.length > 0 ? `(${reviewsList.length})` : ""}
+                </h2>
+                <button onClick={() => setIsReviewModalOpen(true)} className="px-3.5 py-1.5 rounded-xl border border-rose-500 text-rose-600 font-extrabold text-xs hover:bg-rose-50 transition-colors cursor-pointer">
+                  Write a Review
+                </button>
+              </div>
+              {reviewsList.length > 0 ? (
+                <div className="space-y-3 pt-2">
+                  {reviewsList.map((rev) => (
+                    <div key={rev.id} className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-xs text-charcoal">{rev.customerName || rev.author || "Verified Couple"}</span>
+                        <span className="text-[10px] text-emerald-700 font-semibold">★ {rev.rating || 5}.0 Verified Couple</span>
+                      </div>
+                      <p className="text-xs text-charcoal/80">"{rev.text || rev.reviewText}"</p>
+                      {rev.reply && (
+                        <div className="p-2.5 rounded-lg bg-white border-l-2 border-[#0F4C45] text-xs text-charcoal/80 space-y-0.5 mt-2">
+                          <span className="font-bold text-[10px] text-[#0F4C45] uppercase tracking-wider block">Studio Response:</span>
+                          <p className="italic text-charcoal/70">{rev.reply}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <SectionEmptyState
+                  icon={MessageSquare}
+                  title="No reviews yet"
+                  message={`Be the first couple to leave a review for ${displayName}.`}
+                  actionLabel="Write a Review"
+                  onAction={() => setIsReviewModalOpen(true)}
+                />
+              )}
+            </section>
+
+            {/* 8. FAQS */}
+            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Frequently Asked Questions</h2>
+              {vendorFaqsList.length > 0 ? (
+                <div className="space-y-3">
+                  {vendorFaqsList.map((faq: any, idx: number) => (
+                    <div key={idx} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
+                      <h3 className="font-bold text-xs sm:text-sm text-charcoal leading-snug">{faq.q}</h3>
+                      <p className="text-xs text-charcoal/70 leading-relaxed font-normal">{faq.a}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <SectionEmptyState
+                  icon={HelpCircle}
+                  title="No FAQs added yet"
+                  message="FAQs about raw footage, turnaround times, and travel policies have not been published yet."
+                />
+              )}
+            </div>
+
+            {/* 9. SIMILAR PHOTOGRAPHERS */}
+            <section className="bg-white p-4.5 sm:p-6 rounded-2xl border border-gold/15 shadow-2xs space-y-4">
+              <div className="flex items-center justify-between border-b border-gold/10 pb-2.5">
+                <h2 className="font-serif font-bold text-lg sm:text-xl text-charcoal">Similar Photographers</h2>
+                <Link href="/categories/photographers" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+                {similarStudios.slice(0, 3).map((item, idx) => (
+                  <Link
+                    key={item.id || idx}
+                    href={getSimilarVendorHref(item, "photographers")}
+                    className="group bg-white rounded-2xl overflow-hidden border border-gold/15 shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col"
+                  >
+                    <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
+                      <img
+                        src={item.coverImage || item.cover_image || item.image || item.image_url}
+                        alt={item.name || item.business_name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                    <div className="p-3.5 space-y-1.5 flex-1 flex flex-col justify-between">
+                      <h3 className="font-serif font-bold text-base text-charcoal leading-snug group-hover:text-[#0F4C45] transition-colors truncate">
+                        {item.name || item.business_name}
+                      </h3>
+                      <div className="pt-2 border-t border-gold/10 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
+                        <span>View Portfolio</span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          </>
+        )}
 
         {/* ════════════════════════════════════════════════════════════════ */}
         {/* 6. MAKEUP ARTIST STOREFRONT SECTIONS                            */}
@@ -3974,8 +4365,6 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
         )}
 
       </div>
-        </>
-      )}
       {/* ── WEDMEGOOD-STYLE STICKY MOBILE ACTION BAR ── */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/98 backdrop-blur-md border-t border-gold/20 px-3 py-2 pb-[max(env(safe-area-inset-bottom),10px)] shadow-2xl">
         <div className="flex items-center gap-2 max-w-lg mx-auto">

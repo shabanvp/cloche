@@ -2308,46 +2308,134 @@ export async function enrichPhotographerPublicProfile(
   options?: { isDraftPreview?: boolean }
 ) {
   const extras = await getPublicPhotographerExtras(existingProfile.id);
-  const galleryPhotos = extras.photos.map((p) => ({
-    id: p.id,
-    url: p.imageUrl,
-    image_url: p.imageUrl,
-    caption: p.caption,
-    category: p.category,
-    albumId: p.albumId,
+  const p = extras.profileExtras as any;
+  const galleryPhotos = extras.photos.map((photo) => ({
+    id: photo.id,
+    url: photo.imageUrl,
+    image_url: photo.imageUrl,
+    caption: photo.caption,
+    category: photo.category,
+    albumId: photo.albumId,
   }));
 
-  const coverFromPhoto = extras.photos.find((p) => p.isCover)?.imageUrl;
+  const coverFromPhoto = extras.photos.find((photo) => photo.isCover)?.imageUrl;
+  const resolvedCover =
+    p.coverUrl || existingProfile.cover_image || coverFromPhoto || existingProfile.storefront?.coverImage || "";
+  const resolvedLogo =
+    p.logoUrl || existingProfile.logo_url || existingProfile.logo || "";
+  const resolvedAbout =
+    p.about || existingProfile.about || p.intro || existingProfile.intro || "";
+  const resolvedCity = p.city || existingProfile.city || "";
+  const resolvedState = p.state || existingProfile.state || "";
+  const resolvedLocation =
+    [resolvedCity, resolvedState].filter(Boolean).join(", ") || existingProfile.location || "";
+
+  const mappedReviews = extras.reviewsList.map((r) => ({
+    id: r.id,
+    customerName: r.customerName || "Verified Client",
+    author: r.customerName || "Verified Client",
+    rating: r.rating || 5,
+    text: r.reviewText || "",
+    reviewText: r.reviewText || "",
+    verified: r.isVerified ?? true,
+    date: r.createdAt
+      ? new Date(r.createdAt).toLocaleDateString("en-IN", { month: "short", year: "numeric" })
+      : "Recent",
+    reply: r.vendorReply ? r.vendorReply.replyText : null,
+  }));
+
+  const mappedFaqs = extras.faqs.map((f) => ({
+    id: f.id,
+    q: f.question,
+    question: f.question,
+    a: f.answer,
+    answer: f.answer,
+  }));
+
+  const mappedVideos = extras.videos.map((v) => ({
+    id: v.id,
+    title: v.title || "Wedding Film",
+    videoUrl: v.videoUrl || "",
+    thumbnail: v.thumbnailUrl || (galleryPhotos[0]?.url || ""),
+    duration: (v as any).duration || "",
+  }));
 
   return {
     ...existingProfile,
     ...(options?.isDraftPreview !== undefined ? { isDraftPreview: options.isDraftPreview } : {}),
+    name: existingProfile.business_name || existingProfile.name || p.ownerName || "Wedding Photographer",
+    business_name: existingProfile.business_name || existingProfile.name || p.ownerName || "Wedding Photographer",
+    brandName: existingProfile.business_name || existingProfile.name || p.ownerName || "Wedding Photographer",
+    about: resolvedAbout,
+    description: resolvedAbout,
+    intro: p.intro || existingProfile.intro || "",
+    tagline: p.tagline || existingProfile.tagline || "",
+    experienceYears: p.experienceYears ?? existingProfile.experienceYears ?? null,
+    startingPrice: p.startingPrice != null ? p.startingPrice : existingProfile.starting_price,
+    starting_price: p.startingPrice != null ? p.startingPrice : existingProfile.starting_price,
+    phone: p.phone || existingProfile.phone || existingProfile.contact_phone || "",
+    whatsapp: p.whatsapp || existingProfile.whatsapp || p.phone || existingProfile.phone || "",
+    email: p.email || existingProfile.email || existingProfile.contact_email || "",
+    city: resolvedCity,
+    state: resolvedState,
+    pincode: p.pincode || existingProfile.pincode || "",
+    location: resolvedLocation,
+    areasServed: p.areasServed || [],
+    styles: p.styles || [],
+    equipment: p.equipment || [],
+    specializations: p.specializations || [],
+    candidPhotography: p.candidPhotography,
+    cinematicVideo: p.cinematicVideo,
+    droneCoverage: p.droneCoverage,
+    deliveryDays: p.deliveryDays,
+    albumPages: p.albumPages,
+    instagram: p.instagram,
+    youtube: p.youtube,
+    facebook: p.facebook,
+    website: p.website,
+    logo_url: resolvedLogo,
+    logo: resolvedLogo,
+    cover_image: resolvedCover,
+    coverImage: resolvedCover,
     photographerExtras: extras,
+    photographerProfile: p,
     services: extras.services,
+    vendor_services: extras.services,
     packages: extras.packages,
-    faqs: extras.faqs,
-    userReviews: extras.reviewsList,
-    reviewsList: extras.reviewsList,
+    vendor_packages: extras.packages,
+    films: mappedVideos,
+    videos: mappedVideos,
+    wedding_films: mappedVideos,
+    faqs: mappedFaqs,
+    faqList: mappedFaqs,
+    reviews: mappedReviews,
+    userReviews: mappedReviews,
+    reviewsList: mappedReviews,
     rating:
       extras.reviewsSummary.totalReviews > 0
         ? extras.reviewsSummary.averageRating
         : existingProfile.rating || 0,
     reviewCount: extras.reviewsSummary.totalReviews,
-    phone: existingProfile.phone || existingProfile.contact_phone || "",
-    email: existingProfile.email || existingProfile.contact_email || "",
-    logo_url: existingProfile.logo_url || existingProfile.logo || "",
-    cover_image:
-      existingProfile.cover_image || coverFromPhoto || existingProfile.storefront?.coverImage || "",
-    highlights: galleryPhotos.map((p) => ({
-      name: p.caption || "Showcase Photo",
-      image: p.url,
+    reviewsCount: extras.reviewsSummary.totalReviews,
+    galleryPhotos,
+    gallery: galleryPhotos,
+    highlights: galleryPhotos.map((photo) => ({
+      name: photo.caption || "Showcase Photo",
+      image: photo.url,
     })),
-    galleryImages: galleryPhotos.map((p) => p.url).filter(Boolean),
+    galleryImages: galleryPhotos.map((photo) => photo.url).filter(Boolean),
+    images: galleryPhotos.map((photo) => photo.url).filter(Boolean),
+    portfolio: galleryPhotos,
     storefront: {
       ...(existingProfile.storefront || {}),
-      coverImage:
-        existingProfile.storefront?.coverImage || existingProfile.cover_image || coverFromPhoto || "",
+      brandName: existingProfile.business_name || existingProfile.name,
+      coverImage: resolvedCover,
       gallery: galleryPhotos,
+      services: extras.services,
+      packages: extras.packages,
+      films: mappedVideos,
+      faqs: mappedFaqs,
+      reviews: mappedReviews,
     },
   };
 }

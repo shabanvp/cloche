@@ -100,17 +100,59 @@ export async function signUpWithSupabaseAuth(
   dataMetadata: Record<string, any> = {},
   emailRedirectTo: string = "https://cloche-six.vercel.app/auth/callback"
 ): Promise<{ user: any | null; session: any | null; error: Error | null }> {
-  const { url, anonKey } = getSupabaseConfig();
-  if (!url || !anonKey) {
+  const { url, anonKey, serviceKey } = getSupabaseConfig();
+  const apiKey = serviceKey || anonKey;
+  if (!url || !apiKey) {
     return { user: null, session: null, error: new Error("Supabase credentials unconfigured.") };
   }
 
+  // 1. Prefer Admin API creation with email_confirm: true when serviceKey is available.
+  // This bypasses Supabase GoTrue's 3-email-per-hour rate limit ("email rate limit exceeded") completely.
+  if (serviceKey) {
+    try {
+      const adminRes = await fetch(`${url}/auth/v1/admin/users`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          email_confirm: true,
+          user_metadata: dataMetadata,
+        }),
+      });
+
+      const adminData = await adminRes.json().catch(() => ({}));
+      if (adminRes.ok && adminData?.id) {
+        return { user: adminData, session: null, error: null };
+      }
+
+      const adminMsg = String(adminData?.msg || adminData?.message || adminData?.error_description || "");
+      const lower = adminMsg.toLowerCase();
+      if (
+        adminRes.status === 422 ||
+        adminRes.status === 409 ||
+        lower.includes("already") ||
+        lower.includes("exists") ||
+        lower.includes("registered")
+      ) {
+        return { user: null, session: null, error: new Error("User already registered") };
+      }
+    } catch (adminErr) {
+      console.warn("[SUPABASE_AUTH] Admin user creation fallback:", adminErr);
+    }
+  }
+
+  // 2. Fallback to standard signup endpoint
   try {
     const res = await fetch(`${url}/auth/v1/signup`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        apikey: anonKey,
+        apikey: anonKey || apiKey,
       },
       body: JSON.stringify({
         email,
@@ -123,9 +165,13 @@ export async function signUpWithSupabaseAuth(
       }),
     });
 
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      return { user: null, session: null, error: new Error(data.msg || data.message || data.error_description || "Supabase Auth signup failed.") };
+      const rawMsg = data.msg || data.message || data.error_description || "Supabase Auth signup failed.";
+      const cleanMsg = rawMsg.toLowerCase().includes("rate limit")
+        ? "Signup limit reached. Please wait a minute or log in if you already have an account."
+        : rawMsg;
+      return { user: null, session: null, error: new Error(cleanMsg) };
     }
 
     return { user: data.user || data, session: data.session || null, error: null };
