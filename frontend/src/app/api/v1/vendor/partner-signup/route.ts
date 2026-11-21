@@ -3,9 +3,12 @@ import { hashPassword } from "@/lib/auth";
 import { getSupabaseConfig } from "@/lib/supabase";
 
 /**
- * Passwordless-rate-limit-free pre-registration endpoint for the Partner Onboarding flow.
- * Creates and confirms the vendor's Supabase Auth account server-side via the Admin API
- * so public GoTrue confirmation emails (and Supabase's 2/hr email rate limit) are never triggered.
+ * Robust, rate-limit-free pre-registration endpoint for the Partner Onboarding flow.
+ * - Creates/synchronizes confirmed Supabase Auth accounts server-side via the Admin API.
+ * - Zero transactional confirmation emails -> Zero rate limits.
+ * - If a vendor or user email already exists, it seamlessly synchronizes the new password
+ *   and ensures vendor role/credentials are up to date, eliminating "incorrect password"
+ *   login traps during vendor registration.
  */
 export async function POST(req: Request) {
   try {
@@ -31,12 +34,15 @@ export async function POST(req: Request) {
     const { url, serviceKey, anonKey } = getSupabaseConfig();
     const apiKey = serviceKey || anonKey;
 
-    if (!url || !apiKey) {
+    if (!url || !apiKey || !serviceKey) {
       return NextResponse.json(
         { success: false, error: "Authentication service configuration missing." },
         { status: 500 }
       );
     }
+
+    const passwordHash = hashPassword(password);
+    let authUserId: string | null = null;
 
     // 1. Check if user already exists in public.users
     const existingRes = await fetch(
@@ -47,28 +53,121 @@ export async function POST(req: Request) {
       }
     );
 
+    let existingPublicUser: { id: string; email: string } | null = null;
     if (existingRes.ok) {
       const rows = await existingRes.json().catch(() => []);
       if (Array.isArray(rows) && rows.length > 0) {
-        return NextResponse.json(
-          {
-            success: false,
-            code: "ALREADY_EXISTS",
-            error: "An account with this email already exists.",
-          },
-          { status: 409 }
-        );
+        existingPublicUser = rows[0];
+        authUserId = existingPublicUser?.id || null;
       }
     }
 
-    // 2. Create confirmed Supabase Auth user via Admin API (zero confirmation emails -> zero rate limit)
-    if (!serviceKey) {
+    // 2. If user already exists in public.users, sync their password in auth.users and public.users
+    if (authUserId) {
+      const adminUpdateRes = await fetch(
+        `${url}/auth/v1/admin/users/${encodeURIComponent(authUserId)}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: serviceKey,
+            Authorization: `Bearer ${serviceKey}`,
+          },
+          body: JSON.stringify({
+            password,
+            email_confirm: true,
+            user_metadata: {
+              phone: cleanPhone || "",
+              role: "vendor",
+            },
+          }),
+        }
+      );
+
+      // If user was in public.users but not in auth.users, create them in auth.users with the same id
+      if (!adminUpdateRes.ok) {
+        const adminCreateWithIdRes = await fetch(`${url}/auth/v1/admin/users`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: serviceKey,
+            Authorization: `Bearer ${serviceKey}`,
+          },
+          body: JSON.stringify({
+            id: authUserId,
+            email: cleanEmail,
+            password,
+            email_confirm: true,
+            user_metadata: {
+              phone: cleanPhone || "",
+              role: "vendor",
+            },
+          }),
+        });
+
+        // If email was already registered with a different auth id, fetch the actual auth user
+        if (!adminCreateWithIdRes.ok) {
+          const filterRes = await fetch(
+            `${url}/auth/v1/admin/users?filter=${encodeURIComponent(cleanEmail)}`,
+            {
+              headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+            }
+          );
+          if (filterRes.ok) {
+            const filterData = await filterRes.json().catch(() => ({}));
+            const foundUser = (filterData.users || [])[0];
+            if (foundUser?.id) {
+              authUserId = String(foundUser.id);
+              await fetch(`${url}/auth/v1/admin/users/${encodeURIComponent(authUserId)}`, {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                  apikey: serviceKey,
+                  Authorization: `Bearer ${serviceKey}`,
+                },
+                body: JSON.stringify({
+                  password,
+                  email_confirm: true,
+                  user_metadata: { phone: cleanPhone || "", role: "vendor" },
+                }),
+              });
+            }
+          }
+        }
+      }
+
+      // Update password hash in public.users
+      if (authUserId) {
+        await fetch(`${url}/rest/v1/users?id=eq.${encodeURIComponent(authUserId)}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: apiKey,
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            password_hash: passwordHash,
+            phone: cleanPhone || null,
+            is_active: true,
+            is_verified: true,
+          }),
+        }).catch(() => null);
+      }
+
       return NextResponse.json(
-        { success: false, error: "Server admin key is required for partner registration." },
-        { status: 500 }
+        {
+          success: true,
+          data: {
+            userId: authUserId,
+            email: cleanEmail,
+            phone: cleanPhone,
+          },
+        },
+        { status: 200 }
       );
     }
 
+    // 3. User does not exist in public.users: Create in auth.users
     const adminCreateRes = await fetch(`${url}/auth/v1/admin/users`, {
       method: "POST",
       headers: {
@@ -89,39 +188,47 @@ export async function POST(req: Request) {
 
     const adminData = await adminCreateRes.json().catch(() => ({}));
 
-    if (!adminCreateRes.ok) {
-      const msg = String(adminData?.msg || adminData?.message || adminData?.error_description || "");
-      const lower = msg.toLowerCase();
-      if (
-        adminCreateRes.status === 422 ||
-        adminCreateRes.status === 409 ||
-        lower.includes("already") ||
-        lower.includes("exists") ||
-        lower.includes("registered")
-      ) {
+    if (adminCreateRes.ok && adminData?.id) {
+      authUserId = adminData.id;
+    } else {
+      // If user was already in auth.users, find and update them
+      const filterRes = await fetch(
+        `${url}/auth/v1/admin/users?filter=${encodeURIComponent(cleanEmail)}`,
+        {
+          headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+        }
+      );
+      const filterData = await filterRes.json().catch(() => ({}));
+      const foundUser = (filterData.users || [])[0];
+
+      if (foundUser?.id) {
+        authUserId = String(foundUser.id);
+        await fetch(`${url}/auth/v1/admin/users/${encodeURIComponent(authUserId)}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: serviceKey,
+            Authorization: `Bearer ${serviceKey}`,
+          },
+          body: JSON.stringify({
+            password,
+            email_confirm: true,
+            user_metadata: { phone: cleanPhone || "", role: "vendor" },
+          }),
+        });
+      } else {
+        const msg = String(adminData?.msg || adminData?.message || adminData?.error_description || "");
         return NextResponse.json(
           {
             success: false,
-            code: "ALREADY_EXISTS",
-            error: "An account with this email already exists.",
+            error: msg || "Could not create partner account. Please try again.",
           },
-          { status: 409 }
+          { status: adminCreateRes.status >= 400 ? adminCreateRes.status : 400 }
         );
       }
-
-      return NextResponse.json(
-        {
-          success: false,
-          error: msg || "Could not create partner account. Please try again.",
-        },
-        { status: adminCreateRes.status >= 400 ? adminCreateRes.status : 400 }
-      );
     }
 
-    const authUserId: string = adminData.id;
-
-    // 3. Ensure matching public.users row exists cleanly with hashed password
-    const passwordHash = hashPassword(password);
+    // 4. Ensure matching public.users row exists cleanly with hashed password
     await fetch(`${url}/rest/v1/users?on_conflict=email`, {
       method: "POST",
       headers: {
@@ -159,4 +266,3 @@ export async function POST(req: Request) {
     );
   }
 }
-

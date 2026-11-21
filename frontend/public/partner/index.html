@@ -3930,15 +3930,10 @@
           });
           const regJson = await regRes.json().catch(() => ({}));
 
-          // If user already registered, automatically log in with their credentials!
-          if (regRes.status === 409 || regJson?.code === 'ALREADY_EXISTS' || String(regJson?.error || '').toLowerCase().includes('already')) {
-            return ACT.login(t);
-          }
-
           if (!regRes.ok || !regJson?.success) {
             let errMsg = regJson?.error || 'Could not create account. Please try again.';
             if (errMsg.toLowerCase().includes('rate limit')) {
-              errMsg = 'Too many attempts. Please try logging in with your password or wait a moment.';
+              errMsg = 'Too many attempts. Please wait a moment and try again.';
             }
             S.err.contact = errMsg;
             return fail(errMsg);
@@ -3965,9 +3960,13 @@
             }));
           } catch (e) {}
 
-          toast('Account created successfully!');
-          // Directly advance to category selection to add shop & service details!
-          go('category');
+          toast('Account ready!');
+          await loadAll(true);
+          if (S.vendor || S.biz.name) {
+            go('dashboard');
+          } else {
+            go('category');
+          }
         });
       },
       google(t) { return oauth('google', t) },
