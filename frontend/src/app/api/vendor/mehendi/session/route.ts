@@ -111,6 +111,7 @@ export async function POST(req: Request) {
       userId: resolvedUserId,
       email: cleanEmail || userRow?.email || authUser.email,
       fullName: userRow?.full_name || userRow?.name || authUser?.user_metadata?.full_name || "Mehendi Artist",
+      roles: ["vendor", "customer"],
       role: "vendor",
       vendorId: vendorRow.id,
       vendorCategory: "mehendi",
