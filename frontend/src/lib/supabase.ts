@@ -1377,20 +1377,22 @@ export async function fetchPublicVendorProfileFromDb(identifier: string, options
     bookingsRes,
     categoryExtRes,
     versionsRes,
+    faqsRes,
   ] = await Promise.all([
     supabaseFetch(`vendor_profiles?or=(vendor_id.eq.${encodeURIComponent(vendorId)},id.eq.${encodeURIComponent(vendorId)})&select=*`),
     supabaseFetch(`vendor_contacts?vendor_id=eq.${encodeURIComponent(vendorId)}&order=is_primary.desc,created_at.asc&select=*`),
     supabaseFetch(`vendor_addresses?vendor_id=eq.${encodeURIComponent(vendorId)}&order=created_at.asc&select=*`),
     supabaseFetch(`vendor_business_hours?vendor_id=eq.${encodeURIComponent(vendorId)}&select=*`),
     supabaseFetch(`vendor_social_links?vendor_id=eq.${encodeURIComponent(vendorId)}&select=*`),
-    supabaseFetch(`vendor_services?vendor_id=eq.${encodeURIComponent(vendorId)}&deleted_at=is.null&status=eq.published&is_active=eq.true&order=sort_order.asc,created_at.desc&select=*,vendor_service_images(*)`),
-    supabaseFetch(`vendor_service_packages?vendor_id=eq.${encodeURIComponent(vendorId)}&deleted_at=is.null&status=eq.published&is_active=eq.true&order=sort_order.asc,created_at.desc&select=*`),
+    supabaseFetch(`vendor_services?vendor_id=eq.${encodeURIComponent(vendorId)}&deleted_at=is.null&or=(status.eq.published,status.eq.active,status.is.null)&is_active=eq.true&order=sort_order.asc,created_at.desc&select=*,vendor_service_images(*)`),
+    supabaseFetch(`vendor_service_packages?vendor_id=eq.${encodeURIComponent(vendorId)}&deleted_at=is.null&or=(status.eq.published,status.eq.active,status.is.null)&is_active=eq.true&order=sort_order.asc,created_at.desc&select=*`),
     fetchVendorGalleryFromDb(vendorId),
     supabaseFetch(`vendor_catalog_items?vendor_id=eq.${encodeURIComponent(vendorId)}&deleted_at=is.null&status=eq.published&is_available=eq.true&order=sort_order.asc,created_at.desc&select=*,vendor_catalog_images(*)`),
     supabaseFetch(`reviews?vendor_id=eq.${encodeURIComponent(vendorId)}&status=eq.published&order=created_at.desc&select=*`),
     supabaseFetch(`bookings?vendor_id=eq.${encodeURIComponent(vendorId)}&status=eq.completed&select=id`),
     supabaseFetch(`${extTable}?vendor_id=eq.${encodeURIComponent(vendorId)}&select=*`).catch(() => ({ data: [], error: null })),
     supabaseFetch(`vendor_profile_versions?vendor_id=eq.${encodeURIComponent(vendorId)}&order=created_at.desc&limit=1&select=id,version_number,vendor_profile_version_sections(*)`).catch(() => ({ data: [], error: null })),
+    supabaseFetch(`vendor_faqs?vendor_id=eq.${encodeURIComponent(vendorId)}&order=sort_order.asc,created_at.asc&select=*`).catch(() => ({ data: [], error: null })),
   ]);
 
   console.log(`[DB:FETCH] public_vendor_profile vendor_id=${vendorId} extTable=${extTable} ms=${Date.now() - start}`);
@@ -1406,11 +1408,14 @@ export async function fetchPublicVendorProfileFromDb(identifier: string, options
   const catalog = asArray<any>(catalogRes.data);
   const reviews = asArray<any>(reviewsRes.data);
   const completedProjects = asArray(bookingsRes.data).length;
+  const dbFaqs = asArray<any>(faqsRes?.data);
 
   // Extract saved draft version sections (storefront rich customization, venue spaces, packages, etc.)
   const latestVersion = firstRow(versionsRes?.data);
   const versionSections = asArray<any>(latestVersion?.vendor_profile_version_sections);
   const categoryDetailsSection = versionSections.find((s: any) => s.section_name === "category_details")?.section_payload || {};
+  const packagesVersionSection = versionSections.find((s: any) => s.section_name === "packages")?.section_payload || {};
+  const pkgExtrasMap = packagesVersionSection.packageExtras || {};
   const versionProfile = categoryDetailsSection.profile || {};
   const versionCategoryDetails = categoryDetailsSection.categoryDetails || {};
   const versionSf = versionProfile.storefront || {};
@@ -1642,7 +1647,9 @@ export async function fetchPublicVendorProfileFromDb(identifier: string, options
       policySwitches: categoryDetail.policy_switches || profile.policy_switches || sfRaw.policySwitches || {},
       decorationPolicy: categoryDetail.decoration_rules || profile.decoration_rules || sfRaw.decorationPolicy || "",
       cancellationPolicyText: categoryDetail.cancellation_policy || profile.cancellation_policy || sfRaw.cancellationPolicyText || "",
-      faqs: categoryDetail.faqs || profile.faqs || sfRaw.faqs || [],
+      faqs: dbFaqs.length > 0
+        ? dbFaqs.map((f: any) => ({ id: f.id, q: f.question, question: f.question, a: f.answer, answer: f.answer }))
+        : (categoryDetail.faqs || profile.faqs || sfRaw.faqs || []),
       availabilityNote: categoryDetail.availability_note || profile.availability_note || sfRaw.availabilityNote || "",
       blockedDates: categoryDetail.blocked_dates || profile.blocked_dates || sfRaw.blockedDates || "",
       contactPreferences: categoryDetail.contact_preferences || profile.contact_preferences || sfRaw.contactPreferences || {},
@@ -1728,15 +1735,27 @@ export async function fetchPublicVendorProfileFromDb(identifier: string, options
         price: money(svc.base_price || svc.price),
         pricingType: svc.pricing_type || "",
       })),
-      packages: packages.map((pkg) => ({
-        name: pkg.name,
-        tagline: pkg.tagline || "",
-        description: pkg.description || "",
-        price: money(pkg.discount_price || pkg.price),
-        originalPrice: pkg.discount_price ? money(pkg.price) : "",
-        features: Array.isArray(pkg.features) ? pkg.features : [],
-        isPopular: Boolean(pkg.is_popular),
-      })),
+      packages: packages.map((pkg) => {
+        const ext = pkgExtrasMap[pkg.id] || {};
+        const isPoR = Boolean(ext.priceOnRequest ?? (pkg.priceOnRequest || Number(pkg.price || 0) <= 0));
+        return {
+          id: pkg.id,
+          name: pkg.name,
+          tagline: pkg.tagline || (isPoR ? "Price on Request" : (ext.coverageDuration || "")),
+          description: pkg.description || "",
+          price: isPoR ? 0 : Number(pkg.discount_price || pkg.price || 0),
+          priceOnRequest: isPoR,
+          originalPrice: pkg.discount_price ? money(pkg.price) : "",
+          features: Array.isArray(pkg.features) ? pkg.features : [],
+          photographersCount: ext.photographersCount ?? pkg.photographersCount ?? null,
+          coverageDuration: ext.coverageDuration || pkg.coverageDuration || "",
+          albumDetails: ext.albumDetails || pkg.albumDetails || "",
+          videoDetails: ext.videoDetails || pkg.videoDetails || "",
+          imageUrl: ext.imageUrl || pkg.image_url || "",
+          isPopular: Boolean(pkg.is_popular || pkg.isPopular),
+          isActive: pkg.is_active !== false,
+        };
+      }),
       userReviews: reviews.map((review) => ({
         author: review.customer_name || "Verified Customer",
         rating: Number(review.rating || 0),

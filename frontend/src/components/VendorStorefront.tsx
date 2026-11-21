@@ -3194,7 +3194,8 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {vendorPackagesList.map((pkg: any, idx: number) => {
                     const price = pkg.discount_price || pkg.price;
-                    const formatted = pkg.priceOnRequest || pkg.price_on_request
+                    const isPoR = Boolean(pkg.priceOnRequest || pkg.price_on_request || pkg.tagline === "Price on Request" || (typeof price === "number" && price <= 0));
+                    const formatted = isPoR
                       ? "Price on Request"
                       : typeof price === "number"
                       ? `₹${price.toLocaleString("en-IN")}`
@@ -3220,6 +3221,20 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                               {(pkg.coverageDuration || pkg.coverage_duration) && (
                                 <span>• {pkg.coverageDuration || pkg.coverage_duration}</span>
                               )}
+                            </div>
+                          )}
+
+                          {/* Album & Video Film details if saved in package */}
+                          {(pkg.albumDetails || pkg.album_details) && (
+                            <div className="text-[11px] text-charcoal/70 flex items-center gap-1.5 pt-0.5">
+                              <Award className="w-3.5 h-3.5 text-[#C8A96A] shrink-0" />
+                              <span>Album: {pkg.albumDetails || pkg.album_details}</span>
+                            </div>
+                          )}
+                          {(pkg.videoDetails || pkg.video_details) && (
+                            <div className="text-[11px] text-charcoal/70 flex items-center gap-1.5 pt-0.5">
+                              <Film className="w-3.5 h-3.5 text-[#C8A96A] shrink-0" />
+                              <span>Film: {pkg.videoDetails || pkg.video_details}</span>
                             </div>
                           )}
 

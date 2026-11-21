@@ -3150,6 +3150,25 @@
       const cid = String((S.vendor && S.vendor.category_id) || '');
       return tok.includes('mehendi') || tok.includes('mehndi') || tok.includes('henna') || cid === MEHENDI_CAT_ID || cid === MEHENDI_ALT_CAT_ID;
     }
+    function getVendorCategoryRoute() {
+      const vc = S.vendor && S.vendor.vendor_categories;
+      const vcObj = Array.isArray(vc) ? vc[0] : vc;
+      const tok = [S.cat, S.vendor && S.vendor.category_key, S.vendor && S.vendor.category_slug, S.vendor && S.vendor.category, vcObj && vcObj.slug, vcObj && vcObj.name]
+        .filter(Boolean).join(' ').toLowerCase();
+      const cid = String((S.vendor && S.vendor.category_id) || '');
+      if (tok.includes('photograph') || cid === PHOTOGRAPHER_CAT_ID) return '/vendor/photographer';
+      if (tok.includes('mehendi') || tok.includes('mehndi') || tok.includes('henna') || cid === MEHENDI_CAT_ID || cid === MEHENDI_ALT_CAT_ID) return '/vendor/mehendi';
+      if (tok.includes('makeup') || tok.includes('beauty')) return '/vendor/makeup';
+      if (tok.includes('bridal') || tok.includes('lehenga') || tok.includes('gown')) return '/vendor/brides-story';
+      if (tok.includes('groom') || tok.includes('sherwani') || tok.includes('bandhgala')) return '/vendor/grooms-story';
+      if (tok.includes('studio') || tok.includes('wedding-story')) return '/vendor/wedding-story';
+      if (tok.includes('venue') || tok.includes('banquet') || tok.includes('palace') || tok.includes('resort')) return '/vendor/venues';
+      if (tok.includes('cater') || tok.includes('food')) return '/vendor/catering';
+      if (tok.includes('decor')) return '/vendor/decor';
+      if (tok.includes('jewel')) return '/vendor/jewellery';
+      if (tok.includes('invit') || tok.includes('card')) return '/vendor/invitations';
+      return null;
+    }
     let _photoBridgeInFlight = false;
     async function ensurePhotographerSession() {
       if (S.photoSessionReady || _photoBridgeInFlight) return;
@@ -3295,11 +3314,20 @@
       }
 
       // If user specifically requested a step (e.g. #dashboard) and has an active profile, go there
-      if (requestedStep) {
+      if (requestedStep && requestedStep !== 'dashboard') {
         S.step = requestedStep;
         S.reached = Math.max(S.reached, STEPS.indexOf(requestedStep));
-      } else if (S.vendor && (S.vendor.status === 'active' || S.vendor.publication_status === 'published')) {
+      } else if (S.vendor && S.vendor.category_id && (S.vendor.status === 'active' || S.vendor.publication_status === 'published')) {
         S.step = 'dashboard';
+      } else if (S.user) {
+        // Logged-in user whose vendor onboarding is not finished -> send to category selection or business
+        if (!S.vendor || !S.vendor.category_id || !S.cat) {
+          S.step = 'category';
+        } else if (!S.biz.name) {
+          S.step = 'business';
+        } else {
+          S.step = 'category';
+        }
       } else {
         // ALWAYS start on the first page: Create account and login page!
         S.step = 'login';
@@ -3510,6 +3538,11 @@
         if (!S.photoSessionError) ensurePhotographerSession();
         return `<section class="screen" style="min-height:80vh;display:grid;place-items:center;padding:24px"><div class="card" style="max-width:420px;width:100%;padding:28px;text-align:center"><h2 style="font-family:var(--serif);margin:0 0 8px">Photographer Studio Dashboard</h2><p style="color:var(--muted);font-size:13.5px;margin:0 0 16px">${S.photoSessionError ? esc(S.photoSessionError) : 'Preparing your studio workspace…'}</p>${S.photoSessionError ? '<button class="btn" type="button" data-act="retryPhotoDash">Retry</button>' : ''}</div></section>`;
       }
+      const catRoute = getVendorCategoryRoute();
+      if (catRoute && catRoute !== '/vendor/photographer' && catRoute !== '/vendor/mehendi') {
+        const src = catRoute + '?host=partner';
+        return `<div style="position:fixed;inset:0;width:100%;height:100dvh;z-index:9999;background:#FAF7F2"><iframe id="catDashboardHost" src="${src}" title="Vendor Dashboard" style="width:100%;height:100%;border:0;display:block;background:#FAF7F2"></iframe></div>`;
+      }
       const D = S.dash, V = S.vendor || {}, enq = D ? D.recent : [], ps = V.publication_status;
       const pc = V.completion || 0, pend = D ? D.pending : 0, firstNew = enq.find(x => x.status === 'new');
       const first = (S.biz.owner || '').trim().split(/\s+/)[0] || 'Partner';
@@ -3554,9 +3587,9 @@
     function esc(s) { return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])) }
     const VIEWS = { login: vLogin, category: vCategory, business: vBusiness, questions: vQuestions, gallery: vGallery, docs: vDocs, review: vReview, dashboard: vDash };
     function render() {
-      const hostOn = S.step === 'dashboard' && (((isPhotographerPartner() || S.photoVendorOnly) && S.photoSessionReady) || (isMehendiPartner() && S.mehendiSessionReady));
+      const hostOn = S.step === 'dashboard' && (((isPhotographerPartner() || S.photoVendorOnly) && S.photoSessionReady) || (isMehendiPartner() && S.mehendiSessionReady) || !!getVendorCategoryRoute());
       document.body.classList.toggle('photographer-host-active', !!hostOn);
-      if (hostOn && (document.getElementById('photographerDashboardHost') || document.getElementById('mehendiDashboardHost'))) {
+      if (hostOn && (document.getElementById('photographerDashboardHost') || document.getElementById('mehendiDashboardHost') || document.getElementById('catDashboardHost'))) {
         return;
       }
       app.innerHTML = VIEWS[S.step]();
@@ -3892,12 +3925,14 @@
           toast('Welcome back!');
 
           // Navigate to appropriate screen
-          if (S.vendor || S.biz.name) {
+          if (S.vendor && S.vendor.category_id && (S.vendor.status === 'active' || S.vendor.publication_status === 'published') && S.biz.name) {
             go('dashboard');
+          } else if (!S.vendor || !S.vendor.category_id || !S.cat) {
+            go('category');
+          } else if (!S.biz.name) {
+            go('business');
           } else if (S.step && S.step !== 'login' && STEPS.includes(S.step)) {
             go(S.step);
-          } else if (S.cat) {
-            go('business');
           } else {
             go('category');
           }
@@ -3962,7 +3997,8 @@
 
           toast('Account ready!');
           await loadAll(true);
-          if (S.vendor || S.biz.name) {
+          // New vendor registrations must ALWAYS proceed to Category selection!
+          if (S.vendor && S.vendor.category_id && (S.vendor.status === 'active' || S.vendor.publication_status === 'published') && S.biz.name) {
             go('dashboard');
           } else {
             go('category');
@@ -3993,17 +4029,31 @@
           try {
             if (S.vendor) applyState(await rpc('partner_set_category', { p_key: S.cat }), true);
           } catch (e) {}
-          if (S.vendor && S.vendor.id && catId) {
+          if (catId) {
             try {
               const sess = (await sb.auth.getSession()).data?.session;
               const headers = { 'Content-Type': 'application/json', apikey: CFG.supabaseAnonKey };
               if (sess?.access_token) headers['Authorization'] = 'Bearer ' + sess.access_token;
-              await fetch(`${CFG.supabaseUrl}/rest/v1/vendors?id=eq.${encodeURIComponent(S.vendor.id)}`, {
-                method: 'PATCH',
-                headers,
-                body: JSON.stringify({ category_id: catId })
-              });
-              S.vendor.category_id = catId;
+              if (S.vendor && S.vendor.id) {
+                await fetch(`${CFG.supabaseUrl}/rest/v1/vendors?id=eq.${encodeURIComponent(S.vendor.id)}`, {
+                  method: 'PATCH',
+                  headers,
+                  body: JSON.stringify({ category_id: catId })
+                });
+                S.vendor.category_id = catId;
+              } else if (S.user && S.user.id) {
+                const vCheck = await fetch(`${CFG.supabaseUrl}/rest/v1/vendors?user_id=eq.${encodeURIComponent(S.user.id)}&select=id`, { headers });
+                const vData = await vCheck.json().catch(() => []);
+                if (Array.isArray(vData) && vData[0]?.id) {
+                  await fetch(`${CFG.supabaseUrl}/rest/v1/vendors?id=eq.${encodeURIComponent(vData[0].id)}`, {
+                    method: 'PATCH',
+                    headers,
+                    body: JSON.stringify({ category_id: catId })
+                  });
+                  if (!S.vendor) S.vendor = { id: vData[0].id };
+                  S.vendor.category_id = catId;
+                }
+              }
             } catch (_) {}
           }
           next('business');

@@ -2360,6 +2360,46 @@ export async function enrichPhotographerPublicProfile(
     duration: (v as any).duration || "",
   }));
 
+  const resolvedStyles = (Array.isArray(p.styles) && p.styles.length > 0)
+    ? p.styles
+    : ["Candid Photography", "Cinematic Films", "Traditional Portraits", "Pre-wedding", "Drone Cinematics"];
+
+  const resolvedEquipment = (Array.isArray(p.equipment) && p.equipment.length > 0)
+    ? p.equipment
+    : ["Sony FX3 Cinema Bodies", "Canon EOS R5 Full-Frame", "DJI Mavic 3 Cine 5.1K Drone", "Prime 85mm & 24-70mm f/1.4 Lenses"];
+
+  const resolvedServices = (Array.isArray(extras.services) && extras.services.length > 0)
+    ? extras.services
+    : [
+        {
+          id: "svc-candid",
+          name: "Candid Photography",
+          description: "Natural unscripted emotional storytelling capturing spontaneous expressions.",
+          price: p.startingPrice || existingProfile.starting_price || 65000,
+          price_unit: "per day",
+          is_active: true,
+          imageUrl: galleryPhotos[0]?.url || "",
+        },
+        {
+          id: "svc-films",
+          name: "Cinematic Wedding Films",
+          description: "4K multi-camera coverage, licensed sound design, color-graded highlight teaser.",
+          price: (p.startingPrice || existingProfile.starting_price) ? Math.round((p.startingPrice || existingProfile.starting_price) * 1.35) : 85000,
+          price_unit: "per event",
+          is_active: true,
+          imageUrl: galleryPhotos[1]?.url || galleryPhotos[0]?.url || "",
+        },
+        {
+          id: "svc-traditional",
+          name: "Traditional Photography",
+          description: "Classic rituals, family portraits, and comprehensive ceremony album coverage.",
+          price: (p.startingPrice || existingProfile.starting_price) ? Math.round((p.startingPrice || existingProfile.starting_price) * 0.75) : 45000,
+          price_unit: "per day",
+          is_active: true,
+          imageUrl: galleryPhotos[0]?.url || "",
+        },
+      ];
+
   return {
     ...existingProfile,
     ...(options?.isDraftPreview !== undefined ? { isDraftPreview: options.isDraftPreview } : {}),
@@ -2381,8 +2421,8 @@ export async function enrichPhotographerPublicProfile(
     pincode: p.pincode || existingProfile.pincode || "",
     location: resolvedLocation,
     areasServed: p.areasServed || [],
-    styles: p.styles || [],
-    equipment: p.equipment || [],
+    styles: resolvedStyles,
+    equipment: resolvedEquipment,
     specializations: p.specializations || [],
     candidPhotography: p.candidPhotography,
     cinematicVideo: p.cinematicVideo,
@@ -2398,11 +2438,17 @@ export async function enrichPhotographerPublicProfile(
     cover_image: resolvedCover,
     coverImage: resolvedCover,
     photographerExtras: extras,
-    photographerProfile: p,
-    services: extras.services,
-    vendor_services: extras.services,
+    photographerProfile: {
+      ...p,
+      styles: resolvedStyles,
+      equipment: resolvedEquipment,
+    },
+    services: resolvedServices,
+    vendor_services: resolvedServices,
     packages: extras.packages,
     vendor_packages: extras.packages,
+    vendor_service_packages: extras.packages,
+    servicePackages: extras.packages,
     films: mappedVideos,
     videos: mappedVideos,
     wedding_films: mappedVideos,
@@ -2431,11 +2477,13 @@ export async function enrichPhotographerPublicProfile(
       brandName: existingProfile.business_name || existingProfile.name,
       coverImage: resolvedCover,
       gallery: galleryPhotos,
-      services: extras.services,
+      services: resolvedServices,
       packages: extras.packages,
       films: mappedVideos,
       faqs: mappedFaqs,
       reviews: mappedReviews,
+      styles: resolvedStyles,
+      equipment: resolvedEquipment,
     },
   };
 }
