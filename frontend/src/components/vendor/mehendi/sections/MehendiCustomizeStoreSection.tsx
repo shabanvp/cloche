@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import {
+  ArrowLeft,
   ArrowUpRight,
   Check,
   CheckCircle2,
@@ -25,23 +26,31 @@ import {
   type MehendiProfileData,
 } from "../types";
 
-interface Props {
-  customStore: MehendiCustomizeStoreData | null;
-  profile: MehendiProfileData | null;
-  portfolio: MehendiPortfolioDesignItem[];
-  collections: MehendiCollectionItem[];
-  onRefresh: () => Promise<void>;
-  showToast: (msg: string, type?: "success" | "error") => void;
+export interface MehendiCustomizeStoreSectionProps {
+  customStore?: MehendiCustomizeStoreData | null;
+  profile?: MehendiProfileData | null;
+  portfolio?: MehendiPortfolioDesignItem[];
+  collections?: MehendiCollectionItem[];
+  onRefresh?: () => Promise<void>;
+  showToast?: (msg: string, type?: "success" | "error") => void;
+  vendorName?: string;
+  artistName?: string;
+  businessName?: string;
+  onBack?: () => void;
 }
 
 export function MehendiCustomizeStoreSection({
-  customStore,
-  profile,
-  portfolio,
-  collections,
+  customStore = null,
+  profile = null,
+  portfolio = [],
+  collections = [],
   onRefresh,
   showToast,
-}: Props) {
+  vendorName,
+  artistName,
+  businessName,
+  onBack,
+}: MehendiCustomizeStoreSectionProps = {}) {
   const [themeId, setThemeId] = useState<string>(customStore?.themeId || "emerald");
   const [featuredDesignIds, setFeaturedDesignIds] = useState<string[]>(
     customStore?.featuredDesignIds || []
@@ -90,10 +99,10 @@ export function MehendiCustomizeStoreSection({
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Failed to save store customization");
 
-      showToast("Store branding & customization saved live!");
-      await onRefresh();
+      if (showToast) showToast("Store branding & customization saved live!");
+      if (onRefresh) await onRefresh();
     } catch (err: any) {
-      showToast(err.message || "Failed to save changes", "error");
+      if (showToast) showToast(err.message || "Failed to save changes", "error");
     } finally {
       setSaving(false);
     }
@@ -103,6 +112,15 @@ export function MehendiCustomizeStoreSection({
 
   return (
     <form onSubmit={handleSave} className="space-y-8 animate-in fade-in duration-300 pb-16">
+      {onBack && (
+        <button
+          type="button"
+          onClick={onBack}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#6E6259] hover:text-[#2B2523] -mb-4 transition-colors"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" /> Back to Dashboard
+        </button>
+      )}
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#E6DDD0] pb-5">
         <div>

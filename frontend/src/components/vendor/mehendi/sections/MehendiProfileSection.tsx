@@ -28,13 +28,23 @@ import {
   type MehendiProfileData,
 } from "../types";
 
-interface Props {
-  profile: MehendiProfileData | null;
-  onRefresh: () => Promise<void>;
-  showToast: (msg: string, type?: "success" | "error") => void;
+export interface MehendiProfileSectionProps {
+  profile?: MehendiProfileData | null;
+  onRefresh?: () => Promise<void>;
+  showToast?: (msg: string, type?: "success" | "error") => void;
+  artistName?: string;
+  businessName?: string;
+  vendorName?: string;
 }
 
-export function MehendiProfileSection({ profile, onRefresh, showToast }: Props) {
+export function MehendiProfileSection({
+  profile = null,
+  onRefresh,
+  showToast,
+  artistName,
+  businessName,
+  vendorName,
+}: MehendiProfileSectionProps = {}) {
   const [formData, setFormData] = useState<MehendiProfileData>(() => {
     if (profile) return profile;
     return {
@@ -43,9 +53,9 @@ export function MehendiProfileSection({ profile, onRefresh, showToast }: Props) 
       status: "active",
       publicationStatus: "published",
       isVerified: false,
-      businessName: "",
+      businessName: businessName || vendorName || "",
       slug: "",
-      ownerName: "",
+      ownerName: artistName || "",
       businessLogoUrl: "",
       businessLogoMediaId: null,
       profilePhotoUrl: "",
@@ -173,9 +183,9 @@ export function MehendiProfileSection({ profile, onRefresh, showToast }: Props) 
         }));
       }
 
-      showToast(`${kind.toUpperCase()} uploaded successfully!`);
+      if (showToast) showToast(`${kind.toUpperCase()} uploaded successfully!`);
     } catch (err: any) {
-      showToast(err.message || "Failed to upload image", "error");
+      if (showToast) showToast(err.message || "Failed to upload image", "error");
     } finally {
       setUploadingKind(null);
     }
@@ -195,10 +205,10 @@ export function MehendiProfileSection({ profile, onRefresh, showToast }: Props) 
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Failed to save profile");
 
-      showToast("Mehendi profile saved successfully!");
-      await onRefresh();
+      if (showToast) showToast("Mehendi profile saved successfully!");
+      if (onRefresh) await onRefresh();
     } catch (err: any) {
-      showToast(err.message || "Could not save profile", "error");
+      if (showToast) showToast(err.message || "Could not save profile", "error");
     } finally {
       setSaving(false);
     }

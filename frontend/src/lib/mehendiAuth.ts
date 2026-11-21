@@ -110,8 +110,8 @@ export async function requireAuthenticatedMehendi(
 
   const businessName =
     profileRow?.business_name ||
-    auth.vendor?.boutique_name ||
-    auth.vendor?.name ||
+    (vendorRow as any)?.name ||
+    (vendorRow as any)?.business_name ||
     `${ownerName}'s Henna Art`;
 
   const slug = profileRow?.slug || vendorId;

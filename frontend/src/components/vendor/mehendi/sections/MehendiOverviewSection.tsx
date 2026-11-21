@@ -20,23 +20,32 @@ import {
 } from "lucide-react";
 import type { MehendiDashboardTab, MehendiOverviewBundle } from "../types";
 
-interface Props {
-  overview: MehendiOverviewBundle | null;
-  loading: boolean;
-  onNavigateTab: (tab: MehendiDashboardTab) => void;
-  onTogglePublication: (status: "published" | "draft") => Promise<void>;
-  togglingVisibility: boolean;
-  showToast: (msg: string, type?: "success" | "error") => void;
+export interface MehendiOverviewSectionProps {
+  overview?: MehendiOverviewBundle | null;
+  loading?: boolean;
+  onNavigateTab?: (tab: MehendiDashboardTab) => void;
+  onTogglePublication?: (status: "published" | "draft") => Promise<void>;
+  togglingVisibility?: boolean;
+  showToast?: (msg: string, type?: "success" | "error") => void;
+  artistName?: string;
+  businessName?: string;
+  vendorName?: string;
+  onNavigate?: (tab: any) => void;
 }
 
 export function MehendiOverviewSection({
-  overview,
-  loading,
-  onNavigateTab,
+  overview = null,
+  loading = false,
+  onNavigateTab: onNavigateTabProp,
   onTogglePublication,
-  togglingVisibility,
+  togglingVisibility = false,
   showToast,
-}: Props) {
+  artistName,
+  businessName,
+  vendorName,
+  onNavigate,
+}: MehendiOverviewSectionProps = {}) {
+  const onNavigateTab = onNavigateTabProp || ((tab: any) => onNavigate && onNavigate(tab));
   if (loading && !overview) {
     return (
       <div className="space-y-6 animate-pulse">
@@ -116,7 +125,7 @@ export function MehendiOverviewSection({
           <button
             type="button"
             disabled={togglingVisibility}
-            onClick={() => onTogglePublication(isPublished ? "draft" : "published")}
+            onClick={() => onTogglePublication && onTogglePublication(isPublished ? "draft" : "published")}
             className={`flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold transition-all ${
               isPublished
                 ? "bg-amber-100/70 hover:bg-amber-200/80 text-amber-900 border border-amber-300"
