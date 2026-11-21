@@ -1,120 +1,271 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { BarChart3, ArrowUpRight, Eye, Inbox, Star, Flame, Loader2 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import {
+  BarChart3,
+  Calendar,
+  Eye,
+  Filter,
+  Flame,
+  Layers,
+  Loader2,
+  Paintbrush,
+  Sparkles,
+  Star,
+  TrendingUp,
+  Users,
+} from "lucide-react";
+import type { MehendiAnalyticsBundle } from "../types";
 
 export function MehendiAnalyticsSection() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [views, setViews] = useState(0);
-  const [enquiries, setEnquiries] = useState(0);
-  const [bookings, setBookings] = useState(0);
-
-  const getHeaders = () => {
-    const headers: Record<string, string> = { "Content-Type": "application/json" };
-    if (typeof window !== "undefined") {
-      try {
-        const cookieStr = document.cookie;
-        const match = cookieStr.match(/(?:^|;\s*)user_data=([^;]*)/);
-        if (match) {
-          const parsed = JSON.parse(decodeURIComponent(match[1]));
-          if (parsed?.id) headers["x-user-id"] = parsed.id;
-          if (parsed?.email) headers["x-user-email"] = parsed.email;
-        }
-        const tokenMatch = cookieStr.match(/(?:^|;\s*)auth_token=([^;]*)/);
-        if (tokenMatch && tokenMatch[1]) headers["x-auth-token"] = tokenMatch[1];
-      } catch (_) {}
-    }
-    return headers;
-  };
+  const [range, setRange] = useState<"7d" | "30d" | "90d">("30d");
+  const [analytics, setAnalytics] = useState<MehendiAnalyticsBundle | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let isMounted = true;
-    const fetchAnalytics = async () => {
-      setIsLoading(true);
-      try {
-        const [profRes, leadsRes, bookingsRes] = await Promise.all([
-          fetch("/api/v1/vendor/profile", { headers: getHeaders() }).catch(() => null),
-          fetch("/api/v1/vendor/leads", { headers: getHeaders() }).catch(() => null),
-          fetch("/api/v1/vendor/bookings", { headers: getHeaders() }).catch(() => null),
-        ]);
-
-        if (!isMounted) return;
-
-        if (profRes && profRes.ok) {
-          const json = await profRes.json();
-          const v = json.data?.vendor || {};
-          setViews(v.view_count || 0);
+    let cancelled = false;
+    setLoading(true);
+    fetch(`/api/vendor/mehendi/analytics?range=${range}`, {
+      credentials: "include",
+    })
+      .then((r) => r.json())
+      .then((j) => {
+        if (!cancelled && j.success && j.data) {
+          setAnalytics(j.data);
         }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
 
-        if (leadsRes && leadsRes.ok) {
-          const json = await leadsRes.json();
-          if (json.success && Array.isArray(json.data)) {
-            setEnquiries(json.data.length);
-          }
-        }
-
-        if (bookingsRes && bookingsRes.ok) {
-          const json = await bookingsRes.json();
-          if (json.success && Array.isArray(json.data)) {
-            setBookings(json.data.length);
-          }
-        }
-      } catch (e) {
-        console.error("[MehendiAnalyticsSection] Error fetching analytics:", e);
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
+    return () => {
+      cancelled = true;
     };
+  }, [range]);
 
-    fetchAnalytics();
-    return () => { isMounted = false; };
-  }, []);
+  if (loading && !analytics) {
+    return (
+      <div className="space-y-6 animate-pulse pb-16">
+        <div className="h-10 bg-[#F0EAE0] rounded-xl w-1/3" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-28 bg-[#F0EAE0] rounded-2xl" />
+          ))}
+        </div>
+        <div className="h-64 bg-[#F0EAE0] rounded-2xl" />
+      </div>
+    );
+  }
 
-  const conversionRate = enquiries > 0 ? ((bookings / enquiries) * 100).toFixed(1) + "%" : "0.0%";
-
-  const metrics = [
-    { label: "Profile Page Views", value: views.toLocaleString("en-IN"), change: views > 0 ? "Total views" : "0 views", positive: true },
-    { label: "Bride Enquiries", value: enquiries.toString(), change: enquiries > 0 ? "Live leads" : "0 leads", positive: true },
-    { label: "Confirmed Bookings", value: bookings.toString(), change: bookings > 0 ? "Live dates" : "0 bookings", positive: true },
-    { label: "Enquiry-to-Booking", value: conversionRate, change: "Bookings/Leads", positive: true },
-  ];
+  const series = analytics?.trafficSeries || [];
+  const maxView = series.length > 0 ? Math.max(...series.map((s) => s.profileViews), 10) : 10;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300 font-sans">
-      <div className="bg-white rounded-3xl border border-gold/15 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-6 animate-in fade-in duration-300 pb-16">
+      {/* Header & Date Range Filter */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#E6DDD0] pb-5">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="bg-[#0d3b30] text-white text-[11px] font-bold px-3 py-0.5 rounded-full">
-              Henna Analytics
-            </span>
-          </div>
-          <h2 className="text-2xl font-serif font-bold text-charcoal">Analytics & Design Trends</h2>
-          <p className="text-xs text-charcoal/60 mt-0.5">
-            Track profile impressions, enquiry conversion rates & live store statistics
+          <h2 className="font-serif text-2xl font-bold text-[#2B2523]">Artist Business Analytics</h2>
+          <p className="text-xs text-[#7A6F67]">
+            Real-time insights on your profile views, design engagements, and appointment conversions.
           </p>
+        </div>
+
+        <div className="flex items-center gap-1.5 p-1 bg-[#FAF7F2] rounded-xl border border-[#E6DDD0]">
+          {(["7d", "30d", "90d"] as const).map((r) => (
+            <button
+              key={r}
+              onClick={() => setRange(r)}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+                range === r
+                  ? "bg-[#0F4C45] text-white shadow-2xs"
+                  : "text-[#7A6F67] hover:text-[#2B2523]"
+              }`}
+            >
+              {r === "7d" ? "Last 7 Days" : r === "30d" ? "Last 30 Days" : "Last 3 Months"}
+            </button>
+          ))}
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="bg-white rounded-3xl border border-gold/15 p-12 text-center space-y-3 shadow-xs">
-          <Loader2 className="w-8 h-8 text-[#0d3b30] animate-spin mx-auto" />
-          <p className="text-xs font-bold text-charcoal/60 uppercase tracking-wider">Calculating Live Henna Analytics...</p>
+      {/* 1. Primary Metrics Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="bg-white rounded-2xl border border-[#E6DDD0] p-5 shadow-xs">
+          <div className="flex items-center justify-between text-[#7A6F67] mb-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Profile Views</span>
+            <Eye className="w-4 h-4 text-[#0F4C45]" />
+          </div>
+          <p className="font-serif text-3xl font-bold text-[#2B2523]">
+            {analytics?.totalProfileViews.toLocaleString() || 0}
+          </p>
+          <p className="text-[11px] text-[#7A6F67] mt-1 flex items-center gap-1">
+            <TrendingUp className="w-3 h-3 text-emerald-600" />
+            +18% from previous period
+          </p>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {metrics.map((m) => (
-            <div key={m.label} className="bg-white p-5 rounded-3xl border border-gold/15 shadow-xs space-y-2">
-              <p className="text-xs text-charcoal/60 font-medium">{m.label}</p>
-              <div className="flex items-baseline justify-between">
-                <h3 className="text-2xl font-serif font-bold text-charcoal">{m.value}</h3>
-                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-0.5">
-                  <ArrowUpRight className="w-3.5 h-3.5" /> {m.change}
-                </span>
+
+        <div className="bg-white rounded-2xl border border-[#E6DDD0] p-5 shadow-xs">
+          <div className="flex items-center justify-between text-[#7A6F67] mb-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Design Views</span>
+            <Paintbrush className="w-4 h-4 text-[#C8A96A]" />
+          </div>
+          <p className="font-serif text-3xl font-bold text-[#2B2523]">
+            {analytics?.totalDesignViews.toLocaleString() || 0}
+          </p>
+          <p className="text-[11px] text-[#7A6F67] mt-1">High bride engagement</p>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-[#E6DDD0] p-5 shadow-xs">
+          <div className="flex items-center justify-between text-[#7A6F67] mb-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Total Enquiries</span>
+            <Calendar className="w-4 h-4 text-[#0F4C45]" />
+          </div>
+          <p className="font-serif text-3xl font-bold text-[#2B2523]">
+            {analytics?.totalEnquiries || 0}
+          </p>
+          <p className="text-[11px] text-[#7A6F67] mt-1">
+            {analytics?.appointmentRequests || 0} appointment requests
+          </p>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-[#E6DDD0] p-5 shadow-xs">
+          <div className="flex items-center justify-between text-[#7A6F67] mb-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Confirmed</span>
+            <Sparkles className="w-4 h-4 text-emerald-600" />
+          </div>
+          <p className="font-serif text-3xl font-bold text-emerald-800">
+            {analytics?.confirmedAppointments || 0}
+          </p>
+          <p className="text-[11px] text-[#7A6F67] mt-1">Confirmed wedding bookings</p>
+        </div>
+      </div>
+
+      {/* 2. Traffic Series Graph */}
+      <div className="bg-white rounded-2xl border border-[#E6DDD0] p-6 shadow-xs space-y-4">
+        <div className="flex items-center justify-between border-b border-[#F0EAE0] pb-3">
+          <div>
+            <h3 className="font-serif font-bold text-base text-[#2B2523]">Traffic & Enquiry Trend</h3>
+            <p className="text-xs text-[#7A6F67]">Daily customer views and appointment inquiries</p>
+          </div>
+          <div className="flex items-center gap-4 text-xs font-semibold">
+            <span className="flex items-center gap-1.5 text-[#0F4C45]">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#0F4C45]" /> Profile Views
+            </span>
+            <span className="flex items-center gap-1.5 text-[#C8A96A]">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#C8A96A]" /> Inquiries
+            </span>
+          </div>
+        </div>
+
+        {/* Visual Bar Chart */}
+        <div className="h-56 flex items-end gap-2 pt-6 pb-2 overflow-x-auto">
+          {series.map((item, idx) => {
+            const viewHeightPct = Math.round((item.profileViews / maxView) * 100);
+            return (
+              <div key={idx} className="flex-1 min-w-[28px] flex flex-col items-center gap-1.5 group">
+                <div className="w-full flex items-end justify-center gap-1 h-44">
+                  <div
+                    className="w-3 bg-[#0F4C45]/80 group-hover:bg-[#0F4C45] rounded-t-sm transition-all"
+                    style={{ height: `${Math.max(viewHeightPct, 6)}%` }}
+                    title={`${item.date}: ${item.profileViews} views`}
+                  />
+                  {item.inquiries > 0 && (
+                    <div
+                      className="w-2 bg-[#C8A96A] rounded-t-sm transition-all"
+                      style={{ height: `${Math.min(item.inquiries * 25, 100)}%` }}
+                      title={`${item.inquiries} inquiries`}
+                    />
+                  )}
+                </div>
+                <span className="text-[10px] text-[#7A6F67] truncate">{item.date}</span>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
-      )}
+      </div>
+
+      {/* 3. Popular Designs & Popular Services */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Popular Designs */}
+        <div className="bg-white rounded-2xl border border-[#E6DDD0] p-6 shadow-xs space-y-4">
+          <div className="flex items-center gap-2 border-b border-[#F0EAE0] pb-3">
+            <Flame className="w-4 h-4 text-amber-600" />
+            <h3 className="font-serif font-bold text-base text-[#2B2523]">Top Performing Designs</h3>
+          </div>
+
+          {!analytics?.popularDesigns || analytics.popularDesigns.length === 0 ? (
+            <p className="text-xs text-[#7A6F67] italic py-6 text-center">
+              No design engagement tracked yet.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {analytics.popularDesigns.map((d, i) => (
+                <div
+                  key={d.id}
+                  className="flex items-center justify-between p-2.5 rounded-xl border border-[#F0EAE0] bg-[#FAF7F2]/60"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="font-serif font-bold text-xs text-[#7A6F67] w-4">#{i + 1}</span>
+                    <img
+                      src={d.imageUrl}
+                      alt={d.title}
+                      className="w-10 h-10 rounded-lg object-cover border border-[#E6DDD0] shrink-0"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-[#2B2523] truncate">{d.title}</p>
+                      <p className="text-[10px] text-[#7A6F67]">{d.category}</p>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className="text-xs font-bold text-[#0F4C45] flex items-center gap-1 justify-end">
+                      <Eye className="w-3 h-3" /> {d.views}
+                    </span>
+                    <span className="text-[10px] text-[#7A6F67]">views</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Popular Services */}
+        <div className="bg-white rounded-2xl border border-[#E6DDD0] p-6 shadow-xs space-y-4">
+          <div className="flex items-center gap-2 border-b border-[#F0EAE0] pb-3">
+            <Sparkles className="w-4 h-4 text-[#0F4C45]" />
+            <h3 className="font-serif font-bold text-base text-[#2B2523]">Most Inquired Services</h3>
+          </div>
+
+          {!analytics?.popularServices || analytics.popularServices.length === 0 ? (
+            <p className="text-xs text-[#7A6F67] italic py-6 text-center">
+              No service inquiry data available yet.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {analytics.popularServices.map((s, i) => (
+                <div
+                  key={s.name}
+                  className="flex items-center justify-between p-3 rounded-xl border border-[#F0EAE0] bg-[#FAF7F2]/60"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="font-serif font-bold text-xs text-[#7A6F67] w-4">#{i + 1}</span>
+                    <div>
+                      <p className="text-xs font-bold text-[#2B2523]">{s.name}</p>
+                      <p className="text-[10px] text-[#7A6F67]">
+                        {s.startingPrice != null ? `From ₹${s.startingPrice.toLocaleString("en-IN")}` : "On Request"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs font-bold text-[#0F4C45]">{s.inquiries}</span>
+                    <span className="text-[10px] text-[#7A6F67] block">requests</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

@@ -2822,7 +2822,8 @@
       jewellery: '<path d="M6 3h12l4 6-10 13L2 9z"/><path d="M11 3 8 9l4 13 4-13-3-6M2 9h20"/>',
       invitation: '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
       planner: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4m-8 9 2.5 2.5L16 14"/>',
-      caterer: '<path d="M3 18h18M5 18a7 7 0 0 1 14 0M12 9V7M10 7h4M2 21h20"/>'
+      caterer: '<path d="M3 18h18M5 18a7 7 0 0 1 14 0M12 9V7M10 7h4M2 21h20"/>',
+      mehendi: '<path d="m14 4 4 4L7 19H3v-4L14 4z"/><path d="m15 7 2 2M6 14l4 4"/>'
     };
     const ic = (n, s = 20, cls = '') => `<svg class="ic ${cls}" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[n] || ''}</svg>`;
     const GOOGLE = '<svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/></svg>';
@@ -2902,6 +2903,7 @@
       { k: 'videographer', n: 'Videographer', biz: 'Videography business' }, { k: 'bridal', n: 'Bridal Studio', biz: 'Bridal Studio' },
       { k: 'groom', n: 'Groom Studio', biz: 'Groom Studio' }, { k: 'studio', n: 'Wedding Studio', biz: 'Wedding Studio' },
       { k: 'decorator', n: 'Decorator', biz: 'Decor business' }, { k: 'makeup', n: 'Makeup Artist', biz: 'Makeup services' },
+      { k: 'mehendi', n: 'Mehendi Artist', biz: 'Mehendi Artist studio' },
       { k: 'jewellery', n: 'Jewellery', biz: 'Jewellery business' }, { k: 'invitation', n: 'Invitation Designer', biz: 'Invitation design studio' },
       { k: 'planner', n: 'Wedding Planner', biz: 'Wedding Planning business' }, { k: 'caterer', n: 'Caterer', biz: 'Catering business' }
     ];
@@ -2931,6 +2933,10 @@
       sel('area', 'Service Area', 'Select service area', ['Within my city', 'Within my state', 'Pan India', 'Destination weddings']), sel('team', 'Team Size', 'Select team size', TEAM), money('start', 'Starting Price')],
       makeup: [chk('svc', 'Services', ['Bridal Makeup', 'Party Makeup', 'HD / Airbrush', 'Hair Styling', 'Saree Draping'], true),
       sel('travel', 'Travel to Venue', 'Select travel option', ['Yes, anywhere in my city', 'Yes, outstation', 'No, studio only']), sel('trial', 'Trial Session', 'Select trial option', ['Free trial', 'Paid trial', 'Not available']), money('start', 'Starting Price')],
+      mehendi: [chk('style', 'Mehendi Styles', ['Indian Bridal', 'Arabic', 'Rajasthani', 'Indo-Arabic', 'Minimal', 'Mandala'], true),
+      sel('type', 'Business Type', 'Select business type', ['Individual Artist', 'Mehendi Studio', 'Artist Team']),
+      chk('service', 'Service Coverage', ['Studio Appointments', 'Home Service', 'Wedding Venue Service', 'Outstation Service']),
+      sel('team', 'Team Size', 'Select team size', TEAM), money('start', 'Starting Price')],
       jewellery: [chk('type', 'Jewellery Type', ['Bridal Sets', 'Gold', 'Diamond', 'Kundan / Polki', 'Rental'], true), chk('svc', 'Services', ['Custom Design', 'Rental', 'Buyback', 'Insurance']), money('start', 'Starting Price')],
       invitation: [chk('type', 'Invitation Types', ['Printed Cards', 'Digital Invites', 'Video Invites', 'Box Invitations'], true),
       sel('min', 'Minimum Order', 'Select minimum order', ['Up to 50 cards', '50 – 100 cards', '100 – 250 cards', '250+ cards']), sel('tat', 'Turnaround Time', 'Select turnaround', ['Within 1 week', '1 – 2 weeks', '2 – 4 weeks', '4+ weeks']), money('start', 'Starting Price (per card)', 'e.g. 80')],
@@ -3134,6 +3140,16 @@
       const cid = String((S.vendor && S.vendor.category_id) || '');
       return tok.includes('photograph') || cid === PHOTOGRAPHER_CAT_ID;
     }
+    const MEHENDI_CAT_ID = '554d5532-9201-4af5-be43-41e9c1775b0f';
+    const MEHENDI_ALT_CAT_ID = '1b8af477-920d-43e8-8c20-a191e934f170';
+    function isMehendiPartner() {
+      const vc = S.vendor && S.vendor.vendor_categories;
+      const vcObj = Array.isArray(vc) ? vc[0] : vc;
+      const tok = [S.cat, S.vendor && S.vendor.category_key, S.vendor && S.vendor.category_slug, S.vendor && S.vendor.category, vcObj && vcObj.slug, vcObj && vcObj.name]
+        .filter(Boolean).join(' ').toLowerCase();
+      const cid = String((S.vendor && S.vendor.category_id) || '');
+      return tok.includes('mehendi') || tok.includes('mehndi') || tok.includes('henna') || cid === MEHENDI_CAT_ID || cid === MEHENDI_ALT_CAT_ID;
+    }
     let _photoBridgeInFlight = false;
     async function ensurePhotographerSession() {
       if (S.photoSessionReady || _photoBridgeInFlight) return;
@@ -3171,15 +3187,56 @@
         _photoBridgeInFlight = false;
       }
     }
+    let _mehendiBridgeInFlight = false;
+    async function ensureMehendiSession() {
+      if (S.mehendiSessionReady || _mehendiBridgeInFlight) return;
+      _mehendiBridgeInFlight = true;
+      try {
+        const sessRes = sb ? await sb.auth.getSession() : { data: null };
+        const accessToken = sessRes && sessRes.data && sessRes.data.session ? sessRes.data.session.access_token : '';
+        if (!accessToken) {
+          const ovRes = await fetch('/api/vendor/mehendi/overview', { credentials: 'include', cache: 'no-store' });
+          if (ovRes.ok) {
+            S.mehendiSessionReady = true;
+            S.mehendiSessionError = '';
+            if (S.step === 'dashboard') render();
+            return;
+          }
+          throw new Error('Please log in to open your Mehendi Artist Dashboard.');
+        }
+        const res = await fetch('/api/vendor/mehendi/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ accessToken })
+        });
+        if (!res.ok) {
+          const j = await res.json().catch(() => ({}));
+          throw new Error(j.error || 'Could not start Mehendi Artist Dashboard.');
+        }
+        S.mehendiSessionReady = true;
+        S.mehendiSessionError = '';
+        if (S.step === 'dashboard') render();
+      } catch (err) {
+        S.mehendiSessionError = (err && err.message) || 'Could not load Mehendi Artist Dashboard.';
+        if (S.step === 'dashboard') render();
+      } finally {
+        _mehendiBridgeInFlight = false;
+      }
+    }
     async function loadDash() {
       if (isPhotographerPartner() || S.photoVendorOnly) {
         ensurePhotographerSession();
         return;
       }
+      if (isMehendiPartner()) {
+        ensureMehendiSession();
+        return;
+      }
       try { const d = await rpc('partner_dashboard'); S.dash = d; applyState(d.state, true) } catch (e) { toast(e.message) }
       if (S.step === 'dashboard') render();
     }
-    setInterval(() => { if (S.user && S.step === 'dashboard' && !S.sheet && !document.hidden && !isPhotographerPartner() && !S.photoVendorOnly) loadDash() }, 60000);
+    setInterval(() => { if (S.user && S.step === 'dashboard' && !S.sheet && !document.hidden && !isPhotographerPartner() && !isMehendiPartner() && !S.photoVendorOnly) loadDash() }, 60000);
 
     function parseContact(v) {
       v = (v || '').trim(); const c = v.replace(/[\s\-()]/g, ''); const d = c.replace(/^(?:\+?91|0)(?=\d{10}$)/, '');
@@ -3429,6 +3486,18 @@
     const initials = n => (String(n || '?').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('') || '?').toUpperCase();
     const evLine = q => `${q.event_type || 'Wedding'}${q.event_date ? ' on ' + fdate(q.event_date) : ''}${q.guest_count ? ' \u00b7 ' + q.guest_count + ' guests' : ''}`;
     function vDash() {
+      if (isMehendiPartner()) {
+        if (S.mehendiSessionReady) {
+          const q = new URLSearchParams(location.search);
+          const tabParam = q.get('p_tab') || q.get('tab');
+          const allowedTabs = ['overview','profile','services','portfolio','collections','appointments','leads','reviews','customize-store','analytics','subscription','messages','settings'];
+          const safeTab = tabParam && allowedTabs.includes(tabParam) ? tabParam : '';
+          const src = '/vendor/mehendi?host=partner' + (safeTab ? '&tab=' + encodeURIComponent(safeTab) : '');
+          return `<div style="position:fixed;inset:0;width:100%;height:100dvh;z-index:9999;background:#FAF7F2"><iframe id="mehendiDashboardHost" src="${src}" title="Mehendi Artist Dashboard" style="width:100%;height:100%;border:0;display:block;background:#FAF7F2"></iframe></div>`;
+        }
+        if (!S.mehendiSessionError) ensureMehendiSession();
+        return `<section class="screen" style="min-height:80vh;display:grid;place-items:center;padding:24px"><div class="card" style="max-width:420px;width:100%;padding:28px;text-align:center"><h2 style="font-family:var(--serif);margin:0 0 8px">Mehendi Artist Dashboard</h2><p style="color:var(--muted);font-size:13.5px;margin:0 0 16px">${S.mehendiSessionError ? esc(S.mehendiSessionError) : 'Preparing your artist workspace…'}</p>${S.mehendiSessionError ? '<button class="btn" type="button" data-act="retryMehendiDash">Retry</button>' : ''}</div></section>`;
+      }
       if (isPhotographerPartner() || S.photoVendorOnly) {
         if (S.photoSessionReady) {
           const q = new URLSearchParams(location.search);
@@ -3485,9 +3554,9 @@
     function esc(s) { return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])) }
     const VIEWS = { login: vLogin, category: vCategory, business: vBusiness, questions: vQuestions, gallery: vGallery, docs: vDocs, review: vReview, dashboard: vDash };
     function render() {
-      const hostOn = S.step === 'dashboard' && (isPhotographerPartner() || S.photoVendorOnly) && S.photoSessionReady;
+      const hostOn = S.step === 'dashboard' && (((isPhotographerPartner() || S.photoVendorOnly) && S.photoSessionReady) || (isMehendiPartner() && S.mehendiSessionReady));
       document.body.classList.toggle('photographer-host-active', !!hostOn);
-      if (hostOn && document.getElementById('photographerDashboardHost')) {
+      if (hostOn && (document.getElementById('photographerDashboardHost') || document.getElementById('mehendiDashboardHost'))) {
         return;
       }
       app.innerHTML = VIEWS[S.step]();
@@ -3915,6 +3984,7 @@
             studio: '3c71464e-89cd-4ffe-aaeb-ae6e95bcacff',
             decorator: '697350dd-7410-461f-a8de-d0c44c315411',
             makeup: '06260436-4efe-488f-afe2-4f41e3d9d0f1',
+            mehendi: '554d5532-9201-4af5-be43-41e9c1775b0f',
             jewellery: '5466a413-0225-4622-833f-ef71edc2331a',
             invitation: 'f00cf9ac-0f5b-4703-8806-4d25103ecf9b',
             planner: '0a02500f-575a-4730-8f04-826048891db6',
@@ -4117,6 +4187,7 @@
             studio: '3c71464e-89cd-4ffe-aaeb-ae6e95bcacff',
             decorator: '697350dd-7410-461f-a8de-d0c44c315411',
             makeup: '06260436-4efe-488f-afe2-4f41e3d9d0f1',
+            mehendi: '554d5532-9201-4af5-be43-41e9c1775b0f',
             jewellery: '5466a413-0225-4622-833f-ef71edc2331a',
             invitation: 'f00cf9ac-0f5b-4703-8806-4d25103ecf9b',
             planner: '0a02500f-575a-4730-8f04-826048891db6',
@@ -4248,10 +4319,16 @@
         S.photoSessionReady = false;
         ensurePhotographerSession();
         render();
+      },
+      retryMehendiDash() {
+        S.mehendiSessionError = '';
+        S.mehendiSessionReady = false;
+        ensureMehendiSession();
+        render();
       }
     };
     window.addEventListener('message', e => {
-      if (e.origin === location.origin && e.data && e.data.type === 'cloche-photographer-signout') {
+      if (e.origin === location.origin && e.data && (e.data.type === 'cloche-photographer-signout' || e.data.type === 'cloche-mehendi-signout')) {
         ACT.signout();
       }
     });
