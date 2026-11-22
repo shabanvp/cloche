@@ -3,7 +3,7 @@ import { Footer } from "@/components/Footer";
 import { Shield, Heart, Gem } from "lucide-react";
 import { pageMetadata } from "@/lib/pageMetadata";
 
-export const metadata = pageMetadata("/about", "About CLOCHE", "Learn about CLOCHE and our work connecting couples with wedding professionals across Kerala.");
+export const metadata = pageMetadata("/about", "About Us", "Learn about CLOCHE and our work connecting couples with wedding professionals across Kerala.");
 
 export default function AboutPage() {
   return (

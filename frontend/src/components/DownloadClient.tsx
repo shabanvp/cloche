@@ -2,9 +2,11 @@
 
 import { Footer } from "@/components/Footer";
 import { Smartphone, CheckCircle2, Sparkles } from "lucide-react";
-import { Button } from "@/components/Button";
 
 export function DownloadClient() {
+  const appStoreUrl = process.env.NEXT_PUBLIC_APP_STORE_URL;
+  const googlePlayUrl = process.env.NEXT_PUBLIC_GOOGLE_PLAY_URL;
+
   return (
     <div className="min-h-screen bg-ivory flex flex-col justify-between">
       <main className="flex-1 pb-24">
@@ -50,31 +52,41 @@ export function DownloadClient() {
               </ul>
 
               <div className="pt-4 flex flex-col sm:flex-row gap-4">
-                <a
-                  href="https://apps.apple.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-charcoal text-white px-6 py-3.5 rounded-2xl flex items-center justify-center gap-3 hover:bg-charcoal/90 transition-all shadow-md"
-                >
-                  <Smartphone className="w-6 h-6 text-gold" />
-                  <div className="text-left">
-                    <div className="text-[10px] uppercase tracking-wider text-white/60">Download on</div>
-                    <div className="text-sm font-semibold">App Store (iOS)</div>
+                {appStoreUrl ? (
+                  <a href={appStoreUrl} target="_blank" rel="noopener noreferrer" className="bg-charcoal text-white px-6 py-3.5 rounded-2xl flex items-center justify-center gap-3 hover:bg-charcoal/90 transition-all shadow-md">
+                    <Smartphone className="w-6 h-6 text-gold" />
+                    <div className="text-left">
+                      <div className="text-[10px] uppercase tracking-wider text-white/60">Download on</div>
+                      <div className="text-sm font-semibold">App Store (iOS)</div>
+                    </div>
+                  </a>
+                ) : (
+                  <div className="bg-charcoal/70 text-white px-6 py-3.5 rounded-2xl flex items-center justify-center gap-3 shadow-md" aria-label="App Store coming soon">
+                    <Smartphone className="w-6 h-6 text-gold" />
+                    <div className="text-left">
+                      <div className="text-[10px] uppercase tracking-wider text-white/60">Coming Soon</div>
+                      <div className="text-sm font-semibold">App Store (iOS)</div>
+                    </div>
                   </div>
-                </a>
+                )}
 
-                <a
-                  href="https://play.google.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-emerald text-white px-6 py-3.5 rounded-2xl flex items-center justify-center gap-3 hover:bg-emerald-dark transition-all shadow-md"
-                >
-                  <Smartphone className="w-6 h-6 text-gold" />
-                  <div className="text-left">
-                    <div className="text-[10px] uppercase tracking-wider text-white/80">Get it on</div>
-                    <div className="text-sm font-semibold">Google Play (Android)</div>
+                {googlePlayUrl ? (
+                  <a href={googlePlayUrl} target="_blank" rel="noopener noreferrer" className="bg-emerald text-white px-6 py-3.5 rounded-2xl flex items-center justify-center gap-3 hover:bg-emerald-dark transition-all shadow-md">
+                    <Smartphone className="w-6 h-6 text-gold" />
+                    <div className="text-left">
+                      <div className="text-[10px] uppercase tracking-wider text-white/80">Get it on</div>
+                      <div className="text-sm font-semibold">Google Play (Android)</div>
+                    </div>
+                  </a>
+                ) : (
+                  <div className="bg-emerald/70 text-white px-6 py-3.5 rounded-2xl flex items-center justify-center gap-3 shadow-md" aria-label="Google Play coming soon">
+                    <Smartphone className="w-6 h-6 text-gold" />
+                    <div className="text-left">
+                      <div className="text-[10px] uppercase tracking-wider text-white/80">Coming Soon</div>
+                      <div className="text-sm font-semibold">Google Play (Android)</div>
+                    </div>
                   </div>
-                </a>
+                )}
               </div>
             </div>
 
