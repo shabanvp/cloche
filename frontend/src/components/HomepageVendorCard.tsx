@@ -16,6 +16,7 @@ export interface VendorCardItem {
   city: string;
   rating: number;
   reviewCount?: number;
+  createdAt?: string;
   startingPrice: string;
   coverImage?: string;
   profileImage?: string;

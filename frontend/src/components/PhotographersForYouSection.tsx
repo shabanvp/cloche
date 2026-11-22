@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { HomepageVendorCard, VendorCardItem } from "@/components/HomepageVendorCard";
 import { VendorCardSkeleton } from "@/components/skeletons/VendorCardSkeleton";
+import { mapPublicVendor } from "@/lib/vendorMapper";
+import { formatLocation, formatPrice } from "@/lib/format";
 
 interface PhotographersForYouSectionProps {
   initialVendors?: VendorCardItem[];
@@ -13,15 +15,10 @@ const isPhotographer = (vendor: VendorCardItem) =>
   (vendor.categorySlug || "").toLowerCase().includes("photo");
 
 export function PhotographersForYouSection({ initialVendors = [] }: PhotographersForYouSectionProps) {
-  const [photographers, setPhotographers] = useState<VendorCardItem[]>(() => initialVendors.filter(isPhotographer));
+  const [livePhotographers, setLivePhotographers] = useState<VendorCardItem[] | null>(null);
+  const photographers = livePhotographers ?? initialVendors.filter(isPhotographer);
   const [isLoading, setIsLoading] = useState(() => initialVendors.filter(isPhotographer).length === 0);
-
-  // Keep only real vendors passed by the homepage data source.
-  useEffect(() => {
-    const realPhotographers = initialVendors.filter(isPhotographer);
-    setPhotographers(realPhotographers);
-    if (realPhotographers.length > 0) setIsLoading(false);
-  }, [initialVendors]);
+  const [hasError, setHasError] = useState(false);
 
   // Fetch the real photographer directory records; never append demo/registry entries.
   useEffect(() => {
@@ -30,29 +27,42 @@ export function PhotographersForYouSection({ initialVendors = [] }: Photographer
     fetch("/api/v1/public/vendors?category=photographers&limit=8")
       .then((response) => response.ok ? response.json() : null)
       .then((json) => {
-        if (!active || !json?.success || !Array.isArray(json.data)) return;
+        if (!active) return;
+        if (!json?.success || !Array.isArray(json.data)) {
+          setHasError(true);
+          return;
+        }
 
-        const live: VendorCardItem[] = json.data.map((vendor: any) => ({
-          id: String(vendor.id),
-          slug: vendor.slug || String(vendor.id),
-          name: vendor.name || "Wedding Photographer",
-          category: vendor.category || "Wedding Photographer",
-          categorySlug: vendor.categorySlug || "photographers",
-          city: vendor.city || vendor.state || "Kerala",
-          rating: Number(vendor.rating || 0),
-          reviewCount: Number(vendor.reviewCount || vendor.reviewsCount || 0),
-          startingPrice: vendor.startingPrice || "Contact for pricing",
-          coverImage: vendor.coverImage || "",
-          profileImage: vendor.profileImage || vendor.logo || "",
-        }));
+        const live: VendorCardItem[] = json.data.map((record: Record<string, unknown>) => {
+          const vendor = mapPublicVendor(record);
+          return {
+            id: String(vendor.id),
+            slug: String(vendor.slug),
+            name: String(vendor.name),
+            category: String(vendor.category),
+            categorySlug: String(vendor.categorySlug),
+            city: formatLocation(vendor.city, vendor.district),
+            rating: Number(vendor.rating || 0),
+            reviewCount: Number(vendor.reviewCount || 0),
+            createdAt: String(vendor.created_at || ""),
+            startingPrice: formatPrice(vendor.startingPrice),
+            coverImage: String(vendor.coverImage || ""),
+            profileImage: String(vendor.profileImage || vendor.logo || ""),
+          };
+        });
 
-        if (live.length > 0) setPhotographers(live);
+        if (live.length > 0) setLivePhotographers(live);
       })
-      .catch((error) => console.error("Error fetching real photographer data:", error))
+      .catch((error) => {
+        console.error("Error fetching real photographer data:", error);
+        if (active) setHasError(true);
+      })
       .finally(() => { if (active) setIsLoading(false); });
 
     return () => { active = false; };
   }, []);
+
+  if (!isLoading && photographers.length === 0 && !hasError) return null;
 
   return (
     <section className="pt-3 pb-6 md:pt-4 md:pb-8">
@@ -71,6 +81,10 @@ export function PhotographersForYouSection({ initialVendors = [] }: Photographer
               <HomepageVendorCard key={photographer.id} vendor={photographer} />
             ))}
           </div>
+        ) : hasError ? (
+          <p role="status" className="rounded-xl bg-amber-50 p-5 text-center text-sm text-amber-900">
+            We couldn’t load photographer listings right now. Please try again shortly.
+          </p>
         ) : null}
       </div>
     </section>

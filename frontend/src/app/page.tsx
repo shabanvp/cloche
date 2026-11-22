@@ -30,111 +30,79 @@ function mapHomepageVendor(source: Record<string, unknown>): VendorCardItem {
     city: formatLocation(vendor.city, vendor.district),
     rating: Number(vendor.rating || 0),
     reviewCount: Number(vendor.reviewCount || 0),
+    createdAt: String(vendor.created_at || vendor.createdAt || ""),
     startingPrice: formatPrice(vendor.startingPrice),
     coverImage: String(vendor.coverImage || ""),
     profileImage: String(vendor.profileImage || vendor.logo || ""),
   };
 }
 
+function rankVendors(vendors: VendorCardItem[]): VendorCardItem[] {
+  return [...vendors].sort((left, right) =>
+    right.rating - left.rating ||
+    (right.reviewCount || 0) - (left.reviewCount || 0) ||
+    (Date.parse(right.createdAt || "") || 0) - (Date.parse(left.createdAt || "") || 0)
+  );
+}
+
 export default function Home() {
   const [allVendors, setAllVendors] = useState<VendorCardItem[]>([]);
-  const [trendingVendors, setTrendingVendors] = useState<VendorCardItem[]>([]);
-  const [featuredVendors, setFeaturedVendors] = useState<VendorCardItem[]>([]);
+  const [topRatedVendors, setTopRatedVendors] = useState<VendorCardItem[]>([]);
+  const [moreVendors, setMoreVendors] = useState<VendorCardItem[]>([]);
   const [vendorsLoading, setVendorsLoading] = useState(true);
-  // Fetch real registered vendors and boutiques concurrently.
+  const [vendorsError, setVendorsError] = useState(false);
+  // Fetch the public vendor catalog and legacy boutique catalog concurrently.
   useEffect(() => {
     let isMounted = true;
 
     async function loadData() {
-      try {
-        const boutiquesRequest = fetch("/api/boutiques")
-          .then(async (response) => {
-            if (!response.ok) return null;
-            const rows: any[] = await response.clone().json();
-            if (isMounted && Array.isArray(rows) && rows.length > 0) {
-              const quickVendors = rows.map(mapHomepageVendor);
-              setAllVendors(quickVendors);
-              setTrendingVendors(quickVendors.slice(0, 4));
-              setVendorsLoading(false);
-            }
-            return response;
-          })
-          .catch(() => null);
-        const vRes = await fetch("/api/v1/public/vendors?limit=16").catch(() => null);
+      const results = await Promise.allSettled([
+        fetch("/api/v1/public/vendors?limit=100").then(async (response) => {
+          if (!response.ok) throw new Error("Public vendor request failed");
+          return response.json();
+        }),
+        fetch("/api/boutiques").then(async (response) => {
+          if (!response.ok) throw new Error("Boutique request failed");
+          return response.json();
+        }),
+      ]);
 
-        if (!isMounted) return;
+      if (!isMounted) return;
+      const publicData = results[0].status === "fulfilled" && results[0].value?.success && Array.isArray(results[0].value.data)
+        ? results[0].value.data.map((vendor: Record<string, unknown>) => mapHomepageVendor(vendor))
+        : [];
+      const boutiqueData = results[1].status === "fulfilled" && Array.isArray(results[1].value)
+        ? results[1].value.map((vendor: Record<string, unknown>) => mapHomepageVendor(vendor))
+        : [];
+      const sourceAvailable = publicData.length > 0 || boutiqueData.length > 0 ||
+        (results[0].status === "fulfilled" && results[0].value?.success) ||
+        (results[1].status === "fulfilled" && Array.isArray(results[1].value));
 
-        // Process vendors & boutiques
-        let allPublicVendors: VendorCardItem[] = [];
-        if (vRes) {
-          try {
-            const data = await vRes.json();
-            if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-              allPublicVendors = data.data.map((v: any) => mapHomepageVendor(v));
-            }
-          } catch (e) {}
-        }
+      const uniqueVendors = new Map<string, VendorCardItem>();
+      [...publicData, ...boutiqueData].forEach((vendor) => {
+        if (!uniqueVendors.has(vendor.id)) uniqueVendors.set(vendor.id, vendor);
+      });
 
-        // Let Popular Near You render as soon as the primary vendor API responds.
-        // Boutique enrichment continues in parallel afterward.
-        if (allPublicVendors.length > 0) {
-          setAllVendors(allPublicVendors);
-          setTrendingVendors(allPublicVendors.slice(0, 4));
-          setFeaturedVendors(allPublicVendors.slice(4, 8));
-        }
-        if (allPublicVendors.length > 0) setVendorsLoading(false);
+      const ranked = rankVendors(Array.from(uniqueVendors.values()));
+      const topRated = ranked.filter((vendor) => vendor.rating > 0 && (vendor.reviewCount || 0) > 0).slice(0, 4);
+      const topIds = new Set(topRated.map((vendor) => vendor.id));
 
-        const bRes = await boutiquesRequest;
-        if (!isMounted) return;
-
-        let boutiqueVendors: VendorCardItem[] = [];
-        if (bRes) {
-          try {
-            const bData = await bRes.json();
-            if (Array.isArray(bData) && bData.length > 0) {
-              boutiqueVendors = bData.map((b: any) => mapHomepageVendor(b));
-            }
-          } catch (e) {}
-        }
-
-        // Set Trending Vendors (Top 4)
-        const trending = allPublicVendors.length > 0 ? allPublicVendors.slice(0, 4) : boutiqueVendors.slice(0, 4);
-        setTrendingVendors(trending);
-
-        // Deduplicate Featured Vendors
-        const trendingIds = new Set(trending.map((t) => String(t.id).toLowerCase()));
-        const trendingSlugs = new Set(trending.map((t) => (t.slug || "").toLowerCase()));
-
-        const candidates = [...allPublicVendors.slice(4), ...boutiqueVendors];
-        const deduplicatedFeatured = candidates.filter(
-          (v) => !trendingIds.has(String(v.id).toLowerCase()) && !trendingSlugs.has((v.slug || "").toLowerCase())
-        );
-
-        setFeaturedVendors(deduplicatedFeatured.slice(0, 4));
-
-        // Combined unique list for Popular Near You local discovery
-        const combinedMap = new Map<string, VendorCardItem>();
-        [...allPublicVendors, ...boutiqueVendors].forEach((v) => {
-          if (!combinedMap.has(v.id)) {
-            combinedMap.set(v.id, v);
-          }
-        });
-        setAllVendors(Array.from(combinedMap.values()));
-
-      } catch (err) {
-        console.error("Failed to load homepage data:", err);
-      } finally {
-        if (isMounted) {
-          setVendorsLoading(false);
-        }
-      }
+      setAllVendors(ranked);
+      setTopRatedVendors(topRated);
+      setMoreVendors(ranked.filter((vendor) => !topIds.has(vendor.id)).slice(0, 4));
+      setVendorsError(!sourceAvailable);
+      setVendorsLoading(false);
     }
 
-    loadData();
+    loadData().catch((error) => {
+      console.error("Failed to load homepage vendor data:", error);
+      if (isMounted) {
+        setVendorsError(true);
+        setVendorsLoading(false);
+      }
+    });
 
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, []);
 
   const categories = [
@@ -259,7 +227,7 @@ export default function Home() {
         </section>
 
         {/* ── SECTION A: POPULAR NEAR YOU (LOCAL CITY-FILTERED DISCOVERY) ── */}
-        <PopularNearYouSection vendors={allVendors} loading={vendorsLoading} />
+        <PopularNearYouSection vendors={allVendors} loading={vendorsLoading} error={vendorsError} />
 
         {/* Wedding Categories */}
         <section className="pt-3 pb-6 md:pt-4 md:pb-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -308,15 +276,15 @@ export default function Home() {
         <AdBanner placement="Homepage Between Categories" />
 
         {/* ── TRENDING THIS WEEK SECTION (STANDARDIZED WITH HOMEPAGE VENDOR CARDS) ── */}
-        <section className="pt-3 pb-6 md:pt-4 md:pb-8">
+        {(vendorsLoading || vendorsError || topRatedVendors.length > 0) && <section className="pt-3 pb-6 md:pt-4 md:pb-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mb-4 flex justify-between items-end">
               <div>
                 <span className="text-[11px] font-bold text-[#C6A568] uppercase tracking-wider block mb-1">
-                  Verified Top Rated
+                  Ranked by ratings, reviews, and listing recency
                 </span>
                 <h2 className="text-2xl md:text-3xl font-bold text-charcoal font-display">
-                  Trending This Week
+                  Top Rated Vendors
                 </h2>
               </div>
               <Link href="/boutiques" className="hidden sm:inline-flex items-center gap-1 text-sm font-bold text-[#064E43] hover:text-[#C6A568] transition-colors">
@@ -330,20 +298,21 @@ export default function Home() {
                   <VendorCardSkeleton key={i} />
                 ))}
               </div>
-            ) : trendingVendors.length > 0 ? (
+            ) : vendorsError ? (
+              <p role="status" className="rounded-xl bg-amber-50 p-5 text-center text-sm text-amber-900">We couldn’t load vendors right now. Please try again shortly.</p>
+            ) : topRatedVendors.length > 0 ? (
               <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible pb-2">
-                {trendingVendors.map((vendor, index) => (
+                {topRatedVendors.map((vendor, index) => (
                   <HomepageVendorCard
                     key={vendor.id}
                     vendor={vendor}
                     rankBadge={index + 1}
-                    isTrending={true}
                   />
                 ))}
               </div>
             ) : null}
           </div>
-        </section>
+        </section>}
 
         {/* Digital Wedding Invitations Section */}
         <DigitalInvitationsSection />
@@ -392,13 +361,13 @@ export default function Home() {
         </section>
 
         {/* ── REAL FEATURED VENDORS (STANDARDIZED WITH HOMEPAGE VENDOR CARDS) ── */}
-        <section className="pt-3 pb-6 md:pt-4 md:pb-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {(vendorsLoading || vendorsError || moreVendors.length > 0) && <section className="pt-3 pb-6 md:pt-4 md:pb-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-4 flex justify-between items-end">
             <div>
               <span className="text-[11px] font-bold text-[#C6A568] uppercase tracking-wider block mb-1">
-                Handpicked Excellence
+                Ranked by ratings, reviews, and listing recency
               </span>
-              <h2 className="text-2xl font-bold text-on-surface font-display">Featured Vendors</h2>
+              <h2 className="text-2xl font-bold text-on-surface font-display">More Wedding Professionals</h2>
             </div>
             <Link href="/boutiques" className="text-primary text-sm font-bold hover:underline flex items-center gap-1">
               View All <ArrowRight className="w-4 h-4" />
@@ -411,21 +380,16 @@ export default function Home() {
                 <VendorCardSkeleton key={i} />
               ))}
             </div>
-          ) : featuredVendors.length > 0 ? (
+          ) : vendorsError ? (
+            <p role="status" className="rounded-xl bg-amber-50 p-5 text-center text-sm text-amber-900">We couldn’t load more listings right now. Please try again shortly.</p>
+          ) : moreVendors.length > 0 ? (
             <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible pb-2">
-              {featuredVendors.map((vendor) => (
+              {moreVendors.map((vendor) => (
                 <HomepageVendorCard key={vendor.id} vendor={vendor} />
               ))}
             </div>
-          ) : (
-            <div className="py-8 text-center bg-white rounded-2xl border border-gold/15 max-w-md mx-auto">
-              <p className="text-xs text-charcoal/60">Explore verified boutiques and registered wedding venues.</p>
-              <Link href="/boutiques" className="inline-block mt-3 bg-[#064E43] text-white text-xs font-bold px-5 py-2 rounded-full">
-                Browse Directory
-              </Link>
-            </div>
-          )}
-        </section>
+          ) : null}
+        </section>}
 
         {/* ── SECTION C: WEDDING PLANNING JOURNEY (USEFUL STEP-BY-STEP ROADMAP) ── */}
         <WeddingPlanningJourneySection />

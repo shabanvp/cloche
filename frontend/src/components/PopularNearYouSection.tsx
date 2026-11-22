@@ -19,6 +19,7 @@ import { fetchAuthenticatedUserProfile } from "@/lib/userStore";
 interface PopularNearYouSectionProps {
   vendors: VendorCardItem[];
   loading?: boolean;
+  error?: boolean;
 }
 
 interface GeoCoord {
@@ -171,9 +172,10 @@ function findClosestKeralaHubName(lat: number, lng: number): string {
 export function PopularNearYouSection({
   vendors,
   loading = false,
+  error = false,
 }: PopularNearYouSectionProps) {
   // Filters operate on the already loaded vendor list, so switching radius never refetches.
-  const [selectedRadiusKey, setSelectedRadiusKey] = useState<string>("15");
+  const [selectedRadiusKey, setSelectedRadiusKey] = useState<string>("all");
 
   // User location state
   const [userLocation, setUserLocation] = useState<UserLocation>(() => {
@@ -287,7 +289,7 @@ export function PopularNearYouSection({
         }
       } catch {}
 
-      if (isActive) detectUserGpsLocation();
+      // Location access is user initiated; the initial discovery view covers all Kerala.
     }
 
     initializeUserLocation();
@@ -351,7 +353,7 @@ export function PopularNearYouSection({
 
     const matches = sorted.filter((v) =>
       v.distanceKm !== undefined &&
-      (filter.maxKm === Infinity || (v.distanceKm > filter.minKm && v.distanceKm <= filter.maxKm))
+      (filter.maxKm === Infinity || (v.distanceKm >= filter.minKm && v.distanceKm <= filter.maxKm))
     );
     const hasMatches = matches.length > 0;
 
@@ -515,6 +517,10 @@ export function PopularNearYouSection({
             {[1, 2, 3, 4].map((i) => (
               <VendorCardSkeleton key={i} />
             ))}
+          </div>
+        ) : error ? (
+          <div role="status" className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-6 text-center text-sm text-amber-900">
+            We couldn’t load wedding professionals right now. Please try again shortly.
           </div>
         ) : filteredVendors.length > 0 ? (
           <div key={selectedRadiusKey} className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible pb-2 animate-in fade-in slide-in-from-bottom-1 duration-300">
