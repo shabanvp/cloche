@@ -305,6 +305,7 @@ export function Header({ session }: HeaderProps = {}) {
 
           <button 
             className="lg:hidden text-white hover:text-gold transition-colors"
+            aria-label="Open navigation menu"
             onClick={() => {
               setIsMobileMenuOpen(true);
             }}
