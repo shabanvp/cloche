@@ -1,11 +1,9 @@
 import Image from "next/image";
 import { Footer } from "@/components/Footer";
 import { Shield, Heart, Gem } from "lucide-react";
+import { pageMetadata } from "@/lib/pageMetadata";
 
-export const metadata = {
-  title: "About Us | Cloche",
-  description: "Learn about Cloche, Kerala's premium luxury wedding marketplace. Discover our mission to elevate the wedding planning experience.",
-};
+export const metadata = pageMetadata("/about", "About CLOCHE", "Learn about CLOCHE and our work connecting couples with wedding professionals across Kerala.");
 
 export default function AboutPage() {
   return (

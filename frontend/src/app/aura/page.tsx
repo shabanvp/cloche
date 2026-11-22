@@ -1,19 +1,8 @@
 import type { Metadata } from "next";
 import { GenieClient } from "@/components/GenieClient";
+import { pageMetadata } from "@/lib/pageMetadata";
 
-export const metadata: Metadata = {
-  title: "Cloche Aura - AI Wedding Concierge & Business Assistant",
-  description: "Plan your dream luxury wedding or manage your vendor business with Cloche Aura — your personal AI assistant.",
-  openGraph: {
-    title: "Cloche Aura - AI Wedding Concierge & Business Assistant | CLOCHE",
-    description: "Plan your dream luxury wedding or manage your vendor business with Cloche Aura — your personal AI assistant.",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Cloche Aura - AI Wedding Concierge & Business Assistant | CLOCHE",
-    description: "Plan your dream luxury wedding or manage your vendor business with Cloche Aura — your personal AI assistant.",
-  },
-};
+export const metadata: Metadata = pageMetadata("/aura", "Aura Wedding Planning Assistant", "Get wedding planning guidance and vendor discovery help with Aura from CLOCHE.");
 
 export default function AuraPage() {
   return <GenieClient />;

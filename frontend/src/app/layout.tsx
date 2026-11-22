@@ -4,27 +4,30 @@ import { Header } from "@/components/Header";
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { getSession } from "@/app/actions/auth";
 import { DelayedPageTransition } from "@/components/DelayedPageTransition";
+import { SITE_URL } from "@/lib/pageMetadata";
 
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
+  metadataBase: new URL(`${SITE_URL}/`),
   title: {
-    default: "CLOCHE - Your Wedding, Your Way",
+    default: "Kerala Wedding Marketplace",
     template: "%s | CLOCHE",
   },
-  description: "Find the best wedding vendors, luxury boutiques, venues, and inspirations with thousands of trusted reviews.",
+  description: "Discover wedding professionals, venues, and inspiration across Kerala.",
+  alternates: { canonical: SITE_URL },
   openGraph: {
-    title: "CLOCHE - Kerala's Favourite Wedding Planning Platform",
-    description: "Find the best wedding vendors, luxury boutiques, venues, and inspirations with thousands of trusted reviews.",
-    url: "https://cloche.luxury",
-    siteName: "Cloche Weddings",
+    title: "Kerala Wedding Marketplace",
+    description: "Discover wedding professionals, venues, and inspiration across Kerala.",
+    url: SITE_URL,
+    siteName: "CLOCHE",
     locale: "en_IN",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "CLOCHE - Your Wedding, Your Way",
-    description: "Find the best wedding vendors, luxury boutiques, venues, and inspirations with thousands of trusted reviews.",
+    title: "Kerala Wedding Marketplace | CLOCHE",
+    description: "Discover wedding professionals, venues, and inspiration across Kerala.",
   },
 };
 

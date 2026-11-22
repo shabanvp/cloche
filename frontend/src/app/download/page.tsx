@@ -1,19 +1,8 @@
 import type { Metadata } from "next";
 import { DownloadClient } from "@/components/DownloadClient";
+import { pageMetadata } from "@/lib/pageMetadata";
 
-export const metadata: Metadata = {
-  title: "Download Cloche Mobile App",
-  description: "Download the Cloche mobile app for iOS and Android to plan your luxury Kerala wedding on the go.",
-  openGraph: {
-    title: "Download Cloche Mobile App | CLOCHE",
-    description: "Download the Cloche mobile app for iOS and Android to plan your luxury Kerala wedding on the go.",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Download Cloche Mobile App | CLOCHE",
-    description: "Download the Cloche mobile app for iOS and Android to plan your luxury Kerala wedding on the go.",
-  },
-};
+export const metadata: Metadata = pageMetadata("/download", "Get the CLOCHE App", "Find wedding vendors, venues, and inspiration with the CLOCHE mobile app.");
 
 export default function DownloadAppPage() {
   return <DownloadClient />;
