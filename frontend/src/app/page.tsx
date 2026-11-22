@@ -14,20 +14,18 @@ import { Sparkles, Plus, ArrowRight, Star, Heart, Flame } from "lucide-react";
 import { HOMEPAGE_CATEGORY_STRIP, normalizeCategory } from "@/lib/categories";
 import { VendorCardSkeleton } from "@/components/skeletons/VendorCardSkeleton";
 import { WeddingInspirationSection } from "@/components/WeddingInspirationSection";
+import { formatCategory, formatLocation, formatPrice } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
 function mapBoutiqueVendor(b: any): VendorCardItem {
   const norm = normalizeCategory(b.category);
   const rawPrice = b.starting_price || b.startingPrice;
-  const amount = Number(String(rawPrice || "").replace(/[^\d.]/g, ""));
-  const startingPrice = !rawPrice ? "Contact for pricing" : typeof rawPrice === "string" && rawPrice.startsWith("â‚¹")
-    ? rawPrice : !isNaN(amount) && amount > 0 ? `â‚¹${amount.toLocaleString("en-IN")}` : String(rawPrice);
   return {
     id: String(b.id), slug: b.slug || String(b.id), name: b.name || b.boutique_name || "Luxury Boutique",
-    category: norm?.title || b.category || "Wedding Vendor", categorySlug: norm?.slug || b.categorySlug || "vendors",
-    city: b.city || "Kerala", rating: Number(b.rating || 0), reviewCount: Number(b.review_count || 0),
-    startingPrice, coverImage: b.cover_image || "", profileImage: b.profile_image || b.logo || "",
+    category: formatCategory(norm?.title || b.category), categorySlug: norm?.slug || b.categorySlug || "vendors",
+    city: formatLocation(b.city, b.district), rating: Number(b.rating || 0), reviewCount: Number(b.review_count || 0),
+    startingPrice: formatPrice(rawPrice), coverImage: b.cover_image || "", profileImage: b.profile_image || b.logo || "",
   };
 }
 
@@ -74,12 +72,12 @@ export default function Home() {
                   id: v.id,
                   slug: v.slug || v.id,
                   name: v.name || "Verified Vendor",
-                  category: catTitle,
+                  category: formatCategory(catTitle),
                   categorySlug: catSlug,
-                  city: v.city || "Kerala",
+                  city: formatLocation(v.city, v.district),
                   rating: Number(v.rating || 0),
                   reviewCount: Number(v.reviewCount || 0),
-                  startingPrice: v.startingPrice || "Contact for pricing",
+                  startingPrice: formatPrice(v.startingPrice),
                   coverImage: v.coverImage || "",
                   profileImage: v.profileImage || v.logo || "",
                 };
@@ -114,18 +112,12 @@ export default function Home() {
                   id: String(b.id),
                   slug: b.slug || String(b.id),
                   name: b.name || b.boutique_name || "Luxury Boutique",
-                  category: catTitle,
+                  category: formatCategory(catTitle),
                   categorySlug: catSlug,
-                  city: b.city || "Kerala",
+                  city: formatLocation(b.city, b.district),
                   rating: Number(b.rating || 0),
                   reviewCount: Number(b.review_count || 0),
-                  startingPrice: (() => {
-                    const raw = b.starting_price || b.startingPrice;
-                    if (!raw) return "Contact for pricing";
-                    if (typeof raw === "string" && raw.startsWith("₹")) return raw;
-                    const num = Number(String(raw).replace(/[^\d.]/g, ""));
-                    return !isNaN(num) && num > 0 ? `₹${num.toLocaleString("en-IN")}` : String(raw);
-                  })(),
+                  startingPrice: formatPrice(b.starting_price || b.startingPrice),
                   coverImage: b.cover_image || "",
                   profileImage: b.profile_image || b.logo || "",
                 };

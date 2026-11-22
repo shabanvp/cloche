@@ -9,6 +9,7 @@ import { Footer } from "@/components/Footer";
 import { makeupArtists } from "@/lib/vendorLists";
 import { toggleWishlistItem, getWishlistItems } from "@/lib/wishlistStore";
 import { PaginationControls } from "@/components/PaginationControls";
+import { formatCategory, formatLocation, formatPrice, formatReviews } from "@/lib/format";
 
 const MAKEUP_CHIPS = ["All", "HD Airbrush", "Kerala Glow", "Glamour", "Trials", "Venue Travel"];
 
@@ -42,19 +43,19 @@ export function MakeupListing() {
             const mapped = json.data.map((dbV: any) => ({
               id: dbV.id,
               name: dbV.name,
-              location: dbV.city || dbV.state || "Kerala, India",
-              city: dbV.city || "Kerala",
+              location: formatLocation(dbV.city, dbV.district),
+              city: formatLocation(dbV.city, dbV.district),
               state: dbV.state || "India",
               rating: dbV.rating || 4.9,
-              reviews: dbV.reviewCount || 0,
-              reviewCount: dbV.reviewCount || 0,
-              startingPrice: dbV.startingPrice || "₹25k+",
-              price: dbV.startingPrice || "₹25k+",
+              reviews: dbV.reviewCount ?? 0,
+              reviewCount: dbV.reviewCount ?? 0,
+              startingPrice: formatPrice(dbV.startingPrice),
+              price: formatPrice(dbV.startingPrice),
               image: dbV.coverImage || dbV.logo || "/images/makeup-cover.png",
               coverImage: dbV.coverImage || dbV.logo || "/images/makeup-cover.png",
               isVerified: dbV.isVerified ?? true,
               about: dbV.tagline || dbV.about || "Bridal Makeup Artist",
-              category: "Makeup",
+              category: formatCategory(dbV.category || "Makeup"),
             }));
             setLiveDbArtists(mapped);
           }
@@ -199,7 +200,7 @@ export function MakeupListing() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3">
           {paginatedArtists.map((artist) => {
             const isSaved = wishlist.has(String(artist.id));
-            const startingPrice = artist.price || artist.startingPrice || "₹25k+";
+const startingPrice = formatPrice(artist.price || artist.startingPrice);
 
             return (
               <Link
@@ -234,6 +235,7 @@ export function MakeupListing() {
                   <div className="absolute bottom-1.5 left-1.5 bg-black/60 backdrop-blur-xs px-1.5 py-0.5 rounded-md flex items-center gap-0.5 text-white text-[9px] font-semibold">
                     <Star className="w-2.5 h-2.5 text-amber-400 fill-amber-400" />
                     <span>{artist.rating}</span>
+                    <span className="ml-1">{formatReviews(artist.reviews ?? artist.reviewCount)}</span>
                   </div>
                 </div>
 
@@ -254,7 +256,7 @@ export function MakeupListing() {
                   <div className="pt-1.5 border-t border-[#F2EBE1] flex items-center justify-between text-[10px]">
                     <span className="flex items-center gap-0.5 text-[#7A6E65] truncate max-w-[65%]">
                       <MapPin className="w-2.5 h-2.5 text-[#0F4C45] shrink-0" />
-                      <span className="truncate">{artist.location || artist.city}</span>
+                      <span className="truncate">{formatLocation(artist.location || artist.city)}</span>
                     </span>
 
                     <span className="font-bold text-[#0F4C45] flex items-center gap-0.5 shrink-0 group-hover:underline">

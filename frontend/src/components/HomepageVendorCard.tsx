@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Star, MapPin, Heart, ArrowRight, Flame } from "lucide-react";
 import { isItemInWishlist, toggleWishlistItem } from "@/lib/wishlistStore";
 import { VendorCardImage } from "@/components/VendorCardImage";
+import { formatCategory, formatLocation, formatPrice, formatReviews } from "@/lib/format";
 
 export interface VendorCardItem {
   id: string;
@@ -116,9 +117,7 @@ export function HomepageVendorCard({
               <>
                 <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
                 <span className="text-xs font-bold text-[#242321]">{vendor.rating.toFixed(1)}</span>
-                {vendor.reviewCount ? (
-                  <span className="text-[10px] text-[#242321]/50 font-medium">({vendor.reviewCount})</span>
-                ) : null}
+                <span className="text-[10px] text-[#242321]/50 font-medium">({formatReviews(vendor.reviewCount)})</span>
               </>
             ) : (
               <span className="text-[11px] font-bold text-[#064E43] px-1">Verified</span>
@@ -130,7 +129,7 @@ export function HomepageVendorCard({
         <div className="p-4 sm:p-5 space-y-2">
           {/* Category Tag */}
           <span className="text-[11px] font-bold text-[#C6A568] uppercase tracking-wider block truncate">
-            {vendor.category}
+            {formatCategory(vendor.category)}
           </span>
 
           {/* Vendor Name */}
@@ -142,7 +141,7 @@ export function HomepageVendorCard({
           <div className="flex items-center justify-between gap-1 text-xs text-[#242321]/65">
             <p className="flex items-center gap-1 min-w-0 truncate">
               <MapPin className="w-3.5 h-3.5 text-[#064E43] shrink-0" />
-              <span className="truncate">{vendor.city || "Kerala"}</span>
+              <span className="truncate">{formatLocation(vendor.city)}</span>
             </p>
             {typeof effectiveDistance === "number" && (
               <span className="text-[11px] font-bold text-[#064E43] bg-[#064E43]/7 border border-[#C6A568]/25 px-2 py-0.5 rounded-full shrink-0 shadow-2xs">
@@ -157,10 +156,10 @@ export function HomepageVendorCard({
       <div className="px-4 sm:px-5 pb-4 pt-2.5 border-t border-[#C6A568]/15 flex items-center justify-between bg-[#FDFCFB]/50">
         <div className="min-w-0">
           <span className="text-[10px] text-[#242321]/50 uppercase tracking-wider font-medium block">
-            Starting from
+            Pricing
           </span>
           <span className="text-sm font-bold text-[#064E43] truncate block">
-            {vendor.startingPrice}
+            {formatPrice(vendor.startingPrice)}
           </span>
         </div>
 

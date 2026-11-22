@@ -10,6 +10,7 @@ import { photographers } from "@/lib/vendorLists";
 import { toggleWishlistItem, getWishlistItems } from "@/lib/wishlistStore";
 import { getCategoryFallbackImage } from "@/lib/categories";
 import { PaginationControls } from "@/components/PaginationControls";
+import { formatCategory, formatLocation, formatPrice, formatReviews } from "@/lib/format";
 
 const PHOTO_CHIPS = ["All", "Candid", "Traditional", "Pre-Wedding", "Cinematic", "Drone"];
 
@@ -30,11 +31,11 @@ export function PhotographersListing() {
             id: dbV.id,
             name: dbV.name,
             about: dbV.tagline || dbV.about || "Luxury Wedding Photography & Cinematic Films",
-            location: dbV.city || dbV.state || "Kerala, India",
+            location: formatLocation(dbV.city, dbV.district),
             rating: dbV.rating || 4.9,
-            reviews: dbV.reviewCount || 0,
-            price: dbV.startingPrice || "₹65,000 / day",
-            category: "Photographers",
+            reviews: dbV.reviewCount ?? 0,
+            price: formatPrice(dbV.startingPrice),
+            category: formatCategory(dbV.category || "Photographers"),
             isVerified: dbV.isVerified ?? true,
             image: dbV.coverImage || dbV.logo || fallbackImg,
             portfolio: [dbV.coverImage || dbV.logo, dbV.logo].filter(Boolean),
@@ -96,7 +97,7 @@ export function PhotographersListing() {
     toggleWishlistItem({
       id: item.id,
       name: item.name,
-      category: "Photographers",
+      category: formatCategory("Photographers"),
       image: item.image,
       location: item.location,
       rating: item.rating,
@@ -183,7 +184,7 @@ export function PhotographersListing() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3">
           {paginatedPhotographers.map((photo) => {
             const isSaved = wishlist.has(String(photo.id));
-            const priceDisplay = photo.price || "₹50k/day";
+const priceDisplay = formatPrice(photo.price);
 
             return (
               <Link
@@ -218,6 +219,7 @@ export function PhotographersListing() {
                   <div className="absolute bottom-1.5 left-1.5 bg-black/60 backdrop-blur-xs px-1.5 py-0.5 rounded-md flex items-center gap-0.5 text-white text-[9px] font-semibold">
                     <Star className="w-2.5 h-2.5 text-amber-400 fill-amber-400" />
                     <span>{photo.rating}</span>
+                    <span className="ml-1">{formatReviews(photo.reviews)}</span>
                   </div>
                 </div>
 
@@ -238,7 +240,7 @@ export function PhotographersListing() {
                   <div className="pt-1.5 border-t border-[#F2EBE1] flex items-center justify-between text-[10px]">
                     <span className="flex items-center gap-0.5 text-[#7A6E65] truncate max-w-[65%]">
                       <MapPin className="w-2.5 h-2.5 text-[#0F4C45] shrink-0" />
-                      <span className="truncate">{photo.location}</span>
+                      <span className="truncate">{formatLocation(photo.location)}</span>
                     </span>
 
                     <span className="font-bold text-[#0F4C45] flex items-center gap-0.5 shrink-0 group-hover:underline">

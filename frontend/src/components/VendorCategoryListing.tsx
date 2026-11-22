@@ -15,6 +15,7 @@ import {
 import { Footer } from "@/components/Footer";
 import { VendorCardImage } from "@/components/VendorCardImage";
 import { PaginationControls } from "@/components/PaginationControls";
+import { formatCategory, formatLocation, formatPrice, formatReviews } from "@/lib/format";
 import {
   CategoryConfig,
   VendorCategoryItem,
@@ -78,11 +79,7 @@ export function VendorCategoryListing({
           if (res.success && Array.isArray(res.data)) {
             apiVendors = res.data.map((item: any, idx: number) => {
               const locCity = (item.city || "").trim();
-              const locState = (item.state || "").trim();
-              const formattedLoc =
-                locCity && locState && locCity.toLowerCase() !== locState.toLowerCase()
-                  ? `${locCity}, ${locState}`
-                  : locCity || locState || "Kerala";
+              const formattedLoc = formatLocation(locCity, item.district);
 
               return {
                 id: item.id || item.slug || `api-${idx}`,
@@ -104,10 +101,10 @@ export function VendorCategoryListing({
                 rating: Number(item.rating ?? 0),
                 reviewsCount: Number(item.reviewCount ?? item.reviewsCount ?? 0),
                 location: formattedLoc,
-                startingPrice: item.startingPrice || "Contact for pricing",
+                startingPrice: formatPrice(item.startingPrice),
                 badge: item.badge || "Verified",
                 verified: Boolean(item.isVerified),
-                specialtyTag: item.category || categoryConfig.title,
+                specialtyTag: formatCategory(item.category || categoryConfig.title),
                 subCategory: "all",
               };
             });
@@ -397,7 +394,7 @@ export function VendorCategoryListing({
                               ★ {Number(vendor.rating).toFixed(1)}
                             </span>
                             <span className="text-charcoal/50 font-normal">
-                              ({vendor.reviewsCount ?? 0} reviews)
+                              ({formatReviews(vendor.reviewsCount)})
                             </span>
                           </>
                         ) : (
@@ -410,15 +407,14 @@ export function VendorCategoryListing({
                       {/* Location */}
                       <p className="text-xs text-charcoal/60 flex items-center gap-1">
                         <MapPin className="w-3.5 h-3.5 text-gold shrink-0" />
-                        <span className="truncate">{vendor.location}</span>
+                          <span className="truncate">{formatLocation(vendor.location)}</span>
                       </p>
 
                       {/* Price Tag */}
                       <div className="pt-1">
                         <p className="text-xs text-charcoal/60">
-                          Starts from{" "}
                           <span className="font-bold text-charcoal text-sm">
-                            {vendor.startingPrice}
+                            {formatPrice(vendor.startingPrice)}
                           </span>
                           {vendor.priceSuffix || categoryConfig.priceSuffix || ""}
                         </p>

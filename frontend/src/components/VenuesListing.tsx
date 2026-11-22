@@ -16,6 +16,7 @@ import { getAllVenues, VenueDetail, venues } from "@/lib/venueData";
 import { useEffect } from "react";
 import { getCategoryFallbackImage } from "@/lib/categories";
 import { PaginationControls } from "@/components/PaginationControls";
+import { formatCategory, formatLocation, formatPrice, formatReviews } from "@/lib/format";
 
 const FILTERS = ["All", "Outdoor", "Indoor", "Destination", "Luxury"] as const;
 type Filter = (typeof FILTERS)[number];
@@ -44,12 +45,13 @@ export function VenuesListing() {
             name: dbV.name,
             image: dbV.coverImage || dbV.logo || fallbackImg,
             image_url: dbV.coverImage || dbV.logo || fallbackImg,
-            location: dbV.city || dbV.state || "Kerala, India",
+            location: formatLocation(dbV.city, dbV.district),
             rating: dbV.rating || 4.9,
-            reviews: dbV.reviewCount || 0,
-            review_count: dbV.reviewCount || 0,
-            price_per_plate: dbV.startingPrice || "₹1,200 / plate",
-            startingPrice: dbV.startingPrice || "₹1,200 / plate",
+            reviews: dbV.reviewCount ?? 0,
+            review_count: dbV.reviewCount ?? 0,
+            price_per_plate: formatPrice(dbV.startingPrice),
+            startingPrice: formatPrice(dbV.startingPrice),
+            category: formatCategory(dbV.category),
             max_capacity: 1000,
             venue_type: "Banquet Hall & Lawns",
           }));
@@ -267,7 +269,7 @@ export function VenuesListing() {
                   {venue.name}
                 </p>
                 <p className="mt-0.5 text-[12px] truncate" style={{ color: "#7A6E65" }}>
-                  {venue.location}
+                  {formatLocation(venue.location)}
                 </p>
                 <div className="mt-2 flex items-center gap-1.5">
                   <Star
@@ -278,7 +280,7 @@ export function VenuesListing() {
                     {venue.rating}
                   </span>
                   <span className="text-[12px]" style={{ color: "#9A8D7D" }}>
-                    ({venue.reviews ?? venue.review_count ?? 0})
+                    ({formatReviews(venue.reviews ?? venue.review_count)})
                   </span>
                 </div>
               </div>

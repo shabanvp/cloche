@@ -17,11 +17,12 @@ import { Boutique } from "@/types";
 import { normalizeCategory } from "@/lib/categories";
 import { VendorCardImage } from "@/components/VendorCardImage";
 import { PaginationControls } from "@/components/PaginationControls";
+import { formatCategory, formatLocation, formatPrice, formatReviews } from "@/lib/format";
 
 // Authoritative category resolution using verified registered database category
 function resolveCategory(boutique: Boutique): string {
   const norm = normalizeCategory((boutique as any).category || (boutique as any).category_id || boutique.tags);
-  return norm?.title || (boutique as any).category || boutique.tags || "Wedding Vendor";
+  return formatCategory(norm?.title || (boutique as any).category || boutique.tags);
 }
 
 function resolveDetailHref(boutique: Boutique): string {
@@ -310,11 +311,8 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
 
               // Strictly resolve LOGO image ONLY (Do NOT request or load cover images)
               const bName = boutique.boutique_name || (boutique as any).name || "Wedding Vendor";
-              const locationText = `${boutique.city || "Kochi"}${boutique.area ? `, ${boutique.area}` : ""}`;
-              const startingPrice =
-                (boutique as any).starting_price ||
-                (boutique as any).startingPrice ||
-                "Contact for pricing";
+              const locationText = formatLocation(`${boutique.city || "Kochi"}${boutique.area ? `, ${boutique.area}` : ""}`);
+              const startingPrice = formatPrice((boutique as any).starting_price || (boutique as any).startingPrice);
 
               const overlayTag = category.includes("Venue")
                 ? (boutique.id.toString().length % 2 === 0 ? "Outdoor" : "Indoor")
@@ -368,7 +366,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                               {Number(boutique.rating).toFixed(1)}
                             </span>
                             <span className="text-charcoal/50">
-                              ({(boutique as any).review_count ?? (boutique as any).reviewCount ?? 0} reviews)
+                              ({formatReviews((boutique as any).review_count ?? (boutique as any).reviewCount)})
                             </span>
                           </>
                         ) : (
@@ -380,13 +378,13 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
 
                       <p className="text-xs text-charcoal/60 flex items-center gap-1 truncate pt-0.5">
                         <MapPin className="h-3.5 w-3.5 text-charcoal/40 shrink-0" />
-                        <span>{locationText}</span>
+                        <span>{formatLocation(locationText)}</span>
                       </p>
                     </div>
 
                     <div className="pt-2 border-t border-gold/10 flex items-center justify-between">
                       <div>
-                        <span className="text-[10px] text-charcoal/50 block">Starts from</span>
+                        <span className="text-[10px] text-charcoal/50 block">Pricing</span>
                         <span className="text-sm font-bold text-[#0F4C45]">{startingPrice}</span>
                       </div>
                       <span className="text-xs font-bold text-[#0F4C45] group-hover:translate-x-0.5 transition-transform flex items-center gap-1">

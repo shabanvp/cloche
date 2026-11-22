@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test:format": "node --experimental-strip-types --test tests/format.test.mjs",
     "test:aura": "node --test tests/aura-engine.test.cjs tests/aura-api.integration.test.cjs",
     "lint": "eslint"
   },
