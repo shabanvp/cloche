@@ -161,7 +161,7 @@ export function getCategoryListingHref(categoryType: VendorCategoryType): string
     case "invitation":
       return "/invitations";
     default:
-      return "/boutiques";
+      return "/vendors";
   }
 }
 
@@ -1429,7 +1429,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
           {/* Top Floating Action Buttons */}
           <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
             <Link
-              href={previewMode ? "#" : "/boutiques"}
+              href={previewMode ? "#" : "/vendors"}
               className="w-10 h-10 rounded-full bg-black/40 text-white backdrop-blur-md hover:bg-black/60 transition-colors flex items-center justify-center border border-white/20"
               aria-label="Back"
             >

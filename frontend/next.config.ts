@@ -50,6 +50,12 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      { source: "/boutiques", destination: "/vendors", permanent: true },
+      { source: "/genie", destination: "/aura", permanent: true },
+    ];
+  },
   async rewrites() {
     return [
       {

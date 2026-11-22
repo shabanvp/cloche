@@ -122,7 +122,7 @@ function VendorAvatar({
 
 function getVendorProfileHref(conv: ConversationItem): string {
   const identifier = encodeURIComponent(conv.vendorSlug || conv.vendorId || "");
-  if (!identifier) return "/boutiques";
+  if (!identifier) return "/vendors";
 
   const raw = (conv.vendorCategorySlug || conv.vendorCategory || "").toLowerCase().trim();
 

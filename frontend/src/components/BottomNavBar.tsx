@@ -53,7 +53,7 @@ export function BottomNavBar({ activeTab }: BottomNavBarProps = {}) {
   const navItems = [
     { tab: "home", label: "Home", href: "/", icon: Home },
     { tab: "venues", label: "Venues", href: "/venues", icon: MapPin },
-    { tab: "vendors", label: "Vendors", href: "/boutiques", icon: Users },
+    { tab: "vendors", label: "Vendors", href: "/vendors", icon: Users },
     { tab: "photos", label: "Photos", href: "/inspiration", icon: ImageIcon },
     { tab: "blogs", label: "Blogs", href: "/blogs", icon: BookOpenText },
   ];

@@ -287,7 +287,7 @@ export default function Home() {
                   Top Rated Vendors
                 </h2>
               </div>
-              <Link href="/boutiques" className="hidden sm:inline-flex items-center gap-1 text-sm font-bold text-[#064E43] hover:text-[#C6A568] transition-colors">
+              <Link href="/vendors" className="hidden sm:inline-flex items-center gap-1 text-sm font-bold text-[#064E43] hover:text-[#C6A568] transition-colors">
                 View All <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -369,7 +369,7 @@ export default function Home() {
               </span>
               <h2 className="text-2xl font-bold text-on-surface font-display">More Wedding Professionals</h2>
             </div>
-            <Link href="/boutiques" className="text-primary text-sm font-bold hover:underline flex items-center gap-1">
+            <Link href="/vendors" className="text-primary text-sm font-bold hover:underline flex items-center gap-1">
               View All <ArrowRight className="w-4 h-4" />
             </Link>
           </div>

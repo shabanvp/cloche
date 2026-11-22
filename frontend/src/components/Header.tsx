@@ -188,11 +188,11 @@ export function Header({ session }: HeaderProps = {}) {
     { label: "Home", href: "/", icon: Home },
     { label: "Messages", href: "/messages", icon: MessageSquare },
     { label: "Venues", href: "/venues", icon: MapPin },
-    { label: "Vendors", href: "/boutiques", icon: Users },
+    { label: "Vendors", href: "/vendors", icon: Users },
     { label: "Inspiration", href: "/inspiration", icon: Lightbulb },
     { label: "Real Weddings", href: "/real-weddings", icon: BookHeart },
     { label: "Deals", href: "/deals", icon: Sparkles },
-    { label: "Aura AI Assistant", href: "/genie", icon: Sparkles },
+    { label: "Aura AI Assistant", href: "/aura", icon: Sparkles },
   ];
 
   const companyLinks = [
@@ -266,14 +266,14 @@ export function Header({ session }: HeaderProps = {}) {
         {/* Desktop Links */}
         <nav className="hidden lg:flex items-center gap-5 xl:gap-8 font-semibold text-[14px] xl:text-[15px]">
           <Link href="/venues" className={`transition-colors ${isActiveLink("/venues") ? "text-gold font-bold" : "hover:text-gold"}`}>Venues</Link>
-          <Link href="/boutiques" className={`transition-colors ${isActiveLink("/boutiques") ? "text-gold font-bold" : "hover:text-gold"}`}>Vendors</Link>
+          <Link href="/vendors" className={`transition-colors ${isActiveLink("/vendors") ? "text-gold font-bold" : "hover:text-gold"}`}>Vendors</Link>
           <Link href="/inspiration" className={`transition-colors ${isActiveLink("/inspiration") ? "text-gold font-bold" : "hover:text-gold"}`}>Inspiration</Link>
           <Link href="/real-weddings" className={`transition-colors ${isActiveLink("/real-weddings") ? "text-gold font-bold" : "hover:text-gold"}`}>Real Weddings</Link>
           <Link href="/deals" className={`transition-colors ${isActiveLink("/deals") ? "text-gold font-bold" : "hover:text-gold"}`}>Deals</Link>
           <Link 
-            href="/genie" 
+            href="/aura" 
             className={`transition-colors inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-gold/30 bg-white/5 hover:bg-white/10 ${
-              isActiveLink("/genie") || isActiveLink("/aura") ? "text-gold font-bold border-gold shadow-xs" : "text-white/90 hover:text-gold"
+              isActiveLink("/aura") ? "text-gold font-bold border-gold shadow-xs" : "text-white/90 hover:text-gold"
             }`}
           >
             <Sparkles className="w-3.5 h-3.5 text-gold animate-pulse" />

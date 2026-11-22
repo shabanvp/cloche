@@ -459,7 +459,7 @@ export function PopularNearYouSection({
 
           {/* Right Header Navigation Link */}
           <Link
-            href={`/boutiques?search=${encodeURIComponent(userLocation.name)}`}
+            href={`/vendors?search=${encodeURIComponent(userLocation.name)}`}
             className="hidden md:inline-flex items-center gap-1 text-sm font-bold text-[#064E43] hover:text-[#C6A568] transition-colors"
           >
             <span>
@@ -555,7 +555,7 @@ export function PopularNearYouSection({
                 Show All Kerala Vendors
               </button>
               <Link
-                href="/boutiques"
+                href="/vendors"
                 className="px-4 py-2 rounded-full bg-white border border-[#C6A568]/30 text-[#064E43] text-xs font-bold hover:bg-[#FAF9F6] transition-colors"
               >
                 Browse Full Directory
@@ -567,7 +567,7 @@ export function PopularNearYouSection({
         {/* Mobile View All Footer Link */}
         <div className="mt-6 text-center md:hidden">
           <Link
-            href={`/boutiques?search=${encodeURIComponent(userLocation.name)}`}
+            href={`/vendors?search=${encodeURIComponent(userLocation.name)}`}
             className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-white border border-[#C6A568]/20 text-[#064E43] font-bold text-xs"
           >
             <span>

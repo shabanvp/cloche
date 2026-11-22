@@ -46,7 +46,7 @@ export async function FeaturedBoutiques({ title, subtitle }: FeaturedBoutiquesPr
             {title || "Handpicked excellence"}
           </h2>
         </div>
-        <Link href="/boutiques" className="hidden text-[14px] font-semibold text-emerald transition-colors hover:text-gold sm:block">
+        <Link href="/vendors" className="hidden text-[14px] font-semibold text-emerald transition-colors hover:text-gold sm:block">
           View all
         </Link>
       </div>
@@ -96,14 +96,14 @@ export async function FeaturedBoutiques({ title, subtitle }: FeaturedBoutiquesPr
         })}
       </div>
       <Link
-        href="/boutiques"
+        href="/vendors"
         aria-label="Next boutiques"
         className="absolute right-8 top-[56%] hidden h-16 w-16 items-center justify-center rounded-full bg-white text-charcoal shadow-[0_10px_28px_rgba(40,31,18,0.18)] transition-colors hover:text-emerald xl:flex 2xl:right-7"
       >
         <ArrowRight className="h-6 w-6" strokeWidth={1.7} />
       </Link>
       <div className="mt-7 text-center sm:hidden">
-         <Link href="/boutiques" className="text-sm font-semibold text-emerald transition-colors hover:text-gold">
+         <Link href="/vendors" className="text-sm font-semibold text-emerald transition-colors hover:text-gold">
           View all boutiques
         </Link>
       </div>
