@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseFetch } from "@/lib/supabase";
-import { normalizeCategory } from "@/lib/categories";
+import { mapPublicVendor } from "@/lib/vendorMapper";
 
 function normalizeImageUrl(value: any): string {
   if (!value) return "";
@@ -66,37 +66,24 @@ export async function GET() {
     if (!bErr && Array.isArray(boutiques) && boutiques.length > 0) {
       boutiques.forEach((b: any) => {
         if (b.status && b.status !== "active") return;
-        const rawLogoPic =
-          b.logo_url ||
-          b.logo ||
-          b.profile_logo ||
-          logoMediaMap.get(String(b.id)) ||
-          "";
-
+        const rawLogoPic = b.logo_url || b.logo || b.profile_logo || logoMediaMap.get(String(b.id)) || "";
         const logoPic = normalizeImageUrl(rawLogoPic);
         const bId = String(b.id);
         seenIds.add(bId);
-
-        const norm = normalizeCategory(b.category || b.category_id || b.tags);
-        const catName = norm?.title || b.category || b.tags || "Wedding Vendor";
-        const catSlug = norm?.slug || "vendors";
-
-        resultList.push({
+        const mapped = mapPublicVendor({
+          ...b,
           id: b.id,
-          boutique_name: b.boutique_name || b.name || "Wedding Vendor",
-          name: b.boutique_name || b.name || "Wedding Vendor",
-          logo_url: logoPic,
+          name: b.boutique_name || b.name,
           logo: logoPic,
+          category: b.category || b.category_id || b.tags,
+          district: b.district || b.area,
+        });
+        resultList.push({
+          ...mapped,
+          logo_url: logoPic,
           profile_logo: logoPic,
           image_url: logoPic,
-          city: b.city || "Kochi",
-          area: b.area || b.district || "Kerala",
-          category: catName,
-          category_slug: catSlug,
-          categorySlug: catSlug,
-          tags: b.tags || catName,
-          rating: b.rating ? Number(b.rating) : 4.8,
-          starting_price: b.starting_price || b.startingPrice || "₹50,000",
+          tags: b.tags || mapped.category,
           plan: b.plan || "Premium Partner",
           is_verified: Boolean(b.is_verified),
         });
@@ -117,50 +104,36 @@ export async function GET() {
 
         const p = Array.isArray(v.vendor_profiles) && v.vendor_profiles.length > 0 ? v.vendor_profiles[0] : (v.vendor_profiles && typeof v.vendor_profiles === "object" ? v.vendor_profiles : {});
         const a = Array.isArray(v.vendor_addresses) && v.vendor_addresses.length > 0 ? v.vendor_addresses[0] : (v.vendor_addresses && typeof v.vendor_addresses === "object" ? v.vendor_addresses : {});
-        const norm = normalizeCategory(v.vendor_categories?.slug || v.vendor_categories?.name || v.category_id || v.category);
-        const catName = norm?.title || v.vendor_categories?.name || v.category || "Wedding Vendor";
-        const catSlug = norm?.slug || v.vendor_categories?.slug || "vendors";
         const bName = p.business_name || v.boutique_name || v.name;
+        if (!bName) return;
 
-        if (bName) {
-          const firstGalleryUrl = Array.isArray(v.vendor_gallery) && v.vendor_gallery.length > 0
-            ? (v.vendor_gallery[0]?.media?.cdn_url || "")
-            : "";
-          const rawLogoPic =
-            p.logo_url ||
-            v.logo_url ||
-            v.logo ||
-            p.cover_image ||
-            firstGalleryUrl ||
-            logoMediaMap.get(vId) ||
-            (v.user_id ? logoMediaMap.get(String(v.user_id)) : "") ||
-            norm?.image ||
-            "";
-
-          const logoPic = normalizeImageUrl(rawLogoPic);
-
-          resultList.push({
-            id: v.id,
-            boutique_name: bName,
-            name: bName,
-            logo_url: logoPic,
-            logo: logoPic,
-            profile_logo: logoPic,
-            image_url: logoPic,
-            city: a.city || p.city || v.city || "Kochi",
-            area: a.state || p.state || v.district || "Kerala",
-            category: catName,
-            category_slug: catSlug,
-            categorySlug: catSlug,
-            tags: catName,
-            rating: 4.9,
-            starting_price: (typeof p.starting_price === "number" && p.starting_price > 0)
-            ? ("₹" + p.starting_price.toLocaleString("en-IN"))
-            : (p.starting_price || "₹50,000"),
-            plan: v.plan || "Verified Vendor",
-            is_verified: Boolean(v.is_verified || v.is_kyc_verified),
-          });
-        }
+        const firstGalleryUrl = Array.isArray(v.vendor_gallery) && v.vendor_gallery.length > 0
+          ? (v.vendor_gallery[0]?.media?.cdn_url || "")
+          : "";
+        const rawLogoPic = p.logo_url || v.logo_url || v.logo || p.cover_image || firstGalleryUrl ||
+          logoMediaMap.get(vId) || (v.user_id ? logoMediaMap.get(String(v.user_id)) : "") || "";
+        const logoPic = normalizeImageUrl(rawLogoPic);
+        const mapped = mapPublicVendor({
+          ...v,
+          vendor_profiles: p,
+          vendor_addresses: a,
+          name: bName,
+          logo: logoPic,
+          city: a.city || p.city || v.city,
+          district: a.district || p.district || v.district,
+          state: a.state || p.state || v.state,
+          rating: p.rating,
+          startingPrice: p.starting_price,
+        });
+        resultList.push({
+          ...mapped,
+          logo_url: logoPic,
+          profile_logo: logoPic,
+          image_url: logoPic,
+          tags: mapped.category,
+          plan: v.plan || "Verified Vendor",
+          is_verified: Boolean(v.is_verified || v.is_kyc_verified),
+        });
       });
     }
 

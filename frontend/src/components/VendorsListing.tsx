@@ -314,9 +314,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
               const locationText = formatLocation(`${boutique.city || "Kochi"}${boutique.area ? `, ${boutique.area}` : ""}`);
               const startingPrice = formatPrice((boutique as any).starting_price || (boutique as any).startingPrice);
 
-              const overlayTag = category.includes("Venue")
-                ? (boutique.id.toString().length % 2 === 0 ? "Outdoor" : "Indoor")
-                : category;
+              const overlayTag = category;
 
               return (
                 <Link

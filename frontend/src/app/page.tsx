@@ -11,21 +11,28 @@ import { PopularNearYouSection } from "@/components/PopularNearYouSection";
 import { PhotographersForYouSection } from "@/components/PhotographersForYouSection";
 import { WeddingPlanningJourneySection } from "@/components/WeddingPlanningJourneySection";
 import { Sparkles, Plus, ArrowRight, Star, Heart, Flame } from "lucide-react";
-import { HOMEPAGE_CATEGORY_STRIP, normalizeCategory } from "@/lib/categories";
+import { HOMEPAGE_CATEGORY_STRIP } from "@/lib/categories";
 import { VendorCardSkeleton } from "@/components/skeletons/VendorCardSkeleton";
 import { WeddingInspirationSection } from "@/components/WeddingInspirationSection";
-import { formatCategory, formatLocation, formatPrice } from "@/lib/format";
+import { formatLocation, formatPrice } from "@/lib/format";
+import { mapPublicVendor } from "@/lib/vendorMapper";
 
 export const dynamic = "force-dynamic";
 
-function mapBoutiqueVendor(b: any): VendorCardItem {
-  const norm = normalizeCategory(b.category);
-  const rawPrice = b.starting_price || b.startingPrice;
+function mapHomepageVendor(source: Record<string, unknown>): VendorCardItem {
+  const vendor = mapPublicVendor(source);
   return {
-    id: String(b.id), slug: b.slug || String(b.id), name: b.name || b.boutique_name || "Luxury Boutique",
-    category: formatCategory(norm?.title || b.category), categorySlug: norm?.slug || b.categorySlug || "vendors",
-    city: formatLocation(b.city, b.district), rating: Number(b.rating || 0), reviewCount: Number(b.review_count || 0),
-    startingPrice: formatPrice(rawPrice), coverImage: b.cover_image || "", profileImage: b.profile_image || b.logo || "",
+    id: String(vendor.id),
+    slug: String(vendor.slug),
+    name: String(vendor.name),
+    category: String(vendor.category),
+    categorySlug: String(vendor.categorySlug),
+    city: formatLocation(vendor.city, vendor.district),
+    rating: Number(vendor.rating || 0),
+    reviewCount: Number(vendor.reviewCount || 0),
+    startingPrice: formatPrice(vendor.startingPrice),
+    coverImage: String(vendor.coverImage || ""),
+    profileImage: String(vendor.profileImage || vendor.logo || ""),
   };
 }
 
@@ -45,7 +52,7 @@ export default function Home() {
             if (!response.ok) return null;
             const rows: any[] = await response.clone().json();
             if (isMounted && Array.isArray(rows) && rows.length > 0) {
-              const quickVendors = rows.map(mapBoutiqueVendor);
+              const quickVendors = rows.map(mapHomepageVendor);
               setAllVendors(quickVendors);
               setTrendingVendors(quickVendors.slice(0, 4));
               setVendorsLoading(false);
@@ -63,25 +70,7 @@ export default function Home() {
           try {
             const data = await vRes.json();
             if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-              allPublicVendors = data.data.map((v: any) => {
-                const norm = normalizeCategory(v.categorySlug || v.category);
-                const catTitle = norm?.title || v.category || "Wedding Expert";
-                const catSlug = norm?.slug || v.categorySlug || "vendors";
-
-                return {
-                  id: v.id,
-                  slug: v.slug || v.id,
-                  name: v.name || "Verified Vendor",
-                  category: formatCategory(catTitle),
-                  categorySlug: catSlug,
-                  city: formatLocation(v.city, v.district),
-                  rating: Number(v.rating || 0),
-                  reviewCount: Number(v.reviewCount || 0),
-                  startingPrice: formatPrice(v.startingPrice),
-                  coverImage: v.coverImage || "",
-                  profileImage: v.profileImage || v.logo || "",
-                };
-              });
+              allPublicVendors = data.data.map((v: any) => mapHomepageVendor(v));
             }
           } catch (e) {}
         }
@@ -103,25 +92,7 @@ export default function Home() {
           try {
             const bData = await bRes.json();
             if (Array.isArray(bData) && bData.length > 0) {
-              boutiqueVendors = bData.map((b: any) => {
-                const norm = normalizeCategory(b.category);
-                const catTitle = norm?.title || b.category || "Wedding Vendor";
-                const catSlug = norm?.slug || b.categorySlug || "vendors";
-
-                return {
-                  id: String(b.id),
-                  slug: b.slug || String(b.id),
-                  name: b.name || b.boutique_name || "Luxury Boutique",
-                  category: formatCategory(catTitle),
-                  categorySlug: catSlug,
-                  city: formatLocation(b.city, b.district),
-                  rating: Number(b.rating || 0),
-                  reviewCount: Number(b.review_count || 0),
-                  startingPrice: formatPrice(b.starting_price || b.startingPrice),
-                  coverImage: b.cover_image || "",
-                  profileImage: b.profile_image || b.logo || "",
-                };
-              });
+              boutiqueVendors = bData.map((b: any) => mapHomepageVendor(b));
             }
           } catch (e) {}
         }

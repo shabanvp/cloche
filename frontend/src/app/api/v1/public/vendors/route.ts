@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabaseConfig, supabaseFetch } from "@/lib/supabase";
 import { normalizeCategory } from "@/lib/categories";
+import { mapPublicVendor } from "@/lib/vendorMapper";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -171,10 +172,6 @@ export async function GET(req: Request) {
       const socialList = Array.isArray(v.vendor_social_links) ? v.vendor_social_links : [];
       const cateringDetail = Array.isArray(v.catering_details) && v.catering_details.length > 0 ? v.catering_details[0] : {};
 
-      const vNorm = normalizeCategory(v.vendor_categories?.slug || v.vendor_categories?.name || v.category_id);
-      const catTitle = vNorm?.title || v.vendor_categories?.name || "Vendor";
-      const catSlug = vNorm?.slug || v.vendor_categories?.slug || "general";
-
       const galleryCover = gallery.length > 0 ? (gallery[0]?.media?.cdn_url || "") : "";
       const coverImg = profile.cover_media?.cdn_url || profile.cover_image || galleryCover || "";
       const logoImg = profile.logo_media?.cdn_url || profile.logo_url || coverImg || "";
@@ -185,18 +182,30 @@ export async function GET(req: Request) {
       const youtube = socialList.find((s: any) => s.platform === "youtube")?.url || contact.youtube || "";
       const website = socialList.find((s: any) => s.platform === "website")?.url || contact.website || "";
 
-      return {
+      const mapped = mapPublicVendor({
+        ...v,
+        vendor_profiles: profile,
+        vendor_contacts: contact,
+        vendor_services: services,
         id: v.id,
         vendorCode: v.vendor_code,
         slug: profile.slug || v.vendor_code || v.id,
+        name: profile.business_name,
+        city: profile.city,
+        district: profile.district,
+        state: profile.state,
+        rating: profile.rating,
+        reviewCount: profile.review_count,
+        startingPrice: startingPrice > 0 ? startingPrice : profile.starting_price,
+        logo: logoImg,
+        coverImage: coverImg,
+      });
+
+      return {
+        ...mapped,
+        id: v.id,
+        vendorCode: v.vendor_code,
         name: profile.business_name || "Unnamed Vendor",
-        category: catTitle,
-        categorySlug: catSlug,
-        city: profile.city || "Kochi",
-        state: profile.state || "Kerala",
-        rating: Number(profile.rating ?? 0),
-        reviewCount: Number(profile.review_count ?? 0),
-        startingPrice: startingPrice > 0 ? `₹${startingPrice.toLocaleString("en-IN")}` : "Contact for pricing",
         logo: logoImg,
         logoUrl: logoImg,
         profileImage: logoImg,
