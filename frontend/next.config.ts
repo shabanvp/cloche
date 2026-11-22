@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
-
+import dns from "node:dns";
 import path from "path";
+
+if (dns && typeof (dns as any).setDefaultResultOrder === "function") {
+  try {
+    (dns as any).setDefaultResultOrder("ipv4first");
+  } catch {}
+}
 
 const nextConfig: NextConfig = {
   turbopack: {

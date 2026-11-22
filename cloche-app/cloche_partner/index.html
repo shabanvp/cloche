@@ -4,6 +4,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Cloche Partner</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2485,6 +2488,13 @@
     }
 
     /* Partner registration uses a compact, route-specific header. */
+    body.photographer-host-active {
+      overflow: hidden !important;
+    }
+    body.photographer-host-active #cloche-common-nav,
+    body.photographer-host-active .topbar {
+      display: none !important;
+    }
     #cloche-common-nav .cloche-nav-top,
     #cloche-common-nav .cloche-nav-links,
     #cloche-common-nav .cloche-bell-btn,
@@ -2942,7 +2952,8 @@
     const freshState = () => ({
       step: 'login', reached: 0, authTab: 'register', contact: '', contactShow: '', password: '', showPassword: false,
       user: null, vendor: null, slug: '', cat: 'venue', biz: { name: '', owner: '', phone: '', email: '', addr: '', city: '', state: '', pin: '', web: '', about: '' },
-      ans: {}, err: {}, photos: [], docs: {}, confirm: false, ret: null, drag: false, dash: null, sheet: null
+      ans: {}, err: {}, photos: [], docs: {}, confirm: false, ret: null, drag: false, dash: null, sheet: null,
+      photoSessionReady: false, photoSessionError: '', photoVendorOnly: false
     });
     let S = freshState();
     const CFG = window.CLOCHE_CONFIG || {};
@@ -3114,11 +3125,61 @@
       }
       return null;
     }
+    const PHOTOGRAPHER_CAT_ID = '5ea30983-409d-4263-b059-0061c3e583d3';
+    function isPhotographerPartner() {
+      const vc = S.vendor && S.vendor.vendor_categories;
+      const vcObj = Array.isArray(vc) ? vc[0] : vc;
+      const tok = [S.cat, S.vendor && S.vendor.category_key, S.vendor && S.vendor.category_slug, S.vendor && S.vendor.category, vcObj && vcObj.slug, vcObj && vcObj.name]
+        .filter(Boolean).join(' ').toLowerCase();
+      const cid = String((S.vendor && S.vendor.category_id) || '');
+      return tok.includes('photograph') || cid === PHOTOGRAPHER_CAT_ID;
+    }
+    let _photoBridgeInFlight = false;
+    async function ensurePhotographerSession() {
+      if (S.photoSessionReady || _photoBridgeInFlight) return;
+      _photoBridgeInFlight = true;
+      try {
+        const sessRes = sb ? await sb.auth.getSession() : { data: null };
+        const accessToken = sessRes && sessRes.data && sessRes.data.session ? sessRes.data.session.access_token : '';
+        if (!accessToken) {
+          const ovRes = await fetch('/api/vendor/photographer/overview', { credentials: 'include', cache: 'no-store' });
+          if (ovRes.ok) {
+            S.photoSessionReady = true;
+            S.photoSessionError = '';
+            if (S.step === 'dashboard') render();
+            return;
+          }
+          throw new Error('Please log in to open your Photographer Studio Dashboard.');
+        }
+        const res = await fetch('/api/vendor/photographer/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ accessToken })
+        });
+        if (!res.ok) {
+          const j = await res.json().catch(() => ({}));
+          throw new Error(j.error || 'Could not start Photographer Studio Dashboard.');
+        }
+        S.photoSessionReady = true;
+        S.photoSessionError = '';
+        if (S.step === 'dashboard') render();
+      } catch (err) {
+        S.photoSessionError = (err && err.message) || 'Could not load Photographer Studio Dashboard.';
+        if (S.step === 'dashboard') render();
+      } finally {
+        _photoBridgeInFlight = false;
+      }
+    }
     async function loadDash() {
+      if (isPhotographerPartner() || S.photoVendorOnly) {
+        ensurePhotographerSession();
+        return;
+      }
       try { const d = await rpc('partner_dashboard'); S.dash = d; applyState(d.state, true) } catch (e) { toast(e.message) }
       if (S.step === 'dashboard') render();
     }
-    setInterval(() => { if (S.user && S.step === 'dashboard' && !S.sheet && !document.hidden) loadDash() }, 60000);
+    setInterval(() => { if (S.user && S.step === 'dashboard' && !S.sheet && !document.hidden && !isPhotographerPartner() && !S.photoVendorOnly) loadDash() }, 60000);
 
     function parseContact(v) {
       v = (v || '').trim(); const c = v.replace(/[\s\-()]/g, ''); const d = c.replace(/^(?:\+?91|0)(?=\d{10}$)/, '');
@@ -3165,6 +3226,12 @@
           S.user = data.session.user;
           // Load vendor data from DB into state without forcing screen change away from login
           await loadAll(true);
+        } else if (requestedStep === 'dashboard') {
+          const ovRes = await fetch('/api/vendor/photographer/overview', { credentials: 'include', cache: 'no-store' }).catch(() => null);
+          if (ovRes && ovRes.ok) {
+            S.photoVendorOnly = true;
+            S.photoSessionReady = true;
+          }
         }
       } catch (e) {
         console.error(e);
@@ -3181,7 +3248,7 @@
         S.step = 'login';
       }
 
-      if (S.step === 'dashboard' && S.user) loadDash();
+      if (S.step === 'dashboard' && (S.user || S.photoVendorOnly)) loadDash();
       try { history.replaceState({ s: S.step }, '', '#' + S.step) } catch (e) { }
       render();
     }
@@ -3362,6 +3429,18 @@
     const initials = n => (String(n || '?').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('') || '?').toUpperCase();
     const evLine = q => `${q.event_type || 'Wedding'}${q.event_date ? ' on ' + fdate(q.event_date) : ''}${q.guest_count ? ' \u00b7 ' + q.guest_count + ' guests' : ''}`;
     function vDash() {
+      if (isPhotographerPartner() || S.photoVendorOnly) {
+        if (S.photoSessionReady) {
+          const q = new URLSearchParams(location.search);
+          const tabParam = q.get('p_tab');
+          const allowedTabs = ['overview','leads','inquiries','profile','services','portfolio','packages','reviews','faqs','messages','settings'];
+          const safeTab = tabParam && allowedTabs.includes(tabParam) ? tabParam : '';
+          const src = '/vendor/photographer?host=partner' + (safeTab ? '&tab=' + encodeURIComponent(safeTab) : '');
+          return `<div style="position:fixed;inset:0;width:100%;height:100dvh;z-index:9999;background:#FAF7F2"><iframe id="photographerDashboardHost" src="${src}" title="Photographer Studio Dashboard" style="width:100%;height:100%;border:0;display:block;background:#FAF7F2"></iframe></div>`;
+        }
+        if (!S.photoSessionError) ensurePhotographerSession();
+        return `<section class="screen" style="min-height:80vh;display:grid;place-items:center;padding:24px"><div class="card" style="max-width:420px;width:100%;padding:28px;text-align:center"><h2 style="font-family:var(--serif);margin:0 0 8px">Photographer Studio Dashboard</h2><p style="color:var(--muted);font-size:13.5px;margin:0 0 16px">${S.photoSessionError ? esc(S.photoSessionError) : 'Preparing your studio workspace…'}</p>${S.photoSessionError ? '<button class="btn" type="button" data-act="retryPhotoDash">Retry</button>' : ''}</div></section>`;
+      }
       const D = S.dash, V = S.vendor || {}, enq = D ? D.recent : [], ps = V.publication_status;
       const pc = V.completion || 0, pend = D ? D.pending : 0, firstNew = enq.find(x => x.status === 'new');
       const first = (S.biz.owner || '').trim().split(/\s+/)[0] || 'Partner';
@@ -3406,6 +3485,11 @@
     function esc(s) { return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])) }
     const VIEWS = { login: vLogin, category: vCategory, business: vBusiness, questions: vQuestions, gallery: vGallery, docs: vDocs, review: vReview, dashboard: vDash };
     function render() {
+      const hostOn = S.step === 'dashboard' && (isPhotographerPartner() || S.photoVendorOnly) && S.photoSessionReady;
+      document.body.classList.toggle('photographer-host-active', !!hostOn);
+      if (hostOn && document.getElementById('photographerDashboardHost')) {
+        return;
+      }
       app.innerHTML = VIEWS[S.step]();
       const hBtn = $('#headerLoginBtn');
       if (hBtn) {
@@ -3709,9 +3793,12 @@
 
           if (!authed) {
             const rawMsg = (authError && authError.message) || 'Invalid mobile number, email, or password.';
-            const userMsg = (rawMsg.includes('Invalid login credentials') || rawMsg.includes('INVALID_CREDENTIALS'))
+            let userMsg = (rawMsg.includes('Invalid login credentials') || rawMsg.includes('INVALID_CREDENTIALS'))
               ? 'Invalid mobile number, email, or password. Please try again.'
               : rawMsg;
+            if (userMsg.toLowerCase().includes('rate limit')) {
+              userMsg = 'Too many attempts. Please wait a moment and try again.';
+            }
             S.err.password = userMsg;
             return fail(userMsg);
           }
@@ -3763,32 +3850,33 @@
           const email = p.email || `${digits10(p.phone)}@partner.cloche.luxury`;
           const phone = p.phone ? digits10(p.phone) : '';
 
-          let { data, error } = await sb.auth.signUp({
-            email: email,
-            password: S.password,
-            options: {
-              data: {
-                phone: phone,
-                role: 'vendor'
-              }
-            }
+          const regRes = await fetch('/api/v1/vendor/partner-signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: email,
+              phone: phone,
+              password: S.password
+            })
           });
+          const regJson = await regRes.json().catch(() => ({}));
 
-          // If user already registered, automatically log in with their credentials!
-          if (error && (error.message.includes('already registered') || error.message.includes('already exists') || error.status === 422)) {
-            return ACT.login(t);
+          if (!regRes.ok || !regJson?.success) {
+            let errMsg = regJson?.error || 'Could not create account. Please try again.';
+            if (errMsg.toLowerCase().includes('rate limit')) {
+              errMsg = 'Too many attempts. Please try logging in with your password or wait a moment.';
+            }
+            S.err.contact = errMsg;
+            return fail(errMsg);
           }
 
-          if (error) {
-            S.err.contact = error.message || 'Could not create account. Please try again.';
-            return fail(S.err.contact);
-          }
-
-          if (!data?.session) {
-            try {
-              const signRes = await sb.auth.signInWithPassword({ email: email, password: S.password });
-              if (signRes?.data?.user) data = signRes.data;
-            } catch (e) {}
+          let data = null;
+          try {
+            const signRes = await sb.auth.signInWithPassword({ email: email, password: S.password });
+            if (signRes?.data?.user) data = signRes.data;
+          } catch (e) {}
+          if (!data?.user && regJson?.data?.userId) {
+            data = { user: { id: regJson.data.userId, email: email, phone: phone } };
           }
           S.user = data.user || (data.session && data.session.user);
           if (p.email) S.biz.email = p.email;
@@ -3803,9 +3891,13 @@
             }));
           } catch (e) {}
 
-          toast('Account created successfully!');
-          // Directly advance to category selection to add shop & service details!
-          go('category');
+          toast('Account ready!');
+          await loadAll(true);
+          if (S.vendor || S.biz.name) {
+            go('dashboard');
+          } else {
+            go('category');
+          }
         });
       },
       google(t) { return oauth('google', t) },
@@ -4149,8 +4241,23 @@
           const d = await rpc('partner_mark_contacted', { p_lead: id });
           S.dash = d; applyState(d.state, true); S.sheet = null; render();
         });
+      },
+      retryPhotoDash() {
+        S.photoSessionError = '';
+        S.photoSessionReady = false;
+        ensurePhotographerSession();
+        render();
       }
     };
+    window.addEventListener('message', e => {
+      if (e.origin === location.origin && e.data && e.data.type === 'cloche-photographer-signout') {
+        ACT.signout();
+      }
+    });
+    window.addEventListener('hashchange', () => {
+      const h = (location.hash || '').replace('#', '').trim();
+      if (h === 'dashboard' && (S.user || S.photoVendorOnly)) go('dashboard', false);
+    });
     document.addEventListener('click', e => {
       const m = $('#menu'); if (m && m.classList.contains('open') && !e.target.closest('#menu')) m.classList.remove('open');
       const t = e.target.closest('[data-act]'); if (!t || t.disabled) return;

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { hashPassword } from "@/lib/auth";
-import { getSupabaseConfig, signUpWithSupabaseAuth, deleteAdminSupabaseUser } from "@/lib/supabase";
+import { getSupabaseConfig, deleteAdminSupabaseUser } from "@/lib/supabase";
 
 function generateSlug(text: string): string {
   const base = text
@@ -171,10 +171,19 @@ export async function POST(req: Request) {
       }
     };
 
-    // Step 1: Check if user or vendor already exists for this email
-    const checkEmailRes = await fetch(`${url}/rest/v1/users?email=eq.${encodeURIComponent(userEmail)}&select=id,is_verified,vendors(id),user_roles(roles(name))`, {
-      headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-    });
+    // Step 1: Check if user or vendor already exists for this email (with resilience against transient network resets)
+    let checkEmailRes: Response;
+    try {
+      checkEmailRes = await fetch(`${url}/rest/v1/users?email=eq.${encodeURIComponent(userEmail)}&select=id,is_verified,vendors(id),user_roles(roles(name))`, {
+        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+      });
+    } catch (netErr) {
+      // Retry once after brief pause if transient connection reset
+      await new Promise((r) => setTimeout(r, 500));
+      checkEmailRes = await fetch(`${url}/rest/v1/users?email=eq.${encodeURIComponent(userEmail)}&select=id,is_verified,vendors(id),user_roles(roles(name))`, {
+        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+      });
+    }
 
     let existingUser: any = null;
 
@@ -199,36 +208,30 @@ export async function POST(req: Request) {
     const passwordHash = hashPassword(userPassword);
     let targetUserId: string = "";
 
-    // 1A. Create Supabase Auth User via Admin API
-    let authUserId: string | null = null;
-    const authAdminRes = await fetch(`${url}/auth/v1/admin/users`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: apiKey,
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        email: userEmail,
-        password: userPassword,
-        email_confirm: true,
-        user_metadata: { full_name: owner || businessName, role: "vendor" },
-      }),
-    }).catch(() => null);
-
-    if (authAdminRes && authAdminRes.ok) {
-      const authData = await authAdminRes.json().catch(() => null);
-      if (authData?.id) {
-        authUserId = authData.id;
-        createdAuthUserId = authUserId;
-      }
-    }
-
+    // 1A. Create Supabase Auth User via Admin API only if not already existing (avoids GoTrue email rate limits)
+    let authUserId: string | null = existingUser ? existingUser.id : null;
     if (!authUserId) {
-      const authResult = await signUpWithSupabaseAuth(userEmail, userPassword, { full_name: owner || businessName, role: "vendor" });
-      if (authResult.user?.id) {
-        authUserId = authResult.user.id;
-        createdAuthUserId = authUserId;
+      const authAdminRes = await fetch(`${url}/auth/v1/admin/users`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          email: userEmail,
+          password: userPassword,
+          email_confirm: true,
+          user_metadata: { full_name: owner || businessName, role: "vendor" },
+        }),
+      }).catch(() => null);
+
+      if (authAdminRes && authAdminRes.ok) {
+        const authData = await authAdminRes.json().catch(() => null);
+        if (authData?.id) {
+          authUserId = authData.id;
+          createdAuthUserId = authUserId;
+        }
       }
     }
 
@@ -740,6 +743,45 @@ export async function POST(req: Request) {
     const newVersions = await versionInsertRes.json();
     if (Array.isArray(newVersions) && newVersions.length > 0) {
       insertedVersionId = newVersions[0].id;
+    }
+
+    // Initialize Photographer extension details & owner metadata cleanly when registering as Photographer
+    if (canonicalSlug === "photographers") {
+      await fetch(`${url}/rest/v1/photographer_details`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          vendor_id: newVendor.id,
+          candid_photography: true,
+          cinematic_video: true,
+          drone_coverage: false,
+          delivery_days: 30,
+        }),
+      }).catch(() => null);
+
+      if (insertedVersionId) {
+        const resolvedOwner = owner || businessName;
+        await fetch(`${url}/rest/v1/vendor_profile_version_sections`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: apiKey,
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            version_id: insertedVersionId,
+            section_name: "basic_info",
+            section_payload: {
+              ownerName: resolvedOwner,
+              contactName: resolvedOwner,
+            },
+          }),
+        }).catch(() => null);
+      }
     }
 
     return NextResponse.json(

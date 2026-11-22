@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cleanVendorText } from "@/lib/vendorStore";
@@ -378,22 +378,69 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
   const [enquiryMessage, setEnquiryMessage] = useState<string>("");
   const [enquirySent, setEnquirySent] = useState<boolean>(false);
   const [chatMessages, setChatMessages] = useState<Array<{ id: string; sender: "user" | "vendor"; text: string; time: string }>>([]);
+  const chatEndRef = useRef<HTMLDivElement | null>(null);
 
-  // Auto-load persistent chat history for this vendor
+  // Auto-load persistent chat history for this vendor & sync with DB
   React.useEffect(() => {
-    if (typeof window !== "undefined" && vendor?.id) {
-      try {
-        const storedKey = `cloche_vendor_chat_${vendor.id}`;
-        const saved = localStorage.getItem(storedKey);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setChatMessages(parsed);
-          }
-        }
-      } catch (e) {}
+    if (!vendor?.id) {
+      setChatMessages([]);
+      return;
     }
-  }, [vendor?.id, activeModal]);
+
+    const storedKey = `cloche_vendor_chat_${vendor.id}`;
+    try {
+      const saved = localStorage.getItem(storedKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setChatMessages(parsed);
+        } else {
+          setChatMessages([]);
+        }
+      } else {
+        setChatMessages([]);
+      }
+    } catch (e) {
+      setChatMessages([]);
+    }
+
+    // Sync with genuine DB conversations if modal opened
+    if (activeModal === "chat") {
+      fetch("/api/v1/messages", { cache: "no-store" })
+        .then((r) => r.json())
+        .then((res) => {
+          if (res?.success && Array.isArray(res.data?.conversations)) {
+            const matchingConv = res.data.conversations.find(
+              (c: any) =>
+                String(c.vendorId) === String(vendor.id) ||
+                String(c.vendorId) === String(vendor.user_id) ||
+                (c.vendorName && vendor?.name && c.vendorName.toLowerCase() === vendor.name.toLowerCase())
+            );
+
+            if (matchingConv && Array.isArray(matchingConv.messages) && matchingConv.messages.length > 0) {
+              const mapped = matchingConv.messages.map((m: any) => ({
+                id: m.id,
+                sender: m.sender === "customer" ? ("user" as const) : ("vendor" as const),
+                text: m.text,
+                time: m.createdAt,
+              }));
+              setChatMessages(mapped);
+              try {
+                localStorage.setItem(storedKey, JSON.stringify(mapped));
+              } catch (e) {}
+            }
+          }
+        })
+        .catch(() => null);
+    }
+  }, [vendor?.id, vendor?.name, activeModal]);
+
+  // Auto-scroll chat to bottom
+  React.useEffect(() => {
+    if (activeModal === "chat") {
+      chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [chatMessages.length, activeModal]);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [showAllPhotosModal, setShowAllPhotosModal] = useState<boolean>(false);
@@ -484,6 +531,22 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
       try {
         localStorage.setItem(storedKey, JSON.stringify(updated));
       } catch (err) {}
+    }
+
+    if (vendor?.id) {
+      const endpoint = categoryType === "photographer"
+        ? `/api/public/photographers/${encodeURIComponent(vendor.id)}/reviews`
+        : `/api/v1/reviews`;
+      fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          rating: newReviewRating,
+          reviewText: newReviewText.trim(),
+          customerName: newReviewName.trim(),
+        }),
+      }).catch(() => null);
     }
 
     setNewReviewSubmitted(true);
@@ -1474,10 +1537,10 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
           {/* Action Buttons */}
           <div className="space-y-3 pt-4 border-t border-gold/10">
             <button
-              onClick={() => setActiveModal("quote")}
-              className="w-full py-3.5 rounded-2xl bg-[#C8A96A] text-[#0F4C45] font-bold text-sm hover:bg-[#b89859] transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+              onClick={() => handleOpenMessage()}
+              className="w-full py-3.5 rounded-2xl bg-[#0F4C45] text-white font-bold text-sm hover:bg-[#09312d] transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
             >
-              <Mail className="h-4 w-4" /> Get Instant Quote
+              <MessageSquare className="h-4 w-4" /> Message
             </button>
 
             <div className="grid grid-cols-2 gap-3">
@@ -2890,24 +2953,54 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
         {categoryType === "photographer" && (
           <>
             {/* 1. OVERVIEW */}
-            <div className="bg-white rounded-2xl p-4 border border-gold/15 shadow-2xs space-y-2.5">
+            <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <div>
-                <h3 className="font-serif font-bold text-base text-charcoal">Wedding Photography &amp; Cinematography</h3>
-                <p className="text-xs text-charcoal/60 font-medium">Candid photography, traditional video, pre-wedding &amp; drone coverage</p>
+                <h3 className="font-serif font-bold text-lg sm:text-xl text-charcoal">
+                  Wedding Photography &amp; Cinematography
+                </h3>
+                <p className="text-xs sm:text-sm text-charcoal/70 font-medium mt-1">
+                  {vendor?.intro || vendor?.tagline || "Candid photography, traditional video, pre-wedding & drone coverage"}
+                </p>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs font-bold text-charcoal">
-                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
-                  <Camera className="w-4 h-4 text-[#0F4C45]" /> Candid Captures
-                </div>
-                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
-                  <Film className="w-4 h-4 text-[#0F4C45]" /> 4K Cinematic Films
-                </div>
-                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#0F4C45]" /> Drone Coverage
-                </div>
-                <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-[#0F4C45]" /> Quick Teaser
-                </div>
+
+              {/* Dynamic feature highlights based on photographer fields */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1 text-xs font-bold text-charcoal">
+                {Boolean(vendor?.candidPhotography ?? vendor?.photographerProfile?.candidPhotography ?? true) && (
+                  <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                    <Camera className="w-4 h-4 text-[#0F4C45] shrink-0" />
+                    <span>Candid Captures</span>
+                  </div>
+                )}
+                {Boolean(vendor?.cinematicVideo ?? vendor?.photographerProfile?.cinematicVideo ?? true) && (
+                  <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                    <Film className="w-4 h-4 text-[#0F4C45] shrink-0" />
+                    <span>4K Cinematic Films</span>
+                  </div>
+                )}
+                {Boolean(vendor?.droneCoverage ?? vendor?.photographerProfile?.droneCoverage) && (
+                  <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[#0F4C45] shrink-0" />
+                    <span>Drone Coverage</span>
+                  </div>
+                )}
+                {(vendor?.experienceYears || vendor?.photographerProfile?.experienceYears) && (
+                  <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                    <Award className="w-4 h-4 text-[#0F4C45] shrink-0" />
+                    <span>{vendor?.experienceYears || vendor?.photographerProfile?.experienceYears}+ Years Exp.</span>
+                  </div>
+                )}
+                {(vendor?.deliveryDays || vendor?.photographerProfile?.deliveryDays) && (
+                  <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-[#0F4C45] shrink-0" />
+                    <span>{vendor?.deliveryDays || vendor?.photographerProfile?.deliveryDays}-Day Delivery</span>
+                  </div>
+                )}
+                {(vendor?.albumPages || vendor?.photographerProfile?.albumPages) && (
+                  <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2">
+                    <Package className="w-4 h-4 text-[#0F4C45] shrink-0" />
+                    <span>{vendor?.albumPages || vendor?.photographerProfile?.albumPages}-Page Album</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -2971,7 +3064,14 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
               {videoFilmsList.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {videoFilmsList.map((film, idx) => (
-                    <div key={idx} className="relative aspect-[16/9] rounded-xl overflow-hidden bg-black group border border-gold/20 shadow-xs cursor-pointer">
+                    <div
+                      key={idx}
+                      onClick={() => {
+                        const targetUrl = film.url || (film as any).videoUrl;
+                        if (targetUrl) window.open(targetUrl, "_blank", "noopener,noreferrer");
+                      }}
+                      className="relative aspect-[16/9] rounded-xl overflow-hidden bg-black group border border-gold/20 shadow-xs cursor-pointer"
+                    >
                       <img
                         src={film.thumbnail || galleryPhotos[0]?.url || "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=800&auto=format&fit=crop"}
                         alt={film.title}
@@ -3006,7 +3106,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                 <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20">
                   {Boolean(vendor?.contactForPricing ?? vendor?.contact_for_pricing ?? sf?.contactForPricing ?? false)
                     ? "Contact for Pricing"
-                    : vendor?.startingPriceLabel || (vendor?.startingPrice ? (typeof vendor.startingPrice === "number" ? `₹${Number(vendor.startingPrice).toLocaleString("en-IN")}` : vendor.startingPrice) : "Contact for Pricing")}
+                    : vendor?.startingPriceLabel || (vendor?.startingPrice ? (typeof vendor.startingPrice === "number" ? `Starting ₹${Number(vendor.startingPrice).toLocaleString("en-IN")}` : vendor.startingPrice) : "Contact for Pricing")}
                 </span>
               </h2>
               {vendorServicesList.length > 0 ? (
@@ -3019,6 +3119,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                         <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">{svc.name}</span>
                         <div className="font-serif font-bold text-lg text-[#0F4C45]">{formatted}</div>
                         {svc.description && <p className="text-charcoal/60">{svc.description}</p>}
+                        {svc.deliverables && <p className="text-[11px] text-[#0F4C45] font-medium pt-1">Deliverables: {svc.deliverables}</p>}
                       </div>
                     );
                   })}
@@ -3038,7 +3139,45 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3">
               <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2">About Team &amp; Equipment</h2>
               {about ? (
-                <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">{about}</p>
+                <div className="space-y-3">
+                  <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">{about}</p>
+                  
+                  {/* Photography styles tags if provided */}
+                  {Array.isArray(vendor?.styles || vendor?.photographerProfile?.styles) && (vendor?.styles || vendor?.photographerProfile?.styles).length > 0 && (
+                    <div className="pt-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-charcoal/50 block mb-1.5">Styles &amp; Specializations</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {(vendor?.styles || vendor?.photographerProfile?.styles).map((style: string, sIdx: number) => (
+                          <span key={sIdx} className="px-2.5 py-1 rounded-full bg-[#0F4C45]/10 text-[#0F4C45] text-xs font-semibold">
+                            {style}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Camera gear / equipment if provided */}
+                  {Array.isArray(vendor?.equipment || vendor?.photographerProfile?.equipment) && (vendor?.equipment || vendor?.photographerProfile?.equipment).length > 0 && (
+                    <div className="pt-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-charcoal/50 block mb-1.5">Camera Equipment &amp; Gear</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {(vendor?.equipment || vendor?.photographerProfile?.equipment).map((item: string, eIdx: number) => (
+                          <span key={eIdx} className="px-2.5 py-1 rounded-full bg-[#FAF7F2] border border-gold/20 text-charcoal text-xs font-medium">
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Areas served if provided */}
+                  {Array.isArray(vendor?.areasServed || vendor?.photographerProfile?.areasServed) && (vendor?.areasServed || vendor?.photographerProfile?.areasServed).length > 0 && (
+                    <div className="pt-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-charcoal/50 block mb-1.5">Service Areas &amp; Destinations</span>
+                      <p className="text-xs text-charcoal/70">{(vendor?.areasServed || vendor?.photographerProfile?.areasServed).join(", ")}</p>
+                    </div>
+                  )}
+                </div>
               ) : (
                 <SectionEmptyState
                   icon={User}
@@ -3055,21 +3194,66 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {vendorPackagesList.map((pkg: any, idx: number) => {
                     const price = pkg.discount_price || pkg.price;
-                    const formatted = typeof price === "number" ? `₹${price.toLocaleString("en-IN")}` : price || "Custom Quote";
+                    const isPoR = Boolean(pkg.priceOnRequest || pkg.price_on_request || pkg.tagline === "Price on Request" || (typeof price === "number" && price <= 0));
+                    const formatted = isPoR
+                      ? "Price on Request"
+                      : typeof price === "number"
+                      ? `₹${price.toLocaleString("en-IN")}`
+                      : price || "Custom Quote";
+                    const feats = Array.isArray(pkg.features) ? pkg.features : [];
                     return (
-                      <div key={pkg.id || idx} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2 flex flex-col justify-between">
-                        <div className="space-y-1">
-                          {pkg.is_popular && (
+                      <div key={pkg.id || idx} className="p-4.5 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2.5 flex flex-col justify-between">
+                        <div className="space-y-1.5">
+                          {Boolean(pkg.is_popular || pkg.isPopular) && (
                             <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full inline-block">
                               Most Popular
                             </span>
                           )}
                           <h3 className="font-serif font-bold text-base text-charcoal">{pkg.name}</h3>
                           {pkg.description && <p className="text-xs text-charcoal/70 leading-relaxed">{pkg.description}</p>}
+                          
+                          {/* Deliverables & Crew count */}
+                          {(pkg.photographersCount || pkg.photographers_count || pkg.coverageDuration || pkg.coverage_duration) && (
+                            <div className="flex flex-wrap gap-2 text-[11px] text-[#0F4C45] font-semibold pt-1">
+                              {(pkg.photographersCount || pkg.photographers_count) && (
+                                <span>{pkg.photographersCount || pkg.photographers_count} Photographers</span>
+                              )}
+                              {(pkg.coverageDuration || pkg.coverage_duration) && (
+                                <span>• {pkg.coverageDuration || pkg.coverage_duration}</span>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Album & Video Film details if saved in package */}
+                          {(pkg.albumDetails || pkg.album_details) && (
+                            <div className="text-[11px] text-charcoal/70 flex items-center gap-1.5 pt-0.5">
+                              <Award className="w-3.5 h-3.5 text-[#C8A96A] shrink-0" />
+                              <span>Album: {pkg.albumDetails || pkg.album_details}</span>
+                            </div>
+                          )}
+                          {(pkg.videoDetails || pkg.video_details) && (
+                            <div className="text-[11px] text-charcoal/70 flex items-center gap-1.5 pt-0.5">
+                              <Film className="w-3.5 h-3.5 text-[#C8A96A] shrink-0" />
+                              <span>Film: {pkg.videoDetails || pkg.video_details}</span>
+                            </div>
+                          )}
+
+                          {feats.length > 0 && (
+                            <ul className="space-y-1 pt-1.5 text-xs text-charcoal/80">
+                              {feats.map((f: string, fIdx: number) => (
+                                <li key={fIdx} className="flex items-center gap-1.5">
+                                  <Check className="w-3.5 h-3.5 text-[#0F4C45] shrink-0" />
+                                  <span>{f}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
                         </div>
-                        <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
-                          <span>{formatted}</span>
-                          <button onClick={() => handleCheckAvailability()} className="underline">Book Package</button>
+                        <div className="pt-2 border-t border-gold/15 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
+                          <span className="text-sm font-serif">{formatted}</span>
+                          <button onClick={() => handleOpenMessage()} className="underline hover:text-[#09312d] cursor-pointer">
+                            Inquire Package
+                          </button>
                         </div>
                       </div>
                     );
@@ -3081,7 +3265,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                   title="No packages available yet"
                   message="Preset photography packages have not been published yet. Inquire for a custom coverage proposal."
                   actionLabel="Inquire for Custom Package"
-                  onAction={() => handleCheckAvailability()}
+                  onAction={() => handleOpenMessage()}
                 />
               )}
             </div>
@@ -3101,10 +3285,16 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                   {reviewsList.map((rev) => (
                     <div key={rev.id} className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-xs text-charcoal">{rev.customerName}</span>
+                        <span className="font-bold text-xs text-charcoal">{rev.customerName || rev.author || "Verified Couple"}</span>
                         <span className="text-[10px] text-emerald-700 font-semibold">★ {rev.rating || 5}.0 Verified Couple</span>
                       </div>
-                      <p className="text-xs text-charcoal/80">"{rev.text}"</p>
+                      <p className="text-xs text-charcoal/80">"{rev.text || rev.reviewText}"</p>
+                      {rev.reply && (
+                        <div className="p-2.5 rounded-lg bg-white border-l-2 border-[#0F4C45] text-xs text-charcoal/80 space-y-0.5 mt-2">
+                          <span className="font-bold text-[10px] text-[#0F4C45] uppercase tracking-wider block">Studio Response:</span>
+                          <p className="italic text-charcoal/70">{rev.reply}</p>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -4659,73 +4849,79 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                   </div>
                 ))
               )}
+              <div ref={chatEndRef} />
             </div>
 
-            {/* Clean Message Composer Box */}
-            <div className="bg-white border-t border-gold/20 p-3 sm:p-4 shrink-0 shadow-lg">
-              <div className="space-y-2">
-                <div className="bg-[#FAF7F2] rounded-2xl p-3 border border-gold/25 space-y-2 relative shadow-inner">
-                  <div className="flex items-center justify-between text-[10px] font-bold text-charcoal/60 uppercase tracking-wider">
-                    <span>Enquiry Message (Editable)</span>
-                  </div>
-
-                  <textarea
-                    rows={3}
-                    value={enquiryMessage}
-                    onChange={(e) => setEnquiryMessage(e.target.value)}
-                    className="w-full bg-transparent text-xs sm:text-sm text-charcoal leading-relaxed font-sans focus:outline-none resize-none"
-                    placeholder="Write your enquiry message..."
-                  />
-
-                  <div className="flex items-center justify-between pt-2 border-t border-gold/15">
-                    <div className="text-[11px] font-bold text-[#0F4C45]">
-                      {calendarDateInput ? `📅 Preferred Date: ${formatDateSafe(calendarDateInput)}` : "💬 General Enquiry"}
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        if (!enquiryMessage.trim()) return;
-                        const userMsgText = enquiryMessage.trim();
-                        const nowTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-                        const newMsg = { id: `user-${Date.now()}`, sender: "user" as const, text: userMsgText, time: nowTime };
-
-                        // Save user message to state & localStorage
-                        const updatedMessages = [...chatMessages, newMsg];
-                        setChatMessages(updatedMessages);
-                        setEnquirySent(true);
-                        setEnquiryMessage("");
-
-                        try {
-                          const key = `cloche_vendor_chat_${vendor?.id || "default"}`;
-                          localStorage.setItem(key, JSON.stringify(updatedMessages));
-                        } catch (e) {}
-
-                        // Simulate vendor response after 1.5s & save to localStorage
-                        setTimeout(() => {
-                          const vendorReply = {
-                            id: `vendor-${Date.now()}`,
-                            sender: "vendor" as const,
-                            text: `Hi! Thank you for reaching out to ${displayName}. We have received your enquiry. Our team is reviewing details and will reply with full pricing & package options shortly.`,
-                            time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-                          };
-                          setChatMessages((prev) => {
-                            const withReply = [...prev, vendorReply];
-                            try {
-                              const key = `cloche_vendor_chat_${vendor?.id || "default"}`;
-                              localStorage.setItem(key, JSON.stringify(withReply));
-                            } catch (e) {}
-                            return withReply;
-                          });
-                        }, 1500);
-                      }}
-                      className="px-5 py-2.5 rounded-full bg-[#25D366] hover:bg-emerald-600 text-white font-extrabold text-xs shadow-md active:scale-95 transition-all cursor-pointer flex items-center gap-2 shrink-0"
-                    >
-                      <span>Send Message</span>
-                      <Send className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
+            {/* Simple WhatsApp-style Message Composer */}
+            <div className="bg-white border-t border-gold/20 p-3 sm:p-4 shrink-0">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!enquiryMessage.trim()) return;
+                  const userMsgText = enquiryMessage.trim();
+                  const nowTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+                  const newMsg = { id: `user-${Date.now()}`, sender: "user" as const, text: userMsgText, time: nowTime };
+                  const updatedMessages = [...chatMessages, newMsg];
+                  setChatMessages(updatedMessages);
+                  setEnquiryMessage("");
+                  try {
+                    const key = `cloche_vendor_chat_${vendor?.id || "default"}`;
+                    localStorage.setItem(key, JSON.stringify(updatedMessages));
+                  } catch (e) {}
+                  // Post to messages API so it persists to the database
+                  fetch("/api/v1/messages", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text: userMsgText, sender: "customer", vendorId: vendor?.id || vendor?.user_id, conversationId: `conv-vendor-${vendor?.id || "default"}` }),
+                  }).catch(() => null);
+                  // Auto-reply from vendor after 1.5s
+                  setTimeout(() => {
+                    const vendorReply = {
+                      id: `vendor-${Date.now()}`,
+                      sender: "vendor" as const,
+                      text: `Hi! Thank you for reaching out to ${displayName}. We have received your message and will get back to you with pricing and availability shortly.`,
+                      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                    };
+                    setChatMessages((prev) => {
+                      const withReply = [...prev, vendorReply];
+                      try {
+                        const key = `cloche_vendor_chat_${vendor?.id || "default"}`;
+                        localStorage.setItem(key, JSON.stringify(withReply));
+                      } catch (e) {}
+                      return withReply;
+                    });
+                  }, 1500);
+                }}
+                className="flex items-end gap-2"
+              >
+                <textarea
+                  rows={1}
+                  value={enquiryMessage}
+                  onChange={(e) => {
+                    setEnquiryMessage(e.target.value);
+                    // Auto-resize
+                    e.target.style.height = "auto";
+                    e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      (e.target as HTMLTextAreaElement).form?.requestSubmit();
+                    }
+                  }}
+                  placeholder="Type a message..."
+                  className="flex-1 bg-[#FAF7F2] border border-gold/25 rounded-2xl px-4 py-3 text-xs sm:text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-[#0F4C45] resize-none overflow-hidden leading-relaxed transition-colors"
+                  style={{ minHeight: "44px" }}
+                />
+                <button
+                  type="submit"
+                  disabled={!enquiryMessage.trim()}
+                  className="shrink-0 w-11 h-11 rounded-2xl bg-[#0F4C45] hover:bg-[#09312d] disabled:opacity-40 text-white flex items-center justify-center transition-all shadow-sm cursor-pointer"
+                  aria-label="Send message"
+                >
+                  <Send className="w-4 h-4 text-[#C8A96A]" />
+                </button>
+              </form>
             </div>
 
           </div>

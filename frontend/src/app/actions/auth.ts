@@ -274,8 +274,28 @@ export async function login(formData: FormData) {
       cookieStore.set("adminToken", adminTokenVal, { httpOnly: false, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
     }
 
-    console.log(`[AUTH_DEBUG:SUCCESS] User ID: "${userId}" | ActiveRole: "${activeRole}"`);
-    return { success: true, user: userObj, token };
+    // Resolve photographer auto-route without forcing manual category selection on login
+    let redirectTo = "/vendor/dashboard";
+    let vendorCategorySlug: string | null = null;
+    if ((requestedRole === "vendor" || requestedRole === "partner") && userId) {
+      const catRes = await fetch(
+        `${url}/rest/v1/vendors?user_id=eq.${encodeURIComponent(userId)}&deleted_at=is.null&select=id,category_id,vendor_categories(slug,name)&limit=1`,
+        { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` }, cache: "no-store" }
+      ).catch(() => null);
+      if (catRes && catRes.ok) {
+        const rows = await catRes.json();
+        const row = Array.isArray(rows) ? rows[0] : null;
+        const catObj = Array.isArray(row?.vendor_categories) ? row.vendor_categories[0] : row?.vendor_categories;
+        const tok = `${catObj?.slug || ""} ${catObj?.name || ""}`.toLowerCase();
+        if (tok.includes("photograph")) {
+          vendorCategorySlug = "photographers";
+          redirectTo = "/vendor/photographer";
+        }
+      }
+    }
+
+    console.log(`[AUTH_DEBUG:SUCCESS] User ID: "${userId}" | ActiveRole: "${activeRole}" | Redirect: "${redirectTo}"`);
+    return { success: true, user: userObj, token, redirectTo, vendorCategory: vendorCategorySlug };
   } catch (error: any) {
     console.error("[AUTH_DEBUG:CRITICAL_ERROR]", error);
     return { success: false, error: "An unexpected server error occurred during login. Please try again." };

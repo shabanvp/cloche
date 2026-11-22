@@ -80,7 +80,7 @@ export function MehendiVendorDashboard() {
   const renderActiveSection = () => {
     switch (activeTab) {
       case "overview":
-        return <MehendiOverviewSection artistName={artistName} businessName={businessName} onNavigate={(t) => setActiveTab(t)} />;
+        return <MehendiOverviewSection artistName={artistName} businessName={businessName} onNavigate={(t: any) => setActiveTab(t)} />;
       case "profile":
         return <MehendiProfileSection artistName={artistName} businessName={businessName} />;
       case "gallery":

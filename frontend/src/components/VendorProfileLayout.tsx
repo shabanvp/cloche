@@ -12,6 +12,7 @@ import {
   Clock,
   Phone,
   MessageCircle,
+  MessageSquare,
   Mail,
   Bell,
   Menu,
@@ -805,9 +806,9 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
             <div className="space-y-2.5 pt-4 border-t border-black/5">
               <button
                 onClick={() => setActiveModal("quote")}
-                className="w-full py-3.5 rounded-xl bg-[#C8A96A] text-[#0F4C45] font-bold hover:bg-yellow-400 transition-colors flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                className="w-full py-3.5 rounded-xl bg-[#0F4C45] text-white font-bold hover:bg-[#09312d] transition-colors flex items-center justify-center gap-2 shadow-xs cursor-pointer"
               >
-                <Mail className="h-4 w-4" /> Get Instant Quote
+                <MessageSquare className="h-4 w-4" /> Message
               </button>
 
               <div className="flex gap-2.5">

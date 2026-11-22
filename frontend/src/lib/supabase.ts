@@ -47,18 +47,32 @@ export async function supabaseFetch<T = any>(
     return { data: null, error: new Error("Supabase is not configured yet.") };
   }
 
-  try {
-    const res = await fetch(`${url}/rest/v1/${endpoint}`, {
-      ...options,
-      cache: options.cache || "no-store",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: serviceKey,
-        Authorization: `Bearer ${serviceKey}`,
-        ...options.headers,
-      },
-    });
+  let res: Response | null = null;
+  let lastErr: any = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      res = await fetch(`${url}/rest/v1/${endpoint}`, {
+        ...options,
+        cache: options.cache || "no-store",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+          ...options.headers,
+        },
+      });
+      break;
+    } catch (err: any) {
+      lastErr = err;
+      if (attempt < 2) await new Promise((r) => setTimeout(r, 350));
+    }
+  }
 
+  if (!res) {
+    return { data: null, error: lastErr || new Error("Supabase fetch failed after retries.") };
+  }
+
+  try {
     if (!res.ok) {
       const errText = await res.text();
       return { data: null, error: new Error(`Supabase API error (${res.status}): ${errText}`) };
@@ -86,17 +100,59 @@ export async function signUpWithSupabaseAuth(
   dataMetadata: Record<string, any> = {},
   emailRedirectTo: string = "https://cloche-six.vercel.app/auth/callback"
 ): Promise<{ user: any | null; session: any | null; error: Error | null }> {
-  const { url, anonKey } = getSupabaseConfig();
-  if (!url || !anonKey) {
+  const { url, anonKey, serviceKey } = getSupabaseConfig();
+  const apiKey = serviceKey || anonKey;
+  if (!url || !apiKey) {
     return { user: null, session: null, error: new Error("Supabase credentials unconfigured.") };
   }
 
+  // 1. Prefer Admin API creation with email_confirm: true when serviceKey is available.
+  // This bypasses Supabase GoTrue's 3-email-per-hour rate limit ("email rate limit exceeded") completely.
+  if (serviceKey) {
+    try {
+      const adminRes = await fetch(`${url}/auth/v1/admin/users`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          email_confirm: true,
+          user_metadata: dataMetadata,
+        }),
+      });
+
+      const adminData = await adminRes.json().catch(() => ({}));
+      if (adminRes.ok && adminData?.id) {
+        return { user: adminData, session: null, error: null };
+      }
+
+      const adminMsg = String(adminData?.msg || adminData?.message || adminData?.error_description || "");
+      const lower = adminMsg.toLowerCase();
+      if (
+        adminRes.status === 422 ||
+        adminRes.status === 409 ||
+        lower.includes("already") ||
+        lower.includes("exists") ||
+        lower.includes("registered")
+      ) {
+        return { user: null, session: null, error: new Error("User already registered") };
+      }
+    } catch (adminErr) {
+      console.warn("[SUPABASE_AUTH] Admin user creation fallback:", adminErr);
+    }
+  }
+
+  // 2. Fallback to standard signup endpoint
   try {
     const res = await fetch(`${url}/auth/v1/signup`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        apikey: anonKey,
+        apikey: anonKey || apiKey,
       },
       body: JSON.stringify({
         email,
@@ -109,9 +165,13 @@ export async function signUpWithSupabaseAuth(
       }),
     });
 
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      return { user: null, session: null, error: new Error(data.msg || data.message || data.error_description || "Supabase Auth signup failed.") };
+      const rawMsg = data.msg || data.message || data.error_description || "Supabase Auth signup failed.";
+      const cleanMsg = rawMsg.toLowerCase().includes("rate limit")
+        ? "Signup limit reached. Please wait a minute or log in if you already have an account."
+        : rawMsg;
+      return { user: null, session: null, error: new Error(cleanMsg) };
     }
 
     return { user: data.user || data, session: data.session || null, error: null };
@@ -1317,20 +1377,22 @@ export async function fetchPublicVendorProfileFromDb(identifier: string, options
     bookingsRes,
     categoryExtRes,
     versionsRes,
+    faqsRes,
   ] = await Promise.all([
     supabaseFetch(`vendor_profiles?or=(vendor_id.eq.${encodeURIComponent(vendorId)},id.eq.${encodeURIComponent(vendorId)})&select=*`),
     supabaseFetch(`vendor_contacts?vendor_id=eq.${encodeURIComponent(vendorId)}&order=is_primary.desc,created_at.asc&select=*`),
     supabaseFetch(`vendor_addresses?vendor_id=eq.${encodeURIComponent(vendorId)}&order=created_at.asc&select=*`),
     supabaseFetch(`vendor_business_hours?vendor_id=eq.${encodeURIComponent(vendorId)}&select=*`),
     supabaseFetch(`vendor_social_links?vendor_id=eq.${encodeURIComponent(vendorId)}&select=*`),
-    supabaseFetch(`vendor_services?vendor_id=eq.${encodeURIComponent(vendorId)}&deleted_at=is.null&status=eq.published&is_active=eq.true&order=sort_order.asc,created_at.desc&select=*,vendor_service_images(*)`),
-    supabaseFetch(`vendor_service_packages?vendor_id=eq.${encodeURIComponent(vendorId)}&deleted_at=is.null&status=eq.published&is_active=eq.true&order=sort_order.asc,created_at.desc&select=*`),
+    supabaseFetch(`vendor_services?vendor_id=eq.${encodeURIComponent(vendorId)}&deleted_at=is.null&or=(status.eq.published,status.eq.active,status.is.null)&is_active=eq.true&order=sort_order.asc,created_at.desc&select=*,vendor_service_images(*)`),
+    supabaseFetch(`vendor_service_packages?vendor_id=eq.${encodeURIComponent(vendorId)}&deleted_at=is.null&or=(status.eq.published,status.eq.active,status.is.null)&is_active=eq.true&order=sort_order.asc,created_at.desc&select=*`),
     fetchVendorGalleryFromDb(vendorId),
     supabaseFetch(`vendor_catalog_items?vendor_id=eq.${encodeURIComponent(vendorId)}&deleted_at=is.null&status=eq.published&is_available=eq.true&order=sort_order.asc,created_at.desc&select=*,vendor_catalog_images(*)`),
     supabaseFetch(`reviews?vendor_id=eq.${encodeURIComponent(vendorId)}&status=eq.published&order=created_at.desc&select=*`),
     supabaseFetch(`bookings?vendor_id=eq.${encodeURIComponent(vendorId)}&status=eq.completed&select=id`),
     supabaseFetch(`${extTable}?vendor_id=eq.${encodeURIComponent(vendorId)}&select=*`).catch(() => ({ data: [], error: null })),
     supabaseFetch(`vendor_profile_versions?vendor_id=eq.${encodeURIComponent(vendorId)}&order=created_at.desc&limit=1&select=id,version_number,vendor_profile_version_sections(*)`).catch(() => ({ data: [], error: null })),
+    supabaseFetch(`vendor_faqs?vendor_id=eq.${encodeURIComponent(vendorId)}&order=sort_order.asc,created_at.asc&select=*`).catch(() => ({ data: [], error: null })),
   ]);
 
   console.log(`[DB:FETCH] public_vendor_profile vendor_id=${vendorId} extTable=${extTable} ms=${Date.now() - start}`);
@@ -1346,11 +1408,14 @@ export async function fetchPublicVendorProfileFromDb(identifier: string, options
   const catalog = asArray<any>(catalogRes.data);
   const reviews = asArray<any>(reviewsRes.data);
   const completedProjects = asArray(bookingsRes.data).length;
+  const dbFaqs = asArray<any>(faqsRes?.data);
 
   // Extract saved draft version sections (storefront rich customization, venue spaces, packages, etc.)
   const latestVersion = firstRow(versionsRes?.data);
   const versionSections = asArray<any>(latestVersion?.vendor_profile_version_sections);
   const categoryDetailsSection = versionSections.find((s: any) => s.section_name === "category_details")?.section_payload || {};
+  const packagesVersionSection = versionSections.find((s: any) => s.section_name === "packages")?.section_payload || {};
+  const pkgExtrasMap = packagesVersionSection.packageExtras || {};
   const versionProfile = categoryDetailsSection.profile || {};
   const versionCategoryDetails = categoryDetailsSection.categoryDetails || {};
   const versionSf = versionProfile.storefront || {};
@@ -1582,7 +1647,9 @@ export async function fetchPublicVendorProfileFromDb(identifier: string, options
       policySwitches: categoryDetail.policy_switches || profile.policy_switches || sfRaw.policySwitches || {},
       decorationPolicy: categoryDetail.decoration_rules || profile.decoration_rules || sfRaw.decorationPolicy || "",
       cancellationPolicyText: categoryDetail.cancellation_policy || profile.cancellation_policy || sfRaw.cancellationPolicyText || "",
-      faqs: categoryDetail.faqs || profile.faqs || sfRaw.faqs || [],
+      faqs: dbFaqs.length > 0
+        ? dbFaqs.map((f: any) => ({ id: f.id, q: f.question, question: f.question, a: f.answer, answer: f.answer }))
+        : (categoryDetail.faqs || profile.faqs || sfRaw.faqs || []),
       availabilityNote: categoryDetail.availability_note || profile.availability_note || sfRaw.availabilityNote || "",
       blockedDates: categoryDetail.blocked_dates || profile.blocked_dates || sfRaw.blockedDates || "",
       contactPreferences: categoryDetail.contact_preferences || profile.contact_preferences || sfRaw.contactPreferences || {},
@@ -1668,15 +1735,27 @@ export async function fetchPublicVendorProfileFromDb(identifier: string, options
         price: money(svc.base_price || svc.price),
         pricingType: svc.pricing_type || "",
       })),
-      packages: packages.map((pkg) => ({
-        name: pkg.name,
-        tagline: pkg.tagline || "",
-        description: pkg.description || "",
-        price: money(pkg.discount_price || pkg.price),
-        originalPrice: pkg.discount_price ? money(pkg.price) : "",
-        features: Array.isArray(pkg.features) ? pkg.features : [],
-        isPopular: Boolean(pkg.is_popular),
-      })),
+      packages: packages.map((pkg) => {
+        const ext = pkgExtrasMap[pkg.id] || {};
+        const isPoR = Boolean(ext.priceOnRequest ?? (pkg.priceOnRequest || Number(pkg.price || 0) <= 0));
+        return {
+          id: pkg.id,
+          name: pkg.name,
+          tagline: pkg.tagline || (isPoR ? "Price on Request" : (ext.coverageDuration || "")),
+          description: pkg.description || "",
+          price: isPoR ? 0 : Number(pkg.discount_price || pkg.price || 0),
+          priceOnRequest: isPoR,
+          originalPrice: pkg.discount_price ? money(pkg.price) : "",
+          features: Array.isArray(pkg.features) ? pkg.features : [],
+          photographersCount: ext.photographersCount ?? pkg.photographersCount ?? null,
+          coverageDuration: ext.coverageDuration || pkg.coverageDuration || "",
+          albumDetails: ext.albumDetails || pkg.albumDetails || "",
+          videoDetails: ext.videoDetails || pkg.videoDetails || "",
+          imageUrl: ext.imageUrl || pkg.image_url || "",
+          isPopular: Boolean(pkg.is_popular || pkg.isPopular),
+          isActive: pkg.is_active !== false,
+        };
+      }),
       userReviews: reviews.map((review) => ({
         author: review.customer_name || "Verified Customer",
         rating: Number(review.rating || 0),

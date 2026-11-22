@@ -1,7 +1,15 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedCustomerUser } from "@/lib/customerAuth";
 import { requireAuthenticatedVendor } from "@/lib/vendorAuth";
-import { supabaseFetch, saveLeadActivityToDb } from "@/lib/supabase";
+import { supabaseFetch } from "@/lib/supabase";
+
+export interface QuotationLineItem {
+  itemName: string;
+  description?: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
 
 export interface ChatMessage {
   id: string;
@@ -10,25 +18,46 @@ export interface ChatMessage {
   senderAvatar?: string;
   text: string;
   createdAt: string;
+  rawCreatedAt?: string;
   isRead: boolean;
+  isAutoReply?: boolean;
+  leadId?: string;
   quotation?: {
+    id?: string;
+    quotationNumber?: string;
     amount: number;
+    subtotal?: number;
+    discountAmount?: number;
+    taxRate?: number;
+    taxAmount?: number;
     title: string;
     details?: string;
-    status: "pending" | "accepted" | "declined";
+    coverLetter?: string;
+    terms?: string;
+    paymentTerms?: string;
+    validUntil?: string;
+    items?: QuotationLineItem[];
+    status: string;
   };
 }
 
 export interface ConversationItem {
   id: string;
   leadId?: string;
+  leadIds?: string[];
+  viewerRole?: "customer" | "vendor";
   vendorId: string;
   vendorName: string;
+  vendorSlug?: string;
   vendorCategory: string;
+  vendorCategorySlug?: string;
   vendorAvatar: string;
   vendorCity: string;
   vendorPhone?: string;
+  isVerified?: boolean;
+  customerId?: string;
   customerName: string;
+  customerAvatar?: string;
   customerEmail?: string;
   customerPhone?: string;
   eventType: string;
@@ -36,358 +65,1116 @@ export interface ConversationItem {
   guestCount?: number;
   estimatedBudget?: number;
   status: "new" | "replied" | "quoted" | "confirmed" | "completed";
+  hasVendorReply?: boolean;
+  isAutoAcknowledged?: boolean;
   unreadCount: number;
   lastMessageSnippet: string;
+  lastMessageSender?: "customer" | "vendor" | "system";
   lastMessageTime: string;
+  lastActivityAt?: string;
   messages: ChatMessage[];
 }
 
-// Curated realistic sample conversations for users or guests
-const DEFAULT_CONVERSATIONS: ConversationItem[] = [
-  {
-    id: "conv-photographer-1",
-    vendorId: "v-calicut-films",
-    vendorName: "Calicut Candid Wedding Films",
-    vendorCategory: "Photography",
-    vendorAvatar: "https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=400&q=80",
-    vendorCity: "Kozhikode, Kerala",
-    vendorPhone: "+91 98471 23456",
-    customerName: "Ananya & Rahul",
-    eventType: "Traditional Wedding & Reception",
-    eventDate: "2026-12-18",
-    guestCount: 650,
-    estimatedBudget: 150000,
-    status: "quoted",
-    unreadCount: 1,
-    lastMessageSnippet: "We have prepared a tailored quotation for your 2-day wedding ceremonies.",
-    lastMessageTime: "25m ago",
-    messages: [
-      {
-        id: "msg-101",
+export interface AuthenticatedInboxUser {
+  id: string;
+  name: string;
+  email: string;
+  role: "customer" | "vendor";
+}
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const LEADS_EMBED_SELECT =
+  "id,vendor_id,customer_id,customer_name,customer_email,customer_phone,event_type,event_date,guest_count,estimated_budget,city,status,source,message,created_at,updated_at,vendors(id,status,user_id,vendor_code,category_id,is_verified,vendor_categories(id,name,slug),vendor_profiles(id,business_name,city,state,slug,logo_media:media!logo_media_id(cdn_url,file_path),cover_media:media!cover_media_id(cdn_url,file_path)),vendor_contacts(phone,whatsapp,is_primary),vendor_gallery(id,is_cover,media(cdn_url,file_path)))";
+
+function pickFirst<T = any>(val: any): T | null {
+  if (!val) return null;
+  if (Array.isArray(val)) return val.length > 0 ? val[0] : null;
+  return val;
+}
+
+function asList<T = any>(val: any): T[] {
+  if (!val) return [];
+  return Array.isArray(val) ? val : [val];
+}
+
+function isValidWebUrl(val: unknown): val is string {
+  if (typeof val !== "string") return false;
+  const trimmed = val.trim();
+  if (!trimmed) return false;
+  if (
+    trimmed.includes("via.placeholder.com") ||
+    trimmed.includes("images.unsplash.com/photo-1519741497674-611481863552")
+  ) {
+    return false;
+  }
+  return (
+    trimmed.startsWith("https://") ||
+    trimmed.startsWith("http://") ||
+    trimmed.startsWith("/") ||
+    trimmed.startsWith("data:image/")
+  );
+}
+
+function pickFirstValidUrl(...candidates: unknown[]): string {
+  for (const c of candidates) {
+    if (isValidWebUrl(c)) return c.trim();
+  }
+  return "";
+}
+
+function extractCookieMap(req: Request): Record<string, string> {
+  const map: Record<string, string> = {};
+  const raw = req.headers.get("cookie") || "";
+  if (!raw) return map;
+  for (const part of raw.split(";")) {
+    const idx = part.indexOf("=");
+    if (idx > 0) {
+      const k = part.slice(0, idx).trim();
+      const v = part.slice(idx + 1).trim();
+      try {
+        map[k] = decodeURIComponent(v);
+      } catch {
+        map[k] = v;
+      }
+    }
+  }
+  return map;
+}
+
+function parseTimestamp(iso?: string | null): number {
+  if (!iso) return 0;
+  const ms = Date.parse(iso);
+  return Number.isFinite(ms) ? ms : 0;
+}
+
+function formatMessageTime(iso?: string | null): string {
+  const ms = parseTimestamp(iso);
+  if (!ms) return "Recently";
+  try {
+    return new Date(ms).toLocaleString("en-IN", {
+      timeZone: "Asia/Kolkata",
+      day: "numeric",
+      month: "short",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  } catch {
+    return new Date(ms).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  }
+}
+
+function defaultEventDateString(preferred?: string | null): string {
+  if (preferred && /^\d{4}-\d{2}-\d{2}/.test(preferred.trim())) {
+    return preferred.trim().slice(0, 10);
+  }
+  const d = new Date(Date.now() + 180 * 24 * 60 * 60 * 1000);
+  return d.toISOString().split("T")[0];
+}
+
+function sanitizePhone(phone?: string | null): string {
+  const clean = String(phone || "").trim().slice(0, 20);
+  return clean || "Not Provided";
+}
+
+function extractVendorMetadata(vendorRow: any, fallbackCity?: string | null) {
+  const v = vendorRow || {};
+  const profile = pickFirst<any>(v.vendor_profiles) || {};
+  const cat = pickFirst<any>(v.vendor_categories) || {};
+  const contacts = asList<any>(v.vendor_contacts).sort(
+    (a, b) => Number(Boolean(b?.is_primary)) - Number(Boolean(a?.is_primary))
+  );
+  const primaryContact = contacts[0] || {};
+  const gallery = asList<any>(v.vendor_gallery).sort(
+    (a, b) => Number(Boolean(b?.is_cover)) - Number(Boolean(a?.is_cover))
+  );
+
+  const logoMedia = pickFirst<any>(profile.logo_media);
+  const coverMedia = pickFirst<any>(profile.cover_media);
+  const galleryMedia = gallery.map((g) => pickFirst<any>(g?.media)).filter(Boolean);
+
+  const avatar = pickFirstValidUrl(
+    logoMedia?.cdn_url,
+    logoMedia?.file_path,
+    profile.logo_url,
+    profile.logo,
+    v.logo_url,
+    v.logo,
+    coverMedia?.cdn_url,
+    coverMedia?.file_path,
+    profile.cover_image,
+    ...galleryMedia.flatMap((m) => [m?.cdn_url, m?.file_path])
+  );
+
+  const name =
+    String(
+      profile.business_name ||
+        v.boutique_name ||
+        v.name ||
+        profile.name ||
+        "Wedding Vendor"
+    ).trim() || "Wedding Vendor";
+
+  const city =
+    [profile.city, profile.state].filter(Boolean).join(", ") ||
+    fallbackCity ||
+    "Kerala";
+
+  return {
+    vendorName: name,
+    vendorSlug: String(profile.slug || v.vendor_code || v.id || "").trim(),
+    vendorCategory: String(cat.name || v.category || "Wedding Services").trim(),
+    vendorCategorySlug: String(cat.slug || v.category_slug || "").trim(),
+    vendorAvatar: avatar,
+    vendorCity: city,
+    vendorPhone: String(primaryContact.phone || primaryContact.whatsapp || v.phone || "").trim(),
+    isVerified: Boolean(v.is_verified || v.is_kyc_verified),
+  };
+}
+
+function formatQuotationPayload(quote: any) {
+  const rawItems = asList<any>(quote.quotation_items);
+  const items: QuotationLineItem[] = rawItems.map((it) => ({
+    itemName: String(it.item_name || "Wedding Service").trim(),
+    description: it.description ? String(it.description).trim() : undefined,
+    quantity: Number(it.quantity || 1),
+    unitPrice: Number(it.unit_price || 0),
+    totalPrice: Number(it.total_price ?? Number(it.quantity || 1) * Number(it.unit_price || 0)),
+  }));
+
+  const amount = Number(quote.final_amount ?? quote.total_amount ?? quote.subtotal ?? 0);
+  const qNum = quote.quotation_number ? String(quote.quotation_number).trim() : "";
+  const rev = Number(quote.revision_number || 1);
+  const title = qNum
+    ? `Quotation ${qNum}${rev > 1 ? ` (Rev ${rev})` : ""}`
+    : "Custom Vendor Quotation";
+
+  const itemSummary =
+    items.length > 0
+      ? items
+          .slice(0, 4)
+          .map((i) => `${i.itemName} (${i.quantity}x - ₹${i.totalPrice.toLocaleString("en-IN")})`)
+          .join(" • ")
+      : "";
+
+  const detailParts = [
+    quote.cover_letter ? String(quote.cover_letter).trim() : "",
+    itemSummary,
+    quote.notes ? String(quote.notes).trim() : "",
+    quote.payment_terms ? `Payment: ${String(quote.payment_terms).trim()}` : "",
+    quote.terms_and_conditions ? String(quote.terms_and_conditions).trim() : "",
+  ].filter(Boolean);
+
+  return {
+    id: quote.id ? String(quote.id) : undefined,
+    quotationNumber: qNum || undefined,
+    amount: Number.isFinite(amount) ? amount : 0,
+    subtotal: Number(quote.subtotal || 0),
+    discountAmount: Number(quote.discount_amount || 0),
+    taxRate: Number(quote.tax_rate || 0),
+    taxAmount: Number(quote.tax_amount || 0),
+    title,
+    details: detailParts.join(" — ") || "Official quotation proposal attached.",
+    coverLetter: quote.cover_letter ? String(quote.cover_letter).trim() : undefined,
+    terms: quote.terms_and_conditions ? String(quote.terms_and_conditions).trim() : undefined,
+    paymentTerms: quote.payment_terms ? String(quote.payment_terms).trim() : undefined,
+    validUntil: quote.valid_until ? String(quote.valid_until) : undefined,
+    items,
+    status: String(quote.status || "sent"),
+  };
+}
+
+interface VerifiedDbCustomer {
+  dbUserId: string | null;
+  email: string;
+  fullName: string;
+  avatarUrl?: string;
+  phone?: string;
+  preferredCity?: string;
+  weddingDate?: string;
+}
+
+async function resolveVerifiedCustomerProfile(
+  userId?: string | null,
+  email?: string | null,
+  fallbackName?: string | null
+): Promise<VerifiedDbCustomer | null> {
+  if (!userId && !email) return null;
+
+  let userRow: any = null;
+  const cleanUserId = userId && UUID_REGEX.test(String(userId)) ? String(userId) : null;
+  const cleanEmail = email ? String(email).trim().toLowerCase() : "";
+
+  if (cleanUserId && cleanEmail) {
+    const res = await supabaseFetch(
+      `users?or=(id.eq.${encodeURIComponent(cleanUserId)},supabase_user_id.eq.${encodeURIComponent(cleanUserId)},email.ilike.${encodeURIComponent(cleanEmail)})&select=id,email,full_name,name,phone,avatar_url&limit=2`
+    );
+    if (Array.isArray(res.data) && res.data.length > 0) {
+      userRow = res.data.find((u: any) => u.id === cleanUserId) || res.data[0];
+    }
+  } else if (cleanUserId) {
+    const res = await supabaseFetch(
+      `users?or=(id.eq.${encodeURIComponent(cleanUserId)},supabase_user_id.eq.${encodeURIComponent(cleanUserId)})&select=id,email,full_name,name,phone,avatar_url&limit=1`
+    );
+    if (Array.isArray(res.data) && res.data.length > 0) userRow = res.data[0];
+  } else if (cleanEmail) {
+    const res = await supabaseFetch(
+      `users?email=ilike.${encodeURIComponent(cleanEmail)}&select=id,email,full_name,name,phone,avatar_url&limit=1`
+    );
+    if (Array.isArray(res.data) && res.data.length > 0) userRow = res.data[0];
+  }
+
+  let preferredCity: string | undefined;
+  let weddingDate: string | undefined;
+
+  if (userRow?.id) {
+    const prefRes = await supabaseFetch(
+      `user_preferences?user_id=eq.${encodeURIComponent(userRow.id)}&select=preferred_city,wedding_date&limit=1`
+    ).catch(() => ({ data: null }));
+    if (Array.isArray(prefRes.data) && prefRes.data.length > 0) {
+      preferredCity = prefRes.data[0].preferred_city || undefined;
+      weddingDate = prefRes.data[0].wedding_date || undefined;
+    }
+  }
+
+  const resolvedEmail = String(userRow?.email || cleanEmail || "").trim().toLowerCase();
+  if (!userRow?.id && !resolvedEmail) return null;
+
+  return {
+    dbUserId: userRow?.id ? String(userRow.id) : null,
+    email: resolvedEmail,
+    fullName:
+      String(
+        userRow?.full_name ||
+          userRow?.name ||
+          fallbackName ||
+          (resolvedEmail ? resolvedEmail.split("@")[0] : "Cloche Member")
+      ).trim() || "Cloche Member",
+    avatarUrl: userRow?.avatar_url || undefined,
+    phone: userRow?.phone ? String(userRow.phone).trim() : undefined,
+    preferredCity,
+    weddingDate,
+  };
+}
+
+async function resolveSessionContext(req: Request) {
+  const cookies = extractCookieMap(req);
+  const roleCookie = String(cookies["user_role"] || "").toLowerCase();
+  const urlObj = new URL(req.url, "http://localhost:3000");
+  const queryVendorId = urlObj.searchParams.get("vendorId")?.trim() || null;
+
+  const hasAnyAuthCredential = Boolean(
+    cookies["cloche_auth_token"] ||
+      cookies["auth_token"] ||
+      cookies["user_data"] ||
+      req.headers.get("authorization") ||
+      req.headers.get("x-auth-token") ||
+      req.headers.get("x-user-id")
+  );
+
+  if (!hasAnyAuthCredential) {
+    return {
+      mode: "guest" as const,
+      vendorId: null,
+      vendorUser: null,
+      dbUserId: null,
+      customer: null,
+    };
+  }
+
+  let customerUser = null;
+  let vendorAuth = null;
+
+  if (queryVendorId || roleCookie === "vendor" || roleCookie === "partner") {
+    vendorAuth = await requireAuthenticatedVendor(req).catch(() => null);
+    if (!vendorAuth?.vendorId) {
+      customerUser = await getAuthenticatedCustomerUser(req).catch(() => null);
+    }
+  } else if (roleCookie === "user" || roleCookie === "customer") {
+    customerUser = await getAuthenticatedCustomerUser(req).catch(() => null);
+    if (!customerUser?.userId && !customerUser?.email) {
+      vendorAuth = await requireAuthenticatedVendor(req).catch(() => null);
+    }
+  } else {
+    [customerUser, vendorAuth] = await Promise.all([
+      getAuthenticatedCustomerUser(req).catch(() => null),
+      requireAuthenticatedVendor(req).catch(() => null),
+    ]);
+  }
+
+  const hasVendorId = Boolean(vendorAuth && vendorAuth.vendorId);
+  const targetVendorId = queryVendorId && hasVendorId ? queryVendorId : vendorAuth?.vendorId || null;
+  const isVendorMode =
+    hasVendorId &&
+    (Boolean(queryVendorId) || roleCookie === "vendor" || roleCookie === "partner" || (!customerUser?.userId && !customerUser?.email));
+
+  if (isVendorMode && targetVendorId && vendorAuth) {
+    const dbVendorUser = await resolveVerifiedCustomerProfile(
+      vendorAuth.user?.userId || vendorAuth.user?.id,
+      vendorAuth.user?.email,
+      vendorAuth.user?.fullName
+    );
+    return {
+      mode: "vendor" as const,
+      vendorId: targetVendorId,
+      vendorUser: vendorAuth.user,
+      dbUserId: dbVendorUser?.dbUserId || null,
+      customer: dbVendorUser,
+    };
+  }
+
+  if (customerUser?.userId || customerUser?.email) {
+    const dbCust = await resolveVerifiedCustomerProfile(
+      customerUser.userId,
+      customerUser.email,
+      customerUser.fullName
+    );
+    if (dbCust) {
+      return {
+        mode: "customer" as const,
+        vendorId: null,
+        vendorUser: null,
+        dbUserId: dbCust.dbUserId,
+        customer: dbCust,
+      };
+    }
+  }
+
+  // Edge case: user signed up with JWT only in vendorAuth without customerUser match
+  if (hasVendorId && vendorAuth?.user) {
+    const dbCust = await resolveVerifiedCustomerProfile(
+      vendorAuth.user.userId || vendorAuth.user.id,
+      vendorAuth.user.email,
+      vendorAuth.user.fullName
+    );
+    if (dbCust) {
+      return {
+        mode: "customer" as const,
+        vendorId: null,
+        vendorUser: null,
+        dbUserId: dbCust.dbUserId,
+        customer: dbCust,
+      };
+    }
+  }
+
+  return {
+    mode: "guest" as const,
+    vendorId: null,
+    vendorUser: null,
+    dbUserId: null,
+    customer: null,
+  };
+}
+
+const PLACEHOLDER_PHONE_DIGITS = new Set([
+  "0000000000",
+  "1111111111",
+  "1234567890",
+  "9876543210",
+  "9999999999",
+]);
+
+function normalizeVerifiedPhone10(rawPhone?: string | null): string | null {
+  if (!rawPhone) return null;
+  const digits = String(rawPhone).replace(/\D/g, "");
+  if (digits.length < 10) return null;
+  const last10 = digits.slice(-10);
+  if (/^(\d)\1{9}$/.test(last10) || PLACEHOLDER_PHONE_DIGITS.has(last10)) {
+    return null;
+  }
+  return last10;
+}
+
+function customerOwnsLead(lead: any, customer: VerifiedDbCustomer): boolean {
+  if (!lead) return false;
+  if (customer.dbUserId && lead.customer_id && String(lead.customer_id) === customer.dbUserId) {
+    return true;
+  }
+  if (
+    customer.email &&
+    lead.customer_email &&
+    String(lead.customer_email).trim().toLowerCase() === customer.email.toLowerCase()
+  ) {
+    return true;
+  }
+
+  const noConflictingUserId =
+    !lead.customer_id || (customer.dbUserId && String(lead.customer_id) === customer.dbUserId);
+  const noConflictingEmail =
+    !lead.customer_email ||
+    (customer.email &&
+      String(lead.customer_email).trim().toLowerCase() === customer.email.toLowerCase());
+
+  if (noConflictingUserId && noConflictingEmail) {
+    const custPhone10 = normalizeVerifiedPhone10(customer.phone);
+    const leadPhone10 = normalizeVerifiedPhone10(lead.customer_phone);
+    if (custPhone10 && leadPhone10 && custPhone10 === leadPhone10) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+async function fetchCustomerLeads(customer: VerifiedDbCustomer) {
+  const filters: string[] = [];
+  if (customer.dbUserId) {
+    filters.push(`customer_id.eq.${encodeURIComponent(customer.dbUserId)}`);
+  }
+  if (customer.email) {
+    filters.push(`customer_email.ilike.${encodeURIComponent(customer.email)}`);
+  }
+  const custPhone10 = normalizeVerifiedPhone10(customer.phone);
+  if (custPhone10) {
+    filters.push(`customer_phone.ilike.*${custPhone10}`);
+  }
+  if (filters.length === 0) return [];
+
+  const orExpr = filters.length === 1 ? filters[0].replace(".eq.", "=eq.").replace(".ilike.", "=ilike.") : `or=(${filters.join(",")})`;
+  const query = `leads?${orExpr}&deleted_at=is.null&order=created_at.asc&select=${LEADS_EMBED_SELECT}`;
+  const res = await supabaseFetch(query);
+
+  if (res.error) {
+    console.warn("[MESSAGES_API] Embedded vendor join fallback triggered:", res.error.message);
+    const simpleRes = await supabaseFetch(
+      `leads?${orExpr}&deleted_at=is.null&order=created_at.asc&select=*`
+    );
+    const rows = Array.isArray(simpleRes.data) ? simpleRes.data : [];
+    const vendorIds = Array.from(new Set(rows.map((r: any) => r.vendor_id).filter(Boolean)));
+    const vendorMap = new Map<string, any>();
+    if (vendorIds.length > 0) {
+      const vRes = await supabaseFetch(
+        `vendors?id=in.(${vendorIds.map((id) => encodeURIComponent(String(id))).join(",")})&select=id,status,user_id,vendor_code,category_id,is_verified,vendor_categories(id,name,slug),vendor_profiles(id,business_name,city,state,slug,logo_media:media!logo_media_id(cdn_url,file_path),cover_media:media!cover_media_id(cdn_url,file_path)),vendor_contacts(phone,whatsapp,is_primary),vendor_gallery(id,is_cover,media(cdn_url,file_path))`
+      ).catch(() => ({ data: [] }));
+      if (Array.isArray(vRes.data)) {
+        for (const v of vRes.data) vendorMap.set(String(v.id), v);
+      }
+    }
+    return rows
+      .filter((r: any) => customerOwnsLead(r, customer))
+      .map((r: any) => ({ ...r, vendors: vendorMap.get(String(r.vendor_id)) || null }));
+  }
+
+  const rows = Array.isArray(res.data) ? res.data : [];
+  return rows.filter((r: any) => customerOwnsLead(r, customer));
+}
+
+async function fetchRelatedQuotationsAndActivities(leadIds: string[]) {
+  const quotationsByLead: Record<string, any[]> = {};
+  const activitiesByLead: Record<string, any[]> = {};
+
+  if (leadIds.length === 0) {
+    return { quotationsByLead, activitiesByLead };
+  }
+
+  const inList = leadIds.map((id) => encodeURIComponent(id)).join(",");
+  const [quotesRes, actsRes] = await Promise.all([
+    supabaseFetch(`quotations?lead_id=in.(${inList})&order=created_at.asc&select=*,quotation_items(*)`),
+    supabaseFetch(`lead_activities?lead_id=in.(${inList})&order=created_at.asc&select=*`),
+  ]);
+
+  if (Array.isArray(quotesRes.data)) {
+    for (const q of quotesRes.data) {
+      const k = String(q.lead_id);
+      if (!quotationsByLead[k]) quotationsByLead[k] = [];
+      quotationsByLead[k].push(q);
+    }
+  }
+
+  if (Array.isArray(actsRes.data)) {
+    for (const act of actsRes.data) {
+      const k = String(act.lead_id);
+      if (!activitiesByLead[k]) activitiesByLead[k] = [];
+      activitiesByLead[k].push(act);
+    }
+  }
+
+  return { quotationsByLead, activitiesByLead };
+}
+
+function buildConversationForGroup(
+  vendorId: string,
+  groupLeads: any[],
+  quotationsByLead: Record<string, any[]>,
+  activitiesByLead: Record<string, any[]>,
+  viewerMode: "customer" | "vendor",
+  customerNameFallback?: string,
+  customerAvatarFallback?: string
+): ConversationItem {
+  const sortedLeads = [...groupLeads].sort(
+    (a, b) => parseTimestamp(a.created_at) - parseTimestamp(b.created_at)
+  );
+  const firstLead = sortedLeads[0];
+  const latestLead = [...sortedLeads].sort(
+    (a, b) =>
+      Math.max(parseTimestamp(b.updated_at), parseTimestamp(b.created_at)) -
+      Math.max(parseTimestamp(a.updated_at), parseTimestamp(a.created_at))
+  )[0];
+
+  const vendorRecord =
+    sortedLeads.map((l) => l.vendors).find((v) => v && v.id) || latestLead.vendors || {};
+  const meta = extractVendorMetadata(vendorRecord, latestLead.city);
+
+  const msgs: ChatMessage[] = [];
+  let hasManualVendorReply = false;
+  let hasAutoReply = false;
+  let hasNonDraftQuote = false;
+  let latestReadMs = 0;
+
+  const readActivityType = viewerMode === "customer" ? "client_read" : "vendor_read";
+
+  for (const lead of sortedLeads) {
+    const leadId = String(lead.id);
+    const leadCustName =
+      String(customerNameFallback || lead.customer_name || (viewerMode === "customer" ? "You" : "Client")).trim();
+    const leadActs = activitiesByLead[leadId] || [];
+    const leadQuotes = (quotationsByLead[leadId] || []).filter(
+      (q) => String(q.status || "").toLowerCase() !== "draft"
+    );
+
+    if (leadQuotes.length > 0) {
+      hasNonDraftQuote = true;
+    }
+
+    // Track read watermark stored in lead_activities
+    for (const act of leadActs) {
+      if (act.activity_type === readActivityType) {
+        const descMs = parseTimestamp(act.description);
+        const createdMs = parseTimestamp(act.created_at);
+        const watermark = Math.max(descMs, createdMs);
+        if (watermark > latestReadMs) latestReadMs = watermark;
+      }
+    }
+
+    const initialMsgText = lead.message ? String(lead.message).trim() : "";
+    const leadCreatedMs = parseTimestamp(lead.created_at);
+
+    if (initialMsgText) {
+      msgs.push({
+        id: `db-msg-${leadId}-inquiry`,
         sender: "customer",
-        senderName: "Ananya",
-        text: "Hi, we are planning our wedding in Kozhikode this December. We love your candid wedding stories and wanted to check your availability and package options.",
-        createdAt: "Yesterday at 11:30 AM",
+        senderName: viewerMode === "customer" ? "You" : leadCustName,
+        senderAvatar: customerAvatarFallback || undefined,
+        text: initialMsgText,
+        createdAt: formatMessageTime(lead.created_at),
+        rawCreatedAt: lead.created_at,
         isRead: true,
-      },
-      {
-        id: "msg-102",
+        leadId,
+      });
+    }
+
+    for (const act of leadActs) {
+      const actType = String(act.activity_type || "").toLowerCase();
+      const desc = act.description ? String(act.description).trim() : "";
+      if (!desc) continue;
+
+      if (actType === "client_message") {
+        // Avoid duplicating legacy bug where initial inquiry was inserted into both leads.message & client_message
+        const actMs = parseTimestamp(act.created_at);
+        if (
+          initialMsgText &&
+          desc === initialMsgText &&
+          Math.abs(actMs - leadCreatedMs) < 15000
+        ) {
+          continue;
+        }
+        msgs.push({
+          id: `act-${act.id}`,
+          sender: "customer",
+          senderName: viewerMode === "customer" ? "You" : leadCustName,
+          senderAvatar: customerAvatarFallback || undefined,
+          text: desc,
+          createdAt: formatMessageTime(act.created_at),
+          rawCreatedAt: act.created_at,
+          isRead: viewerMode === "customer" ? true : actMs <= latestReadMs,
+          leadId,
+        });
+      } else if (actType === "vendor_message") {
+        hasManualVendorReply = true;
+        const actMs = parseTimestamp(act.created_at);
+        msgs.push({
+          id: `act-${act.id}`,
+          sender: "vendor",
+          senderName: meta.vendorName,
+          senderAvatar: meta.vendorAvatar,
+          text: desc,
+          createdAt: formatMessageTime(act.created_at),
+          rawCreatedAt: act.created_at,
+          isRead: viewerMode === "vendor" ? true : actMs <= latestReadMs,
+          isAutoReply: false,
+          leadId,
+        });
+      } else if (actType === "vendor_auto_reply") {
+        hasAutoReply = true;
+        msgs.push({
+          id: `act-${act.id}`,
+          sender: "vendor",
+          senderName: meta.vendorName,
+          senderAvatar: meta.vendorAvatar,
+          text: desc,
+          createdAt: formatMessageTime(act.created_at),
+          rawCreatedAt: act.created_at,
+          // Initial automatic acknowledgment never raises unread alerts on customer inbox
+          isRead: true,
+          isAutoReply: true,
+          leadId,
+        });
+      } else if (actType === "quotation_sent" && leadQuotes.length === 0) {
+        hasManualVendorReply = true;
+        const actMs = parseTimestamp(act.created_at);
+        msgs.push({
+          id: `act-${act.id}`,
+          sender: "vendor",
+          senderName: meta.vendorName,
+          senderAvatar: meta.vendorAvatar,
+          text: desc,
+          createdAt: formatMessageTime(act.created_at),
+          rawCreatedAt: act.created_at,
+          isRead: viewerMode === "vendor" ? true : actMs <= latestReadMs,
+          leadId,
+        });
+      }
+      // Internal CRM audit entries (`lead_created`, `note_added`, `task_created`,
+      // `customer_interested`, `status_changed`, `client_read`, `vendor_read`)
+      // are intentionally excluded from chat bubbles.
+    }
+
+    for (const quote of leadQuotes) {
+      const qMs = parseTimestamp(quote.created_at);
+      const qStatus = String(quote.status || "sent").toLowerCase();
+      const formattedQuote = formatQuotationPayload(quote);
+      const hasRevisionReq =
+        qStatus === "sent" &&
+        leadActs.some(
+          (a: any) =>
+            String(a.activity_type || "").toLowerCase() === "revision_requested" &&
+            parseTimestamp(a.created_at) >= qMs &&
+            String(a.description || "").includes(`[quote:${quote.id}]`)
+        );
+      if (hasRevisionReq) {
+        formattedQuote.status = "revision_requested";
+      }
+      msgs.push({
+        id: `db-msg-${leadId}-quote-${quote.id}`,
         sender: "vendor",
-        senderName: "Calicut Candid Films",
-        senderAvatar: "https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=400&q=80",
-        text: "Namaste Ananya! Congratulations on your upcoming wedding! December 18th is currently available with our lead photography team. We would love to capture your ceremonies.",
-        createdAt: "Yesterday at 2:15 PM",
-        isRead: true,
-      },
-      {
-        id: "msg-103",
-        sender: "vendor",
-        senderName: "Calicut Candid Films",
-        senderAvatar: "https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=400&q=80",
-        text: "We have prepared a tailored quotation for your 2-day wedding ceremonies.",
-        createdAt: "Today at 10:15 AM",
-        isRead: false,
-        quotation: {
-          amount: 145000,
-          title: "Complete 2-Day Candid & Cinematic Package",
-          details: "2 Lead Candid Photographers + 2 Cinematic Videographers + Drone 4K Coverage + Premium Lay-flat Leather Photo Album + Teaser & 40-Min Highlight Reel.",
-          status: "pending",
-        },
-      },
-    ],
-  },
-  {
-    id: "conv-venue-1",
-    vendorId: "v-eden-banquets",
-    vendorName: "Eden Garden Luxury Banquets & Resort",
-    vendorCategory: "Wedding Venue",
-    vendorAvatar: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=400&q=80",
-    vendorCity: "Ernakulam, Kochi",
-    vendorPhone: "+91 94470 54321",
-    customerName: "Ananya & Rahul",
-    eventType: "Grand Wedding Reception",
-    eventDate: "2026-12-18",
-    guestCount: 800,
-    estimatedBudget: 350000,
-    status: "replied",
-    unreadCount: 0,
-    lastMessageSnippet: "The Grand Waterfront Lawn is available. We can schedule a venue tour this Saturday.",
-    lastMessageTime: "2h ago",
-    messages: [
-      {
-        id: "msg-201",
-        sender: "customer",
-        senderName: "Ananya",
-        text: "Hello! We are looking for an outdoor lawn & banquet hall combination for 700-800 guests in Kochi for December. Is your lawn available?",
-        createdAt: "Nov 7 at 4:20 PM",
-        isRead: true,
-      },
-      {
-        id: "msg-202",
-        sender: "vendor",
-        senderName: "Eden Garden Banquets",
-        senderAvatar: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=400&q=80",
-        text: "Hello! Thank you for considering Eden Garden. The Grand Waterfront Lawn is available for December 18th. It comfortably accommodates 1,000+ guests with valet parking for 250 cars and 2 bridal preparation suites.",
-        createdAt: "Nov 7 at 6:45 PM",
-        isRead: true,
-      },
-      {
-        id: "msg-203",
-        sender: "vendor",
-        senderName: "Eden Garden Banquets",
-        senderAvatar: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=400&q=80",
-        text: "The Grand Waterfront Lawn is available. We can schedule a venue tour this Saturday at 3:00 PM if convenient.",
-        createdAt: "Today at 9:00 AM",
-        isRead: true,
-      },
-    ],
-  },
-  {
-    id: "conv-makeup-1",
-    vendorId: "v-saffron-glam",
-    vendorName: "Saffron Glam Bridal Artistry",
-    vendorCategory: "Makeup Artist",
-    vendorAvatar: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&q=80",
-    vendorCity: "Thrissur, Kerala",
-    vendorPhone: "+91 97450 98765",
-    customerName: "Ananya",
-    eventType: "Muhurtham & Reception Bridal Styling",
-    eventDate: "2026-12-18",
-    guestCount: 0,
-    estimatedBudget: 45000,
-    status: "quoted",
-    unreadCount: 1,
-    lastMessageSnippet: "Here are the details for our Signature HD Airbrush Bridal Package.",
-    lastMessageTime: "Yesterday",
-    messages: [
-      {
-        id: "msg-301",
-        sender: "customer",
-        senderName: "Ananya",
-        text: "Hi! I am looking for traditional Kerala temple look for morning Muhurtham and a glam evening reception look. Do you travel to the venue?",
-        createdAt: "Nov 6 at 10:00 AM",
-        isRead: true,
-      },
-      {
-        id: "msg-302",
-        sender: "vendor",
-        senderName: "Saffron Glam Artistry",
-        senderAvatar: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&q=80",
-        text: "Hello Ananya! Yes, our senior artists travel anywhere across Kerala with our luxury mobile makeup and lighting station.",
-        createdAt: "Nov 6 at 12:30 PM",
-        isRead: true,
-      },
-      {
-        id: "msg-303",
-        sender: "vendor",
-        senderName: "Saffron Glam Artistry",
-        senderAvatar: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&q=80",
-        text: "Here are the details for our Signature HD Airbrush Bridal Package.",
-        createdAt: "Yesterday at 4:10 PM",
-        isRead: false,
-        quotation: {
-          amount: 38000,
-          title: "Dual Bridal Look (Muhurtham + Reception)",
-          details: "HD Airbrush Makeup + Luxury Hair Sculpting + Saree Draping + Premium Mink Lashes + Free Pre-Wedding Consultation.",
-          status: "pending",
-        },
-      },
-    ],
-  },
-  {
-    id: "conv-decor-1",
-    vendorId: "v-mandap-flora",
-    vendorName: "Royal Heritage Mandap & Floral Decor",
-    vendorCategory: "Decor & Floral",
-    vendorAvatar: "https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=400&q=80",
-    vendorCity: "Trivandrum, Kerala",
-    vendorPhone: "+91 94950 11223",
-    customerName: "Ananya & Rahul",
-    eventType: "Stage Decor & Floral Styling",
-    eventDate: "2026-12-18",
-    guestCount: 650,
-    estimatedBudget: 200000,
-    status: "replied",
-    unreadCount: 0,
-    lastMessageSnippet: "I have shared the 3D moodboard for the brass brass-lotus concept.",
-    lastMessageTime: "Nov 5",
-    messages: [
-      {
-        id: "msg-401",
-        sender: "customer",
-        senderName: "Ananya",
-        text: "Hello! We are looking for an elegant traditional Kerala brass vilakku and tuberose/jasmine stage theme for our wedding.",
-        createdAt: "Nov 5 at 3:15 PM",
-        isRead: true,
-      },
-      {
-        id: "msg-402",
-        sender: "vendor",
-        senderName: "Royal Heritage Decor",
-        senderAvatar: "https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=400&q=80",
-        text: "I have shared the 3D moodboard for the brass brass-lotus concept. We specialize in authentic Kerala temple aesthetics with fresh flowers sourced directly from Bangalore and Thovalai.",
-        createdAt: "Nov 5 at 5:00 PM",
-        isRead: true,
-      },
-    ],
-  },
-];
+        senderName: meta.vendorName,
+        senderAvatar: meta.vendorAvatar,
+        text: `Official quotation shared (${formattedQuote.title}) for ${
+          lead.event_date
+            ? new Date(lead.event_date).toLocaleDateString("en-IN", { dateStyle: "medium" })
+            : "your event"
+        }.`,
+        createdAt: formatMessageTime(quote.created_at),
+        rawCreatedAt: quote.created_at,
+        isRead:
+          viewerMode === "vendor"
+            ? true
+            : qMs <= latestReadMs ||
+              ["customer_interested", "accepted", "declined", "rejected", "archived"].includes(qStatus),
+        leadId,
+        quotation: formattedQuote,
+      });
+    }
+  }
+
+  if (msgs.length === 0) {
+    msgs.push({
+      id: `db-msg-${firstLead.id}-default`,
+      sender: "customer",
+      senderName: viewerMode === "customer" ? "You" : firstLead.customer_name || "Client",
+      text: "Quote request submitted for wedding planning.",
+      createdAt: formatMessageTime(firstLead.created_at),
+      rawCreatedAt: firstLead.created_at,
+      isRead: true,
+      leadId: String(firstLead.id),
+    });
+  }
+
+  // Chronological order ascending with deterministic tie-breakers
+  const senderPriority = (m: ChatMessage) => {
+    if (m.id.endsWith("-inquiry") || m.id.endsWith("-default")) return 0;
+    if (m.sender === "customer") return 1;
+    if (m.isAutoReply) return 2;
+    if (m.quotation) return 4;
+    return 3;
+  };
+
+  msgs.sort((a, b) => {
+    const diff = parseTimestamp(a.rawCreatedAt) - parseTimestamp(b.rawCreatedAt);
+    if (diff !== 0) return diff;
+    return senderPriority(a) - senderPriority(b);
+  });
+
+  // Compute unread count from genuine manual replies/quotes (customer) or new client messages/leads (vendor)
+  let unreadCount = 0;
+  if (viewerMode === "customer") {
+    unreadCount = msgs.filter(
+      (m) => m.sender === "vendor" && !m.isAutoReply && !m.isRead
+    ).length;
+  } else {
+    const newCustomerMsgs = msgs.filter((m) => m.sender === "customer" && !m.isRead).length;
+    const isUnseenNewLead =
+      latestReadMs === 0 &&
+      sortedLeads.some((l) => String(l.status || "new").toLowerCase() === "new") &&
+      !hasManualVendorReply &&
+      !hasNonDraftQuote;
+    unreadCount = newCustomerMsgs > 0 ? newCustomerMsgs : isUnseenNewLead ? 1 : 0;
+  }
+
+  const latestLeadStatus = String(latestLead.status || "new").toLowerCase();
+  const hasVendorStatusChange = !["new", "lead_created"].includes(latestLeadStatus);
+  const hasVendorReply = hasManualVendorReply || hasNonDraftQuote || hasVendorStatusChange;
+
+  let convStatus: ConversationItem["status"] = "new";
+  if (["converted", "accepted", "confirmed", "booked"].includes(latestLeadStatus)) {
+    convStatus = "confirmed";
+  } else if (latestLeadStatus === "completed") {
+    convStatus = "completed";
+  } else if (hasNonDraftQuote || ["quotation_sent", "quote sent", "quoted"].includes(latestLeadStatus)) {
+    convStatus = "quoted";
+  } else if (hasVendorReply) {
+    convStatus = "replied";
+  }
+
+  const latestMsg = msgs[msgs.length - 1];
+  const lastActivityAt =
+    latestMsg?.rawCreatedAt || latestLead.updated_at || latestLead.created_at;
+
+  const snippetText = latestMsg?.quotation
+    ? `Quotation sent: ₹${latestMsg.quotation.amount.toLocaleString("en-IN")}`
+    : latestMsg?.text || "Inquiry submitted.";
+
+  return {
+    id:
+      viewerMode === "customer"
+        ? `conv-vendor-${vendorId}`
+        : `conv-vendor-lead-${latestLead.id}`,
+    leadId: String(latestLead.id),
+    leadIds: sortedLeads.map((l) => String(l.id)),
+    viewerRole: viewerMode,
+    vendorId: String(vendorId),
+    vendorName: meta.vendorName,
+    vendorSlug: meta.vendorSlug,
+    vendorCategory: meta.vendorCategory,
+    vendorCategorySlug: meta.vendorCategorySlug,
+    vendorAvatar: meta.vendorAvatar,
+    vendorCity: meta.vendorCity,
+    vendorPhone: meta.vendorPhone || undefined,
+    isVerified: meta.isVerified,
+    customerId: latestLead.customer_id ? String(latestLead.customer_id) : undefined,
+    customerName: String(customerNameFallback || latestLead.customer_name || "Customer").trim(),
+    customerAvatar: customerAvatarFallback || undefined,
+    customerEmail: latestLead.customer_email || undefined,
+    customerPhone: latestLead.customer_phone || undefined,
+    eventType: String(latestLead.event_type || "Wedding"),
+    eventDate: latestLead.event_date || undefined,
+    guestCount: latestLead.guest_count ? Number(latestLead.guest_count) : undefined,
+    estimatedBudget: latestLead.estimated_budget
+      ? Number(latestLead.estimated_budget)
+      : undefined,
+    status: convStatus,
+    hasVendorReply,
+    isAutoAcknowledged: hasAutoReply && !hasVendorReply,
+    unreadCount,
+    lastMessageSnippet: snippetText,
+    lastMessageSender: latestMsg?.sender,
+    lastMessageTime: formatMessageTime(lastActivityAt),
+    lastActivityAt,
+    messages: msgs,
+  };
+}
+
+async function resolveVendorByAnyIdentifier(rawIdentifier: string) {
+  const clean = String(rawIdentifier || "").replace(/^conv-vendor-/, "").trim();
+  if (!clean) return null;
+
+  const selectCols =
+    "id,vendor_code,status,user_id,vendor_profiles(id,business_name,slug,city,state)";
+
+  if (UUID_REGEX.test(clean)) {
+    const byId = await supabaseFetch(
+      `vendors?id=eq.${encodeURIComponent(clean)}&deleted_at=is.null&select=${selectCols}&limit=1`
+    );
+    if (Array.isArray(byId.data) && byId.data[0]) return byId.data[0];
+
+    const byProfileId = await supabaseFetch(
+      `vendor_profiles?id=eq.${encodeURIComponent(clean)}&select=vendor_id&limit=1`
+    );
+    const vpVendorId = Array.isArray(byProfileId.data) && byProfileId.data[0]?.vendor_id;
+    if (vpVendorId) {
+      const res = await supabaseFetch(
+        `vendors?id=eq.${encodeURIComponent(vpVendorId)}&deleted_at=is.null&select=${selectCols}&limit=1`
+      );
+      if (Array.isArray(res.data) && res.data[0]) return res.data[0];
+    }
+
+    const byUserId = await supabaseFetch(
+      `vendors?user_id=eq.${encodeURIComponent(clean)}&deleted_at=is.null&select=${selectCols}&limit=1`
+    );
+    if (Array.isArray(byUserId.data) && byUserId.data[0]) return byUserId.data[0];
+  }
+
+  const byCode = await supabaseFetch(
+    `vendors?vendor_code=eq.${encodeURIComponent(clean)}&deleted_at=is.null&select=${selectCols}&limit=1`
+  );
+  if (Array.isArray(byCode.data) && byCode.data[0]) return byCode.data[0];
+
+  const bySlug = await supabaseFetch(
+    `vendor_profiles?slug=eq.${encodeURIComponent(clean)}&select=vendor_id&limit=1`
+  );
+  const slugVendorId = Array.isArray(bySlug.data) && bySlug.data[0]?.vendor_id;
+  if (slugVendorId) {
+    const res = await supabaseFetch(
+      `vendors?id=eq.${encodeURIComponent(slugVendorId)}&deleted_at=is.null&select=${selectCols}&limit=1`
+    );
+    if (Array.isArray(res.data) && res.data[0]) return res.data[0];
+  }
+
+  return null;
+}
+
+async function loadSessionConversations(
+  session: Awaited<ReturnType<typeof resolveSessionContext>>
+): Promise<{
+  conversations: ConversationItem[];
+  authenticatedUser: AuthenticatedInboxUser | null;
+}> {
+  let conversations: ConversationItem[] = [];
+  let authenticatedUser: AuthenticatedInboxUser | null = null;
+
+  if (session.mode === "customer" && session.customer) {
+    authenticatedUser = {
+      id: session.customer.dbUserId || session.customer.email,
+      name: session.customer.fullName,
+      email: session.customer.email,
+      role: "customer",
+    };
+
+    const leads = await fetchCustomerLeads(session.customer);
+    if (leads.length > 0) {
+      const leadIds = leads.map((l: any) => String(l.id));
+      const { quotationsByLead, activitiesByLead } = await fetchRelatedQuotationsAndActivities(leadIds);
+
+      const leadsByVendor = new Map<string, any[]>();
+      for (const lead of leads) {
+        const vId = String(lead.vendor_id || lead.vendors?.id || lead.id);
+        if (!leadsByVendor.has(vId)) leadsByVendor.set(vId, []);
+        leadsByVendor.get(vId)!.push(lead);
+      }
+
+      conversations = Array.from(leadsByVendor.entries()).map(([vendorId, group]) =>
+        buildConversationForGroup(
+          vendorId,
+          group,
+          quotationsByLead,
+          activitiesByLead,
+          "customer",
+          session.customer!.fullName,
+          session.customer!.avatarUrl
+        )
+      );
+    }
+  } else if (session.mode === "vendor" && session.vendorId) {
+    const [vendorLeadsRes, rawCustomerLeads] = await Promise.all([
+      supabaseFetch(
+        `leads?vendor_id=eq.${encodeURIComponent(session.vendorId)}&deleted_at=is.null&order=created_at.desc&select=${LEADS_EMBED_SELECT}`
+      ),
+      session.customer ? fetchCustomerLeads(session.customer) : Promise.resolve([]),
+    ]);
+
+    const vendorLeads = Array.isArray(vendorLeadsRes.data) ? vendorLeadsRes.data : [];
+    const outgoingCustomerLeads = (Array.isArray(rawCustomerLeads) ? rawCustomerLeads : []).filter(
+      (l: any) => String(l.vendor_id || "") !== String(session.vendorId)
+    );
+
+    authenticatedUser = {
+      id: session.dbUserId || session.vendorId,
+      name:
+        session.vendorUser?.fullName ||
+        session.vendorUser?.email ||
+        "Vendor",
+      email: session.vendorUser?.email || "",
+      role:
+        vendorLeads.length === 0 && outgoingCustomerLeads.length > 0
+          ? "customer"
+          : "vendor",
+    };
+
+    const combinedLeadIds = Array.from(
+      new Set([
+        ...vendorLeads.map((l: any) => String(l.id)),
+        ...outgoingCustomerLeads.map((l: any) => String(l.id)),
+      ])
+    );
+
+    if (combinedLeadIds.length > 0) {
+      const { quotationsByLead, activitiesByLead } =
+        await fetchRelatedQuotationsAndActivities(combinedLeadIds);
+
+      // Resolve actual registered profile names and avatars for all customers in vendor inbox
+      const custUserIds = Array.from(
+        new Set(
+          vendorLeads
+            .map((l: any) => l.customer_id)
+            .filter((id: any) => id && UUID_REGEX.test(String(id)))
+        )
+      );
+      const custEmails = Array.from(
+        new Set(
+          vendorLeads
+            .map((l: any) => (l.customer_email ? String(l.customer_email).trim().toLowerCase() : ""))
+            .filter(Boolean)
+        )
+      );
+
+      const userMapById = new Map<string, any>();
+      const userMapByEmail = new Map<string, any>();
+
+      const userFilters: string[] = [];
+      if (custUserIds.length > 0) {
+        userFilters.push(`id.in.(${custUserIds.map((id) => encodeURIComponent(String(id))).join(",")})`);
+      }
+      if (custEmails.length > 0) {
+        userFilters.push(`email.in.(${custEmails.map((e) => encodeURIComponent(String(e))).join(",")})`);
+      }
+
+      if (userFilters.length > 0) {
+        const queryParams =
+          userFilters.length === 1
+            ? userFilters[0].replace(".in.", "=in.")
+            : `or=(${userFilters.join(",")})`;
+        const userRes = await supabaseFetch(
+          `users?${queryParams}&select=id,email,full_name,name,avatar_url,phone`
+        );
+        if (Array.isArray(userRes.data)) {
+          for (const u of userRes.data) {
+            if (u.id) userMapById.set(String(u.id), u);
+            if (u.email) userMapByEmail.set(String(u.email).trim().toLowerCase(), u);
+          }
+        }
+      }
+
+      // Group vendor leads by genuine customer identity so conversations don't duplicate
+      const leadsByCustomer = new Map<string, any[]>();
+      for (const lead of vendorLeads) {
+        const matchedUser =
+          (lead.customer_id && userMapById.get(String(lead.customer_id))) ||
+          (lead.customer_email && userMapByEmail.get(String(lead.customer_email).trim().toLowerCase()));
+        const groupKey =
+          matchedUser?.id ||
+          (lead.customer_id && String(lead.customer_id)) ||
+          (lead.customer_email && String(lead.customer_email).trim().toLowerCase()) ||
+          String(lead.id);
+
+        if (!leadsByCustomer.has(groupKey)) leadsByCustomer.set(groupKey, []);
+        leadsByCustomer.get(groupKey)!.push(lead);
+      }
+
+      const vendorConvs = Array.from(leadsByCustomer.entries()).map(([custKey, group]) => {
+        const repLead = group[0];
+        const matchedUser =
+          group.map((l: any) => l.customer_id && userMapById.get(String(l.customer_id))).find(Boolean) ||
+          group.map((l: any) => l.customer_email && userMapByEmail.get(String(l.customer_email).trim().toLowerCase())).find(Boolean) ||
+          null;
+
+        const actualName = String(
+          matchedUser?.full_name ||
+          matchedUser?.name ||
+          group.map((l: any) => l.customer_name).find(Boolean) ||
+          (repLead.customer_email ? repLead.customer_email.split("@")[0] : "Client")
+        ).trim();
+
+        const actualAvatar = matchedUser?.avatar_url || "";
+
+        return buildConversationForGroup(
+          session.vendorId!,
+          group,
+          quotationsByLead,
+          activitiesByLead,
+          "vendor",
+          actualName,
+          actualAvatar
+        );
+      });
+
+      const leadsByVendor = new Map<string, any[]>();
+      for (const lead of outgoingCustomerLeads) {
+        const vId = String(lead.vendor_id || lead.vendors?.id || lead.id);
+        if (!leadsByVendor.has(vId)) leadsByVendor.set(vId, []);
+        leadsByVendor.get(vId)!.push(lead);
+      }
+
+      const customerConvs = Array.from(leadsByVendor.entries()).map(([vendorId, group]) =>
+        buildConversationForGroup(
+          vendorId,
+          group,
+          quotationsByLead,
+          activitiesByLead,
+          "customer",
+          session.customer?.fullName || session.vendorUser?.fullName || "You",
+          session.customer?.avatarUrl
+        )
+      );
+
+      conversations = [...vendorConvs, ...customerConvs];
+    }
+  }
+
+  conversations.sort(
+    (a, b) => parseTimestamp(b.lastActivityAt) - parseTimestamp(a.lastActivityAt)
+  );
+
+  return { conversations, authenticatedUser };
+}
+
+async function computeTotalUnreadForSession(session: Awaited<ReturnType<typeof resolveSessionContext>>) {
+  const { conversations } = await loadSessionConversations(session);
+  return conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
+}
+
+async function upsertReadActivity(
+  leadId: string,
+  activityType: "client_read" | "vendor_read",
+  performedBy: string | null,
+  minWatermarkIso?: string | null
+): Promise<string> {
+  // Omit `created_at` so PostgreSQL DEFAULT now() timestamps read watermarks on the same clock as messages & quotations
+  const insertRes = await supabaseFetch(`lead_activities`, {
+    method: "POST",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify({
+      lead_id: leadId,
+      activity_type: activityType,
+      description: minWatermarkIso || "Read",
+      performed_by: performedBy,
+    }),
+  });
+
+  const saved = Array.isArray(insertRes.data) ? insertRes.data[0] : insertRes.data;
+  if (saved?.id && saved?.created_at) {
+    await supabaseFetch(
+      `lead_activities?lead_id=eq.${encodeURIComponent(leadId)}&activity_type=eq.${activityType}&id=neq.${encodeURIComponent(saved.id)}&created_at=lt.${encodeURIComponent(saved.created_at)}`,
+      { method: "DELETE" }
+    ).catch(() => null);
+  }
+
+  return saved?.created_at || minWatermarkIso || new Date().toISOString();
+}
 
 export async function GET(req: Request) {
   try {
-    const customerUser = await getAuthenticatedCustomerUser(req);
-    const vendorAuth = await requireAuthenticatedVendor(req).catch(() => null);
-
-    let dbConversations: ConversationItem[] = [];
-
-    // 1. If authenticated as Customer, query customer leads & quotations
-    if (customerUser?.userId) {
-      const customerId = customerUser.userId;
-      const { data: leads } = await supabaseFetch(
-        `leads?customer_id=eq.${encodeURIComponent(customerId)}&deleted_at=is.null&order=created_at.desc&select=*,vendors(*)`
-      );
-
-      const { data: quotations } = await supabaseFetch(
-        `quotations?select=*,quotation_items(*),leads!inner(customer_id)&leads.customer_id=eq.${encodeURIComponent(customerId)}&order=created_at.desc`
-      );
-
-      if (Array.isArray(leads) && leads.length > 0) {
-        dbConversations = leads.map((lead: any, idx: number) => {
-          const v = lead.vendors || {};
-          const quote = Array.isArray(quotations)
-            ? quotations.find((q: any) => String(q.lead_id) === String(lead.id))
-            : null;
-
-          const msgs: ChatMessage[] = [
-            {
-              id: `db-msg-${lead.id}-1`,
-              sender: "customer",
-              senderName: lead.customer_name || customerUser.fullName || "You",
-              text: lead.message || "Quote request submitted for wedding planning.",
-              createdAt: lead.created_at ? new Date(lead.created_at).toLocaleString("en-IN") : "Recently",
-              isRead: true,
-            },
-          ];
-
-          if (quote) {
-            msgs.push({
-              id: `db-msg-${lead.id}-quote`,
-              sender: "vendor",
-              senderName: v.name || v.boutique_name || "Wedding Vendor",
-              senderAvatar: v.logo || v.cover_image || "",
-              text: `Here is our official quotation for your event on ${lead.event_date || "your wedding date"}.`,
-              createdAt: quote.created_at ? new Date(quote.created_at).toLocaleString("en-IN") : "Recently",
-              isRead: false,
-              quotation: {
-                amount: Number(quote.total_amount || 0),
-                title: quote.title || "Custom Vendor Quotation",
-                details: quote.notes || quote.terms || "Includes selected event services and professional crew.",
-                status: quote.status || "pending",
-              },
-            });
-          } else if (lead.status && lead.status !== "new") {
-            msgs.push({
-              id: `db-msg-${lead.id}-status`,
-              sender: "vendor",
-              senderName: v.name || v.boutique_name || "Wedding Vendor",
-              senderAvatar: v.logo || v.cover_image || "",
-              text: `Thank you for your inquiry. Our team has reviewed your date (${lead.event_date || "TBD"}) and is preparing your tailored proposal.`,
-              createdAt: lead.updated_at ? new Date(lead.updated_at).toLocaleString("en-IN") : "Recently",
-              isRead: true,
-            });
-          }
-
-          const hasUnread = msgs.some((m) => !m.isRead && m.sender === "vendor");
-
-          return {
-            id: `conv-lead-${lead.id}`,
-            leadId: String(lead.id),
-            vendorId: String(lead.vendor_id || v.id || `v-${idx}`),
-            vendorName: v.name || v.boutique_name || "Wedding Vendor",
-            vendorCategory: v.category || "Wedding Services",
-            vendorAvatar: v.logo || v.cover_image || "https://images.unsplash.com/photo-1519741497674-611481863552?w=400&q=80",
-            vendorCity: v.city || lead.city || "Kerala",
-            vendorPhone: v.phone || "+91 98470 00000",
-            customerName: lead.customer_name || customerUser.fullName || "Customer",
-            customerEmail: lead.customer_email || customerUser.email,
-            customerPhone: lead.customer_phone,
-            eventType: lead.event_type || "Wedding",
-            eventDate: lead.event_date,
-            guestCount: lead.guest_count,
-            estimatedBudget: lead.estimated_budget,
-            status: quote ? "quoted" : lead.status === "new" ? "new" : "replied",
-            unreadCount: hasUnread ? 1 : 0,
-            lastMessageSnippet: msgs[msgs.length - 1].text,
-            lastMessageTime: msgs[msgs.length - 1].createdAt,
-            messages: msgs,
-          };
-        });
-      }
-    } 
-    // 2. If authenticated as Vendor, query vendor leads
-    else if (vendorAuth && vendorAuth.vendorId) {
-      const vendorId = vendorAuth.vendorId;
-      const { data: vendorLeads } = await supabaseFetch(
-        `leads?vendor_id=eq.${encodeURIComponent(vendorId)}&deleted_at=is.null&order=created_at.desc&select=*,vendors(*)`
-      );
-
-      if (Array.isArray(vendorLeads) && vendorLeads.length > 0) {
-        dbConversations = vendorLeads.map((lead: any) => ({
-          id: `conv-vendor-lead-${lead.id}`,
-          leadId: String(lead.id),
-          vendorId: String(vendorId),
-          vendorName: lead.vendors?.name || "Your Business",
-          vendorCategory: lead.vendors?.category || "Vendor",
-          vendorAvatar: lead.vendors?.logo || "",
-          vendorCity: lead.city || lead.vendors?.city || "Kerala",
-          customerName: lead.customer_name || "New Client",
-          customerEmail: lead.customer_email,
-          customerPhone: lead.customer_phone,
-          eventType: lead.event_type || "Wedding",
-          eventDate: lead.event_date,
-          guestCount: lead.guest_count,
-          estimatedBudget: lead.estimated_budget,
-          status: lead.status || "new",
-          unreadCount: lead.status === "new" ? 1 : 0,
-          lastMessageSnippet: lead.message || "Customer requested quote.",
-          lastMessageTime: lead.created_at ? new Date(lead.created_at).toLocaleString("en-IN") : "Recently",
-          messages: [
-            {
-              id: `vlead-msg-${lead.id}`,
-              sender: "customer",
-              senderName: lead.customer_name || "Client",
-              text: lead.message || "Inquiry submitted through Cloche profile.",
-              createdAt: lead.created_at ? new Date(lead.created_at).toLocaleString("en-IN") : "Recently",
-              isRead: lead.status !== "new",
-            },
-          ],
-        }));
-      }
-    }
-
-    // Merge database conversations with default conversations if user has fewer than 2
-    let finalConversations = dbConversations;
-    if (finalConversations.length === 0) {
-      finalConversations = DEFAULT_CONVERSATIONS;
-    } else {
-      // Append sample conversations if customer has just 1 or 2 to give rich experience
-      const existingVendorIds = new Set(finalConversations.map((c) => c.vendorId));
-      for (const sample of DEFAULT_CONVERSATIONS) {
-        if (!existingVendorIds.has(sample.vendorId)) {
-          finalConversations.push(sample);
-        }
-      }
-    }
-
-    const totalUnread = finalConversations.reduce((sum, c) => sum + c.unreadCount, 0);
+    const session = await resolveSessionContext(req);
+    const { conversations, authenticatedUser } = await loadSessionConversations(session);
+    const totalUnread = conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
 
     return NextResponse.json({
       success: true,
       statusCode: 200,
       data: {
-        conversations: finalConversations,
+        conversations,
         totalUnread,
-        authenticatedUser: customerUser ? { name: customerUser.fullName, email: customerUser.email, role: "customer" } : null,
+        authenticatedUser,
       },
     });
   } catch (err: any) {
@@ -396,8 +1183,8 @@ export async function GET(req: Request) {
       success: true,
       statusCode: 200,
       data: {
-        conversations: DEFAULT_CONVERSATIONS,
-        totalUnread: 2,
+        conversations: [],
+        totalUnread: 0,
         authenticatedUser: null,
       },
     });
@@ -407,9 +1194,16 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { leadId, conversationId, text, sender = "customer" } = body;
+    const {
+      leadId,
+      vendorId,
+      conversationId,
+      text,
+      sender = "customer",
+      eventType,
+    } = body;
 
-    if (!text || !text.trim()) {
+    if (!text || typeof text !== "string" || !text.trim()) {
       return NextResponse.json(
         { success: false, statusCode: 400, error: { message: "Message content cannot be blank." } },
         { status: 400 }
@@ -417,33 +1211,475 @@ export async function POST(req: Request) {
     }
 
     const trimmedText = text.trim();
+    const session = await resolveSessionContext(req);
 
-    // If attached to a genuine database lead, record activity
-    if (leadId) {
-      await saveLeadActivityToDb(
-        leadId,
-        sender === "vendor" ? "vendor_message" : "client_message",
-        trimmedText
-      ).catch(() => null);
+    if (session.mode === "guest") {
+      return NextResponse.json(
+        { success: false, statusCode: 401, error: { message: "Please sign in to send messages." } },
+        { status: 401 }
+      );
     }
 
+    // VENDOR REPLY BRANCH
+    if (sender === "vendor") {
+      const vendorAuth = await requireAuthenticatedVendor(req).catch(() => null);
+
+      // 1. Resolve authorized vendor accounts for the current user
+      const authorizedVendorIds = new Set<string>();
+      const currentUserId = vendorAuth?.user?.userId || vendorAuth?.user?.id || session.dbUserId;
+      const currentUserEmail = (vendorAuth?.user?.email || session.vendorUser?.email || "").trim().toLowerCase();
+
+      if (vendorAuth?.vendorId) authorizedVendorIds.add(String(vendorAuth.vendorId));
+      if (session.vendorId) authorizedVendorIds.add(String(session.vendorId));
+
+      if (currentUserId) {
+        const vRes = await supabaseFetch(
+          `vendors?user_id=eq.${encodeURIComponent(String(currentUserId))}&deleted_at=is.null&select=id`
+        );
+        if (Array.isArray(vRes.data)) {
+          for (const v of vRes.data) {
+            if (v?.id) authorizedVendorIds.add(String(v.id));
+          }
+        }
+      }
+
+      if (currentUserEmail && authorizedVendorIds.size === 0) {
+        const uRes = await supabaseFetch(
+          `users?email=ilike.${encodeURIComponent(currentUserEmail)}&select=id,vendors(id)`
+        );
+        if (Array.isArray(uRes.data) && uRes.data[0]) {
+          const rawVendors = uRes.data[0].vendors;
+          const vList = Array.isArray(rawVendors) ? rawVendors : rawVendors ? [rawVendors] : [];
+          for (const v of vList) {
+            if (v?.id) authorizedVendorIds.add(String(v.id));
+          }
+        }
+      }
+
+      if (authorizedVendorIds.size === 0) {
+        return NextResponse.json(
+          { success: false, statusCode: 403, error: { message: "Vendor authorization required." } },
+          { status: 403 }
+        );
+      }
+
+      // 2. Extract and sanitize candidate lead & conversation identifiers
+      const extractUuids = (val: any): string[] => {
+        if (!val) return [];
+        const str = String(val).trim();
+        const matches = str.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi);
+        return matches ? matches.map((m) => m.toLowerCase()) : [];
+      };
+
+      const candidateLeadIds = Array.from(
+        new Set([
+          ...extractUuids(leadId),
+          ...extractUuids(conversationId),
+          ...(Array.isArray(body.leadIds) ? body.leadIds.flatMap(extractUuids) : []),
+        ])
+      );
+
+      let targetLead: any = null;
+
+      // 3. Attempt direct lookup by candidate lead ID(s)
+      if (candidateLeadIds.length > 0) {
+        const inList = candidateLeadIds.map((id) => encodeURIComponent(id)).join(",");
+        const leadRes = await supabaseFetch(
+          `leads?id=in.(${inList})&deleted_at=is.null&select=id,vendor_id,customer_id,customer_name,customer_email,customer_phone,status,created_at`
+        );
+        const rows = Array.isArray(leadRes.data) ? leadRes.data : [];
+        targetLead = rows.find((r: any) => authorizedVendorIds.has(String(r.vendor_id))) || null;
+      }
+
+      // 4. Fallback lookup: Identify conversation by Customer User ID or Customer Email
+      const candidateCustomerIds = Array.from(
+        new Set([
+          ...extractUuids(body.customerId),
+          ...extractUuids(body.customerUserId),
+        ])
+      );
+      const candidateCustomerEmail = (body.customerEmail || "").trim().toLowerCase();
+
+      const vendorIdList = Array.from(authorizedVendorIds);
+      const vendorInClause = vendorIdList.map((id) => encodeURIComponent(id)).join(",");
+
+      if (!targetLead && (candidateCustomerIds.length > 0 || candidateCustomerEmail)) {
+        const custFilters: string[] = [];
+        if (candidateCustomerIds.length > 0) {
+          custFilters.push(
+            `customer_id.in.(${candidateCustomerIds.map((id) => encodeURIComponent(id)).join(",")})`
+          );
+        }
+        if (candidateCustomerEmail) {
+          custFilters.push(`customer_email.ilike.${encodeURIComponent(candidateCustomerEmail)}`);
+        }
+        const custQuery =
+          custFilters.length === 1
+            ? custFilters[0].replace(".in.", "=in.").replace(".ilike.", "=ilike.")
+            : `or=(${custFilters.join(",")})`;
+
+        const custLeadsRes = await supabaseFetch(
+          `leads?vendor_id=in.(${vendorInClause})&${custQuery}&deleted_at=is.null&order=created_at.desc&select=id,vendor_id,customer_id,customer_name,customer_email,customer_phone,status,created_at&limit=1`
+        );
+        if (Array.isArray(custLeadsRes.data) && custLeadsRes.data[0]) {
+          targetLead = custLeadsRes.data[0];
+        }
+      }
+
+      // 5. Fallback lookup: If conversationId is "conv-vendor-<vendorId>" or references a vendor, find latest active lead for that vendor
+      if (!targetLead && typeof conversationId === "string" && conversationId.startsWith("conv-vendor-")) {
+        const rawVendorSlugOrId = conversationId.replace(/^conv-vendor-/, "");
+        const matchedVendor = await resolveVendorByAnyIdentifier(rawVendorSlugOrId);
+        const targetVId = matchedVendor?.id || rawVendorSlugOrId;
+        if (authorizedVendorIds.has(String(targetVId))) {
+          const recentLeadRes = await supabaseFetch(
+            `leads?vendor_id=eq.${encodeURIComponent(String(targetVId))}&deleted_at=is.null&order=created_at.desc&select=id,vendor_id,customer_id,customer_name,customer_email,customer_phone,status,created_at&limit=1`
+          );
+          if (Array.isArray(recentLeadRes.data) && recentLeadRes.data[0]) {
+            targetLead = recentLeadRes.data[0];
+          }
+        }
+      }
+
+      // 6. Safe lead association repair: If valid customer participant exists but no lead row, establish it safely
+      if (!targetLead && (candidateCustomerIds.length > 0 || candidateCustomerEmail)) {
+        const primaryVendorId = vendorIdList[0];
+        let custName = String(body.customerName || "").trim();
+        let custEmail = candidateCustomerEmail || null;
+        let custId = candidateCustomerIds[0] || null;
+
+        if (custId && !custName) {
+          const uRes = await supabaseFetch(
+            `users?id=eq.${encodeURIComponent(custId)}&select=full_name,name,email&limit=1`
+          );
+          if (Array.isArray(uRes.data) && uRes.data[0]) {
+            custName = uRes.data[0].full_name || uRes.data[0].name || "Customer";
+            if (!custEmail) custEmail = uRes.data[0].email;
+          }
+        }
+
+        const createRes = await supabaseFetch(`leads`, {
+          method: "POST",
+          headers: { Prefer: "return=representation" },
+          body: JSON.stringify({
+            vendor_id: primaryVendorId,
+            customer_id: custId,
+            customer_name: (custName || "Customer").slice(0, 150),
+            customer_email: custEmail,
+            event_type: body.eventType || "Wedding",
+            event_date: defaultEventDateString(),
+            message: "Conversation started.",
+            source: "vendor_dashboard_reply",
+            status: "contacted",
+          }),
+        });
+        if (Array.isArray(createRes.data) && createRes.data[0]?.id) {
+          targetLead = createRes.data[0];
+        }
+      }
+
+      if (!targetLead) {
+        return NextResponse.json(
+          { success: false, statusCode: 404, error: { message: "Conversation lead not found." } },
+          { status: 404 }
+        );
+      }
+
+      // 7. Ensure customer user ID is resolved if available
+      if (!targetLead.customer_id && targetLead.customer_email) {
+        const uRes = await supabaseFetch(
+          `users?email=ilike.${encodeURIComponent(String(targetLead.customer_email).trim())}&select=id&limit=1`
+        );
+        if (Array.isArray(uRes.data) && uRes.data[0]?.id) {
+          targetLead.customer_id = uRes.data[0].id;
+          await supabaseFetch(`leads?id=eq.${encodeURIComponent(targetLead.id)}`, {
+            method: "PATCH",
+            body: JSON.stringify({ customer_id: uRes.data[0].id }),
+          }).catch(() => null);
+        }
+      }
+
+      // 8. Insert photographer's reply into lead_activities
+      const actRes = await supabaseFetch(`lead_activities`, {
+        method: "POST",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify({
+          lead_id: targetLead.id,
+          activity_type: "vendor_message",
+          description: trimmedText,
+          performed_by: currentUserId || session.dbUserId || null,
+        }),
+      });
+
+      if (actRes.error) {
+        return NextResponse.json(
+          { success: false, statusCode: 500, error: { message: "Failed to save reply." } },
+          { status: 500 }
+        );
+      }
+
+      const savedAct = Array.isArray(actRes.data) ? actRes.data[0] : actRes.data;
+      const createdAtIso = savedAct?.created_at || new Date().toISOString();
+      const nextStatus =
+        String(targetLead.status || "new").toLowerCase() === "new" ? "contacted" : targetLead.status;
+
+      await Promise.all([
+        supabaseFetch(`leads?id=eq.${encodeURIComponent(targetLead.id)}`, {
+          method: "PATCH",
+          body: JSON.stringify({ status: nextStatus, updated_at: createdAtIso }),
+        }),
+        upsertReadActivity(
+          targetLead.id,
+          "vendor_read",
+          currentUserId || session.dbUserId,
+          createdAtIso
+        ),
+      ]).catch(() => null);
+
+      const newMessage: ChatMessage = {
+        id: savedAct?.id ? `act-${savedAct.id}` : `msg-${Date.now()}`,
+        sender: "vendor",
+        senderName: session.vendorUser?.fullName || "Vendor Team",
+        text: trimmedText,
+        createdAt: formatMessageTime(createdAtIso),
+        rawCreatedAt: createdAtIso,
+        isRead: true,
+        leadId: targetLead.id,
+      };
+
+      return NextResponse.json(
+        {
+          success: true,
+          statusCode: 201,
+          data: {
+            message: newMessage,
+            conversationId: conversationId || `conv-vendor-lead-${targetLead.id}`,
+            leadId: targetLead.id,
+            vendorId: targetLead.vendor_id,
+            customerId: targetLead.customer_id || undefined,
+          },
+        },
+        { status: 201 }
+      );
+    }
+
+    // CUSTOMER MESSAGE / INQUIRY BRANCH
+    const customer =
+      session.customer ||
+      (await resolveVerifiedCustomerProfile(
+        session.dbUserId,
+        session.vendorUser?.email,
+        session.vendorUser?.fullName
+      ));
+
+    if (!customer) {
+      return NextResponse.json(
+        { success: false, statusCode: 401, error: { message: "Customer session could not be verified." } },
+        { status: 401 }
+      );
+    }
+
+    let activeLead: any = null;
+    let isBrandNewLead = false;
+    let resolvedVendorId = "";
+    let vendorDisplayName = "Wedding Vendor";
+
+    // 1. Verify direct leadId if provided (must belong to authenticated customer)
+    if (leadId && UUID_REGEX.test(String(leadId))) {
+      const leadRes = await supabaseFetch(
+        `leads?id=eq.${encodeURIComponent(String(leadId))}&deleted_at=is.null&select=id,vendor_id,customer_id,customer_email,customer_phone,message,created_at&limit=1`
+      );
+      const found = Array.isArray(leadRes.data) ? leadRes.data[0] : null;
+      if (found && customerOwnsLead(found, customer)) {
+        activeLead = found;
+        resolvedVendorId = String(found.vendor_id);
+      }
+    }
+
+    // 2. Otherwise resolve vendorId (from explicit vendorId or conversationId "conv-vendor-<id>")
+    if (!activeLead) {
+      const rawVendorRef =
+        vendorId ||
+        (typeof conversationId === "string" && conversationId.startsWith("conv-vendor-")
+          ? conversationId.replace(/^conv-vendor-/, "")
+          : "");
+
+      const resolvedVendor = await resolveVendorByAnyIdentifier(rawVendorRef);
+      if (!resolvedVendor?.id) {
+        return NextResponse.json(
+          { success: false, statusCode: 404, error: { message: "Target vendor not found." } },
+          { status: 404 }
+        );
+      }
+
+      resolvedVendorId = String(resolvedVendor.id);
+      const prof = pickFirst<any>(resolvedVendor.vendor_profiles);
+      vendorDisplayName = String(prof?.business_name || "Wedding Vendor").trim();
+
+      const customerLeads = await fetchCustomerLeads(customer);
+      const matchingVendorLeads = customerLeads.filter(
+        (l: any) => String(l.vendor_id) === resolvedVendorId
+      );
+
+      if (matchingVendorLeads.length > 0) {
+        matchingVendorLeads.sort(
+          (a: any, b: any) =>
+            Math.max(parseTimestamp(b.updated_at), parseTimestamp(b.created_at)) -
+            Math.max(parseTimestamp(a.updated_at), parseTimestamp(a.created_at))
+        );
+        activeLead = matchingVendorLeads[0];
+      } else {
+        // Create brand new genuine lead with all required NOT NULL fields (let Postgres DEFAULT now() set timestamps)
+        const leadPayload: Record<string, any> = {
+          vendor_id: resolvedVendorId,
+          customer_name: customer.fullName.slice(0, 150),
+          customer_phone: sanitizePhone(customer.phone),
+          customer_email: customer.email || null,
+          event_type: eventType || "Wedding",
+          event_date: defaultEventDateString(customer.weddingDate),
+          city: customer.preferredCity || null,
+          message: trimmedText,
+          source: "vendor_storefront_chat",
+          status: "new",
+        };
+        if (customer.dbUserId) {
+          leadPayload.customer_id = customer.dbUserId;
+          leadPayload.created_by = customer.dbUserId;
+        }
+
+        const createRes = await supabaseFetch(`leads`, {
+          method: "POST",
+          headers: { Prefer: "return=representation" },
+          body: JSON.stringify(leadPayload),
+        });
+
+        if (createRes.error || !Array.isArray(createRes.data) || !createRes.data[0]?.id) {
+          console.error("[MESSAGES_API_POST] Lead creation failed:", createRes.error);
+          return NextResponse.json(
+            {
+              success: false,
+              statusCode: 500,
+              error: { message: createRes.error?.message || "Failed to start conversation." },
+            },
+            { status: 500 }
+          );
+        }
+
+        activeLead = createRes.data[0];
+        isBrandNewLead = true;
+      }
+    }
+
+    let createdMsgId = `db-msg-${activeLead.id}-inquiry`;
+    let createdMsgIso = activeLead.created_at || new Date().toISOString();
+
+    if (isBrandNewLead) {
+      // Persist audit log & automatic initial vendor acknowledgment to Supabase on PostgreSQL clock
+      const autoReplyText = `Hi! Thank you for reaching out to ${vendorDisplayName}. We have received your message and will get back to you with pricing and availability shortly.`;
+
+      await Promise.all([
+        supabaseFetch(`lead_activities`, {
+          method: "POST",
+          body: JSON.stringify({
+            lead_id: activeLead.id,
+            activity_type: "lead_created",
+            description: `Inquiry started by ${customer.fullName}`,
+            performed_by: customer.dbUserId,
+            ...(activeLead.created_at ? { created_at: activeLead.created_at } : {}),
+          }),
+        }),
+        supabaseFetch(`lead_activities`, {
+          method: "POST",
+          body: JSON.stringify({
+            lead_id: activeLead.id,
+            activity_type: "vendor_auto_reply",
+            description: autoReplyText,
+          }),
+        }),
+        upsertReadActivity(
+          activeLead.id,
+          "client_read",
+          customer.dbUserId,
+          activeLead.created_at || null
+        ),
+      ]).catch((e) => {
+        console.warn("[MESSAGES_API_POST] Initial activity logging warning:", e);
+        return null;
+      });
+    } else {
+      // Follow-up message on an existing thread -> save to lead_activities using PostgreSQL DEFAULT now()
+      const actRes = await supabaseFetch(`lead_activities`, {
+        method: "POST",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify({
+          lead_id: activeLead.id,
+          activity_type: "client_message",
+          description: trimmedText,
+          performed_by: customer.dbUserId,
+        }),
+      });
+
+      if (actRes.error) {
+        return NextResponse.json(
+          { success: false, statusCode: 500, error: { message: "Failed to save message." } },
+          { status: 500 }
+        );
+      }
+
+      const savedAct = Array.isArray(actRes.data) ? actRes.data[0] : actRes.data;
+      if (savedAct?.id) createdMsgId = `act-${savedAct.id}`;
+      createdMsgIso = savedAct?.created_at || new Date().toISOString();
+
+      const leadPatch: Record<string, any> = { updated_at: createdMsgIso };
+      if (!activeLead.customer_id && customer.dbUserId) {
+        leadPatch.customer_id = customer.dbUserId;
+      }
+      if (customer.fullName && (!activeLead.customer_name || activeLead.customer_name === "Customer" || activeLead.customer_name === "Wedding Customer")) {
+        leadPatch.customer_name = customer.fullName.slice(0, 150);
+      }
+
+      await Promise.all([
+        supabaseFetch(`leads?id=eq.${encodeURIComponent(activeLead.id)}`, {
+          method: "PATCH",
+          body: JSON.stringify(leadPatch),
+        }),
+        upsertReadActivity(
+          activeLead.id,
+          "client_read",
+          customer.dbUserId,
+          savedAct?.created_at || null
+        ),
+      ]).catch(() => null);
+    }
+
+    const canonicalConvId = resolvedVendorId ? `conv-vendor-${resolvedVendorId}` : conversationId;
+
     const newMessage: ChatMessage = {
-      id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-      sender,
-      senderName: sender === "customer" ? "You" : "Vendor Team",
+      id: createdMsgId,
+      sender: "customer",
+      senderName: "You",
+      senderAvatar: customer.avatarUrl || undefined,
       text: trimmedText,
-      createdAt: "Just now",
+      createdAt: formatMessageTime(createdMsgIso),
+      rawCreatedAt: createdMsgIso,
       isRead: true,
+      leadId: activeLead.id,
     };
 
-    return NextResponse.json({
-      success: true,
-      statusCode: 201,
-      data: {
-        message: newMessage,
-        conversationId,
+    return NextResponse.json(
+      {
+        success: true,
+        statusCode: 201,
+        data: {
+          message: newMessage,
+          conversationId: canonicalConvId,
+          vendorId: resolvedVendorId,
+          leadId: activeLead.id,
+          isBrandNewLead,
+        },
       },
-    });
+      { status: 201 }
+    );
   } catch (err: any) {
     console.error("[MESSAGES_API_POST] Error:", err);
     return NextResponse.json(
@@ -453,3 +1689,215 @@ export async function POST(req: Request) {
   }
 }
 
+export async function PATCH(req: Request) {
+  try {
+    const body = await req.json();
+    const { action, quotationId, responseStatus, conversationId, vendorId, leadId, leadIds } = body || {};
+
+    const session = await resolveSessionContext(req);
+    if (session.mode === "guest") {
+      return NextResponse.json(
+        { success: false, statusCode: 401, error: { message: "Authentication required." } },
+        { status: 401 }
+      );
+    }
+
+    const nowIso = new Date().toISOString();
+
+    if (action === "quotation_response" && quotationId) {
+      if (!session.customer) {
+        return NextResponse.json(
+          { success: false, statusCode: 403, error: { message: "Customer authentication required." } },
+          { status: 403 }
+        );
+      }
+
+      const myLeads = await fetchCustomerLeads(session.customer);
+      const myLeadSet = new Set(
+        myLeads
+          .filter((l: any) => !session.vendorId || String(l.vendor_id || "") !== String(session.vendorId))
+          .map((l: any) => String(l.id))
+      );
+
+      const qCheck = await supabaseFetch(
+        `quotations?id=eq.${encodeURIComponent(String(quotationId))}&select=id,lead_id,vendor_id,quotation_number,status&limit=1`
+      );
+      const targetQuote = Array.isArray(qCheck.data) ? qCheck.data[0] : null;
+      if (!targetQuote || !myLeadSet.has(String(targetQuote.lead_id))) {
+        return NextResponse.json(
+          { success: false, statusCode: 404, error: { message: "Quotation not found." } },
+          { status: 404 }
+        );
+      }
+
+      const isAccept =
+        responseStatus === "accepted" || responseStatus === "customer_interested";
+      const mappedDbStatus = isAccept ? "accepted" : targetQuote.status || "sent";
+      const uiStatus = isAccept ? "accepted" : "revision_requested";
+
+      const updateRes = await supabaseFetch(
+        `quotations?id=eq.${encodeURIComponent(targetQuote.id)}`,
+        {
+          method: "PATCH",
+          headers: { Prefer: "return=representation" },
+          body: JSON.stringify({
+            status: mappedDbStatus,
+            updated_at: nowIso,
+          }),
+        }
+      );
+
+      if (updateRes.error) {
+        return NextResponse.json(
+          { success: false, statusCode: 500, error: { message: updateRes.error.message } },
+          { status: 500 }
+        );
+      }
+
+      await Promise.all([
+        supabaseFetch(`lead_activities`, {
+          method: "POST",
+          body: JSON.stringify({
+            lead_id: targetQuote.lead_id,
+            activity_type: isAccept ? "customer_interested" : "revision_requested",
+            description: isAccept
+              ? `Customer accepted quotation ${targetQuote.quotation_number || targetQuote.id} [quote:${targetQuote.id}].`
+              : `Customer requested revision on quotation ${targetQuote.quotation_number || targetQuote.id} [quote:${targetQuote.id}].`,
+            performed_by: session.customer.dbUserId,
+          }),
+        }),
+        upsertReadActivity(
+          targetQuote.lead_id,
+          "client_read",
+          session.customer.dbUserId
+        ),
+      ]).catch(() => null);
+
+      return NextResponse.json({
+        success: true,
+        statusCode: 200,
+        data: {
+          quotationId: targetQuote.id,
+          status: uiStatus,
+          dbStatus: mappedDbStatus,
+        },
+      });
+    }
+
+    const targetLeadIds: string[] = [];
+    let persistedReadIso: string | null = null;
+
+    const markCustomerLeadsRead = async (
+      customerProfile: VerifiedDbCustomer,
+      excludeVendorId?: string | null
+    ) => {
+      const rawLeads = await fetchCustomerLeads(customerProfile);
+      const myLeads = excludeVendorId
+        ? rawLeads.filter((l: any) => String(l.vendor_id || "") !== String(excludeVendorId))
+        : rawLeads;
+      const myLeadSet = new Set(myLeads.map((l: any) => String(l.id)));
+
+      const cleanVendorId =
+        vendorId ||
+        (typeof conversationId === "string" &&
+        conversationId.startsWith("conv-vendor-") &&
+        !conversationId.startsWith("conv-vendor-lead-")
+          ? conversationId.replace(/^conv-vendor-/, "")
+          : "");
+
+      const matchedIds: string[] = [];
+      if (cleanVendorId) {
+        for (const l of myLeads) {
+          if (String(l.vendor_id) === String(cleanVendorId)) {
+            matchedIds.push(String(l.id));
+          }
+        }
+      }
+
+      if (Array.isArray(leadIds)) {
+        for (const id of leadIds) {
+          if (myLeadSet.has(String(id)) && !matchedIds.includes(String(id))) {
+            matchedIds.push(String(id));
+          }
+        }
+      }
+
+      if (leadId && myLeadSet.has(String(leadId)) && !matchedIds.includes(String(leadId))) {
+        matchedIds.push(String(leadId));
+      }
+
+      if (matchedIds.length === 0) return false;
+
+      targetLeadIds.push(...matchedIds);
+      const readResults = await Promise.all(
+        matchedIds.map(async (id) => {
+          const lead = myLeads.find((l: any) => String(l.id) === id);
+          if (lead && !lead.customer_id && customerProfile.dbUserId) {
+            await supabaseFetch(`leads?id=eq.${encodeURIComponent(id)}`, {
+              method: "PATCH",
+              body: JSON.stringify({ customer_id: customerProfile.dbUserId }),
+            }).catch(() => null);
+          }
+          return upsertReadActivity(id, "client_read", customerProfile.dbUserId || null);
+        })
+      );
+      if (readResults.length > 0) persistedReadIso = readResults[0];
+      return true;
+    };
+
+    if (session.mode === "customer" && session.customer) {
+      await markCustomerLeadsRead(session.customer);
+    } else if (session.mode === "vendor" && session.vendorId) {
+      const isVendorLeadThread =
+        typeof conversationId === "string" && conversationId.startsWith("conv-vendor-lead-");
+
+      const handledAsOutgoingCustomer =
+        !isVendorLeadThread && session.customer
+          ? await markCustomerLeadsRead(session.customer, session.vendorId)
+          : false;
+
+      if (!handledAsOutgoingCustomer) {
+        const candidateIds = new Set<string>();
+        if (leadId) candidateIds.add(String(leadId));
+        if (Array.isArray(leadIds)) {
+          for (const id of leadIds) candidateIds.add(String(id));
+        }
+
+        if (candidateIds.size > 0) {
+          const res = await supabaseFetch(
+            `leads?id=in.(${Array.from(candidateIds).map((id) => encodeURIComponent(id)).join(",")})&vendor_id=eq.${encodeURIComponent(session.vendorId)}&deleted_at=is.null&select=id`
+          );
+          if (Array.isArray(res.data)) {
+            for (const r of res.data) targetLeadIds.push(String(r.id));
+          }
+        }
+
+        const readResults = await Promise.all(
+          targetLeadIds.map((id) =>
+            upsertReadActivity(id, "vendor_read", session.dbUserId)
+          )
+        );
+        if (readResults.length > 0) persistedReadIso = readResults[0];
+      }
+    }
+
+    const totalUnread = await computeTotalUnreadForSession(session);
+
+    return NextResponse.json({
+      success: true,
+      statusCode: 200,
+      data: {
+        conversationId,
+        markedLeadIds: targetLeadIds,
+        readAt: persistedReadIso || nowIso,
+        totalUnread,
+      },
+    });
+  } catch (err: any) {
+    console.error("[MESSAGES_API_PATCH] Error:", err);
+    return NextResponse.json(
+      { success: false, statusCode: 500, error: { message: "Failed to update read status." } },
+      { status: 500 }
+    );
+  }
+}

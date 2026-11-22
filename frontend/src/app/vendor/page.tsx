@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { UnifiedVendorDashboard } from "@/components/vendor/UnifiedVendorDashboard";
 import { MehendiVendorDashboard } from "@/components/vendor/mehendi/MehendiVendorDashboard";
+import { PhotographerVendorDashboard } from "@/components/vendor/photographer/PhotographerVendorDashboard";
 import { VendorCategoryErrorState } from "@/components/vendor/VendorCategoryErrorState";
 import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, normalizeVendorCategoryKey, VendorProfileData } from "@/lib/vendorStore";
@@ -53,6 +54,10 @@ export default function VendorDashboardPage() {
 
   if (categoryKey === "mehendi") {
     return <MehendiVendorDashboard />;
+  }
+
+  if (categoryKey === "photographers" || rawCat.toLowerCase().includes("photograph")) {
+    return <PhotographerVendorDashboard />;
   }
 
   return <UnifiedVendorDashboard categoryKey={categoryKey || "venues"} />;
