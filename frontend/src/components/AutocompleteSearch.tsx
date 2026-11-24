@@ -36,6 +36,7 @@ interface AutocompleteSearchProps {
   className?: string;
   inputClassName?: string;
   autoFocus?: boolean;
+  onQueryChange?: (query: string) => void;
 }
 
 export function AutocompleteSearch({
@@ -43,6 +44,7 @@ export function AutocompleteSearch({
   className = "",
   inputClassName = "",
   autoFocus = false,
+  onQueryChange,
 }: AutocompleteSearchProps) {
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -53,6 +55,11 @@ export function AutocompleteSearch({
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+
+  const updateQuery = (value: string) => {
+    setQuery(value);
+    onQueryChange?.(value);
+  };
 
   useEffect(() => {
     try {
@@ -189,7 +196,7 @@ export function AutocompleteSearch({
   const handleSelectResult = useCallback(
     (item: SearchResultItem) => {
       setIsOpen(false);
-      setQuery("");
+      updateQuery("");
       router.push(item.href);
     },
     [router]
@@ -249,7 +256,7 @@ export function AutocompleteSearch({
           value={query}
           autoFocus={autoFocus}
           onChange={(e) => {
-            setQuery(e.target.value);
+            updateQuery(e.target.value);
             if (!isOpen) setIsOpen(true);
           }}
           onFocus={() => setIsOpen(true)}
@@ -405,7 +412,7 @@ export function AutocompleteSearch({
                       <button
                         key={idx}
                         type="button"
-                        onClick={() => setQuery(item)}
+                        onClick={() => updateQuery(item)}
                         className="px-3 py-1.5 bg-[#FAF7F2] hover:bg-[#EBE4D8] text-[#0F4C45] rounded-full text-xs font-medium transition-all flex items-center gap-1.5 border border-[#EBE4D8]"
                       >
                         <Clock className="w-3 h-3 text-[#A97B3E]" />
@@ -426,7 +433,7 @@ export function AutocompleteSearch({
                     <button
                       key={searchItem.label}
                       type="button"
-                      onClick={() => setQuery(searchItem.query)}
+                      onClick={() => updateQuery(searchItem.query)}
                       className="px-3.5 py-1.5 bg-[#FAF7F2] hover:bg-[#0F4C45] hover:text-white rounded-full text-xs font-bold text-charcoal/80 transition-all border border-gold/15"
                     >
                       {searchItem.label}

@@ -74,11 +74,13 @@ async function getCachedVendorCategories(): Promise<any[]> {
   }
   try {
     const catRes = await supabaseFetch(`vendor_categories?select=id,name,slug`);
+    if (catRes.error) throw catRes.error;
     const data = Array.isArray(catRes.data) ? catRes.data : [];
     cachedCategories = { data, timestamp: now };
     return data;
   } catch (err) {
-    return cachedCategories?.data || [];
+    if (cachedCategories?.data) return cachedCategories.data;
+    throw err;
   }
 }
 
@@ -103,16 +105,13 @@ export async function GET(req: Request) {
       );
     }
 
-    // Build PostgREST query: Active vendors are visible on public pages
-    let filter = `deleted_at=is.null&or=(status.eq.active,publication_status.eq.published)`;
+    // A vendor is public only after both account approval and profile publication.
+    let filter = `deleted_at=is.null&status=eq.active&publication_status=eq.published`;
     
     // Add category filter if provided
     if (categorySlug && categorySlug.toLowerCase() !== "all") {
       const targetNorm = normalizeCategory(categorySlug);
       const targetCanonicalSlug = targetNorm?.slug || categorySlug.toLowerCase().trim();
-      if (targetCanonicalSlug === "photographers") {
-        filter = `deleted_at=is.null&status=eq.active&publication_status=eq.published`;
-      }
       const matchingSlugs = getMatchingSlugs(targetCanonicalSlug);
       const allCats = await getCachedVendorCategories();
       const matchedCatIds = allCats
@@ -142,15 +141,16 @@ export async function GET(req: Request) {
       filter += `&id=eq.${encodeURIComponent(vendorIdParam)}`;
     }
 
-    const endpoint = `vendors?${filter}&select=id,vendor_code,status,publication_status,is_verified,is_kyc_verified,created_at,vendor_categories(id,name,slug),vendor_profiles(*,logo_media:media!logo_media_id(cdn_url),cover_media:media!cover_media_id(cdn_url)),vendor_contacts(*),vendor_services(id,name,base_price,pricing_type),vendor_gallery(id,media(cdn_url,file_path)),vendor_social_links(*),catering_details(*)&order=created_at.desc&limit=${limit}&offset=${offset}`;
+    const endpoint = `vendors?${filter}&select=id,vendor_code,status,publication_status,is_verified,is_kyc_verified,created_at,vendor_categories(id,name,slug),vendor_profiles(id,vendor_id,business_name,slug,tagline,about,city,state,rating,review_count,starting_price,logo_media_id,cover_media_id,logo_media:media!logo_media_id(cdn_url),cover_media:media!cover_media_id(cdn_url)),vendor_services(id,name,base_price,pricing_type),vendor_gallery(id,media(cdn_url)),vendor_social_links(platform,url),catering_details(*)&order=created_at.desc&limit=${limit}&offset=${offset}`;
 
     const res = await supabaseFetch(endpoint);
     console.log(`[DB:FETCH] public_vendors filter=${filter} rows=${Array.isArray(res.data) ? res.data.length : 0} ms=${Date.now() - startTime}`);
 
     if (res.error || !Array.isArray(res.data)) {
+      console.error("[PUBLIC_VENDORS_API] Supabase query failed:", res.error?.message || "Invalid response");
       return NextResponse.json(
-        { success: true, statusCode: 200, data: [], count: 0 },
-        { status: 200 }
+        { success: false, statusCode: 502, error: { code: "VENDOR_QUERY_FAILED", message: "Vendor listings are temporarily unavailable." } },
+        { status: 502 }
       );
     }
 
@@ -160,12 +160,6 @@ export async function GET(req: Request) {
           ? v.vendor_profiles[0]
           : v.vendor_profiles && typeof v.vendor_profiles === "object"
           ? v.vendor_profiles
-          : {};
-      const contact =
-        Array.isArray(v.vendor_contacts) && v.vendor_contacts.length > 0
-          ? v.vendor_contacts[0]
-          : v.vendor_contacts && typeof v.vendor_contacts === "object"
-          ? v.vendor_contacts
           : {};
       const gallery = Array.isArray(v.vendor_gallery) ? v.vendor_gallery : [];
       const services = Array.isArray(v.vendor_services) ? v.vendor_services : [];
@@ -177,15 +171,14 @@ export async function GET(req: Request) {
       const logoImg = profile.logo_media?.cdn_url || profile.logo_url || coverImg || "";
       const startingPrice = services.length > 0 ? Math.min(...services.map((s: any) => Number(s.base_price || 0)).filter((p: number) => p > 0)) : (profile.starting_price || 0);
 
-      const instagram = socialList.find((s: any) => s.platform === "instagram")?.url || contact.instagram || "";
-      const facebook = socialList.find((s: any) => s.platform === "facebook")?.url || contact.facebook || "";
-      const youtube = socialList.find((s: any) => s.platform === "youtube")?.url || contact.youtube || "";
-      const website = socialList.find((s: any) => s.platform === "website")?.url || contact.website || "";
+      const instagram = socialList.find((s: any) => s.platform === "instagram")?.url || "";
+      const facebook = socialList.find((s: any) => s.platform === "facebook")?.url || "";
+      const youtube = socialList.find((s: any) => s.platform === "youtube")?.url || "";
+      const website = socialList.find((s: any) => s.platform === "website")?.url || "";
 
       const mapped = mapPublicVendor({
         ...v,
         vendor_profiles: profile,
-        vendor_contacts: contact,
         vendor_services: services,
         id: v.id,
         vendorCode: v.vendor_code,
@@ -227,8 +220,6 @@ export async function GET(req: Request) {
         isVerified: Boolean(v.is_verified || v.is_kyc_verified),
         membershipBadge: v.plan || profile.plan || "Verified",
         isFeatured: Boolean(v.is_featured || profile.is_featured),
-        phone: contact.phone || "",
-        whatsapp: contact.whatsapp || "",
       };
     });
 
@@ -265,8 +256,8 @@ export async function GET(req: Request) {
   } catch (err: any) {
     console.error("[PUBLIC_VENDORS_API] Error:", err);
     return NextResponse.json(
-      { success: false, statusCode: 500, error: { code: "SERVER_ERROR", message: err.message } },
-      { status: 500 }
+      { success: false, statusCode: 502, error: { code: "VENDOR_QUERY_FAILED", message: "Vendor listings are temporarily unavailable." } },
+      { status: 502 }
     );
   }
 }

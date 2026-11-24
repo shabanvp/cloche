@@ -86,6 +86,8 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
     return new Set();
   });
   const [boutiquesList, setBoutiquesList] = useState<Boutique[]>(initialBoutiques);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
@@ -102,15 +104,21 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
       try {
         // Client-side fetch backup (uses HTTP caching)
         const loadRealDbVendors = async () => {
-          const mergedMap = new Map<string, any>();
-          const seenNames = new Set<string>();
-          let dbItems = initialBoutiques || [];
-
           try {
-            const res = await fetch("/api/v1/public/vendors?limit=100", { cache: "no-store" });
-            const data = await res.json();
-            if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-              const mapped = data.data.map((v: any) => {
+            const rows: any[] = [];
+            for (let offset = 0; ; offset += 100) {
+              const res = await fetch(`/api/v1/public/vendors?limit=100&offset=${offset}`, { cache: "no-store" });
+              const data = await res.json();
+              if (!res.ok || !data.success || !Array.isArray(data.data)) {
+                setLoadError(true);
+                setBoutiquesList([]);
+                return;
+              }
+              rows.push(...data.data);
+              if (data.data.length < 100) break;
+            }
+            setLoadError(false);
+            const mapped = rows.map((v: any) => {
                 const norm = normalizeCategory(v.categorySlug || v.category);
                 const catName = norm?.title || v.category || "Wedding Vendor";
                 return {
@@ -132,20 +140,13 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                   plan: "Verified",
                 };
               });
-              dbItems = [...mapped, ...dbItems];
-            }
-          } catch (_) {}
-
-          for (const item of dbItems) {
-            const id = String(item.id);
-            const name = (item.boutique_name || (item as any).name || "").trim().toLowerCase();
-            if (!mergedMap.has(id) && (!name || !seenNames.has(name))) {
-              mergedMap.set(id, item);
-              if (name) seenNames.add(name);
-            }
+            setBoutiquesList(mapped);
+          } catch (_) {
+            setLoadError(true);
+            setBoutiquesList([]);
+          } finally {
+            setIsLoading(false);
           }
-
-          setBoutiquesList(Array.from(mergedMap.values()));
         };
 
         loadRealDbVendors();
@@ -179,29 +180,24 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
     let result = boutiquesList;
 
     if (activeFilter !== "All") {
-      const matchMap: Record<CategoryFilter, string> = {
-        All: "",
-        Photographers: "photo",
+      const categorySlugByFilter: Record<Exclude<CategoryFilter, "All">, string> = {
+        Photographers: "photographers",
         Makeup: "makeup",
-        Decor: "decor",
-        Planners: "planner",
-        Catering: "cater",
-        Jewellery: "jewel",
-        "Bridal Wear": "bridal",
-        "Groom Wear": "groom",
+        Decor: "decor-planning",
+        Planners: "wedding-planners",
+        Catering: "caterers",
+        Jewellery: "jewellery",
+        "Bridal Wear": "bridal-studio",
+        "Groom Wear": "groom-studio",
         Mehendi: "mehendi",
-        Venues: "venue",
-        Invitations: "invitat",
+        Venues: "venues",
+        Invitations: "invitation-designers",
       };
-      const matchTerm = matchMap[activeFilter];
-      if (matchTerm) {
-        result = result.filter((b) => {
-          const tags = (b.tags || "").toLowerCase();
-          const name = (b.boutique_name || (b as any).name || "").toLowerCase();
-          const category = (b.category || "").toLowerCase();
-          return tags.includes(matchTerm) || name.includes(matchTerm) || category.includes(matchTerm);
-        });
-      }
+      const targetSlug = categorySlugByFilter[activeFilter];
+      result = result.filter((b) => {
+        const normalized = normalizeCategory((b as any).categorySlug || (b as any).category_slug || b.category || b.tags);
+        return normalized?.slug === targetSlug;
+      });
     }
 
     if (search.trim()) {
@@ -250,7 +246,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
           >
             <ArrowLeft className="h-4 w-4" />
           </Link>
-          <AutocompleteSearch placeholder="Search vendors..." className="w-full max-w-sm sm:max-w-md md:w-[420px] lg:w-[480px]" />
+          <AutocompleteSearch placeholder="Search vendors..." className="w-full max-w-sm sm:max-w-md md:w-[420px] lg:w-[480px]" onQueryChange={setSearch} />
         </div>
       </header>
 
@@ -291,7 +287,14 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
         )}
 
         {/* Vendor Cards Listing Grid */}
-        {filtered.length === 0 ? (
+        {isLoading ? (
+          <div className="bg-white rounded-3xl p-12 text-center border border-gold/15 shadow-sm my-8" role="status">Loading vendors…</div>
+        ) : loadError ? (
+          <div className="bg-white rounded-3xl p-12 text-center border border-amber-200 shadow-sm my-8" role="alert">
+            <h3 className="text-lg font-serif font-bold text-charcoal">Vendor listings are unavailable</h3>
+            <p className="text-xs text-charcoal/60 max-w-sm mx-auto">Please try again in a moment.</p>
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="bg-white rounded-3xl p-12 text-center border border-gold/15 shadow-sm space-y-3 my-8">
             <div className="w-14 h-14 bg-[#0F4C45]/10 text-[#0F4C45] rounded-full flex items-center justify-center mx-auto">
               <Users className="w-7 h-7" />

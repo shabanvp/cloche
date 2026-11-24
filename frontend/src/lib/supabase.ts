@@ -1280,7 +1280,9 @@ function mediaUrl(row: any) {
 
 async function resolvePublicVendor(identifier: string, options?: { includeNonActive?: boolean }) {
   const id = encodeURIComponent(identifier);
-  const statusFilter = options?.includeNonActive ? "" : "&status=eq.active";
+  const statusFilter = options?.includeNonActive
+    ? ""
+    : "&status=eq.active&publication_status=eq.published";
 
   if (UUID_RE.test(identifier)) {
     const byId = await supabaseFetch(`vendors?id=eq.${id}&deleted_at=is.null${statusFilter}&select=*,vendor_categories(name,slug)`);
