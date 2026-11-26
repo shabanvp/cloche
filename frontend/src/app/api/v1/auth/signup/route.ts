@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSupabaseConfig, signUpWithSupabaseAuth, deleteAdminSupabaseUser } from "@/lib/supabase";
+import { getSupabaseConfig, getSupabaseConfigError, signUpWithSupabaseAuth, deleteAdminSupabaseUser } from "@/lib/supabase";
 import { sendVerificationMail } from "@/lib/email";
 
 export async function POST(req: Request) {
@@ -24,13 +24,14 @@ export async function POST(req: Request) {
     const cleanName = fullName.trim();
     const cleanPhone = phone ? phone.trim() : null;
 
-    const { url, serviceKey, anonKey } = getSupabaseConfig();
-    const apiKey = serviceKey || anonKey;
+    const { url, serviceKey } = getSupabaseConfig();
+    const configError = getSupabaseConfigError({ anon: true, serviceRole: true });
+    const apiKey = serviceKey;
 
-    if (!url || !apiKey) {
+    if (configError || !apiKey) {
       return NextResponse.json(
-        { success: false, statusCode: 500, error: { code: "CONFIG_ERROR", message: "Database credentials unconfigured." } },
-        { status: 500 }
+        { success: false, statusCode: 503, error: { code: "CONFIG_ERROR", message: configError || "Missing SUPABASE_SERVICE_ROLE_KEY." } },
+        { status: 503 }
       );
     }
 

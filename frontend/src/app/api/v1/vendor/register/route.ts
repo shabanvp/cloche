@@ -37,7 +37,7 @@ export async function POST(req: Request) {
   let createdAuthUserId: string | null = null;
 
   const { url, serviceKey, anonKey } = getSupabaseConfig();
-  const apiKey = serviceKey || anonKey;
+  const apiKey = serviceKey;
 
   try {
     if (!url || !apiKey) {

@@ -40,7 +40,7 @@ export async function GET(req: Request) {
     }
 
     const { url, serviceKey, anonKey } = getSupabaseConfig();
-    const apiKey = serviceKey || anonKey;
+    const apiKey = serviceKey;
 
     if (!url || !apiKey) {
       return NextResponse.json(
@@ -240,7 +240,7 @@ export async function PUT(req: Request) {
     if (auth.response) return auth.response;
 
     const { url, serviceKey, anonKey } = getSupabaseConfig();
-    const apiKey = serviceKey || anonKey;
+    const apiKey = serviceKey;
 
     if (!url || !apiKey) {
       return NextResponse.json(

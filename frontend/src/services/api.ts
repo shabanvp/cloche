@@ -116,7 +116,7 @@ export async function getAdminAnalytics(token?: string) {
   try {
     const { supabaseFetch, getSupabaseConfig } = await import("@/lib/supabase");
     const { url, serviceKey, anonKey } = getSupabaseConfig();
-    const apiKey = serviceKey || anonKey;
+    const apiKey = serviceKey;
 
     if (url && apiKey) {
       const [uRes, bRes, boutiquesData] = await Promise.all([

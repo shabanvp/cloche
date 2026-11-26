@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSupabaseConfig } from "@/lib/supabase";
+import { getSupabaseConfig, getSupabaseConfigError } from "@/lib/supabase";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -18,14 +18,15 @@ export async function GET(req: Request) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  const { url, serviceKey, anonKey } = getSupabaseConfig();
-  const apiKey = serviceKey || anonKey;
+  const { url, serviceKey } = getSupabaseConfig();
+  const configError = getSupabaseConfigError({ serviceRole: true });
+  const apiKey = serviceKey;
 
-  if (!url || !apiKey) {
+  if (configError) {
     if (acceptsJson) {
       return NextResponse.json(
-        { success: false, statusCode: 500, error: { code: "CONFIG_ERROR", message: "Database unconfigured." } },
-        { status: 500 }
+        { success: false, statusCode: 503, error: { code: "CONFIG_ERROR", message: configError } },
+        { status: 503 }
       );
     }
     return NextResponse.redirect(new URL("/verify-email?status=error&message=Database+unconfigured", req.url));

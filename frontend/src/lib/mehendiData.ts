@@ -739,7 +739,7 @@ export async function uploadMehendiMediaFile(
   }
 
   const { url: supabaseUrl, serviceKey, anonKey } = getSupabaseConfig();
-  const apiKey = serviceKey || anonKey;
+  const apiKey = serviceKey;
   if (!supabaseUrl || !apiKey) {
     throw new Error("Storage service is not configured.");
   }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { hashPassword } from "@/lib/auth";
-import { getSupabaseConfig } from "@/lib/supabase";
+import { getSupabaseConfig, getSupabaseConfigError } from "@/lib/supabase";
 
 /**
  * Robust, rate-limit-free pre-registration endpoint for the Partner Onboarding flow.
@@ -31,12 +31,12 @@ export async function POST(req: Request) {
       );
     }
 
-    const { url, serviceKey, anonKey } = getSupabaseConfig();
-    const apiKey = serviceKey || anonKey;
+    const { url, serviceKey } = getSupabaseConfig();
+    const configError = getSupabaseConfigError({ serviceRole: true });
 
-    if (!url || !apiKey || !serviceKey) {
+    if (configError) {
       return NextResponse.json(
-        { success: false, error: "Authentication service configuration missing." },
+        { success: false, error: configError },
         { status: 500 }
       );
     }
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
     const existingRes = await fetch(
       `${url}/rest/v1/users?email=ilike.${encodeURIComponent(cleanEmail)}&select=id,email`,
       {
-        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+        headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
         cache: "no-store",
       }
     );
@@ -142,8 +142,8 @@ export async function POST(req: Request) {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
-            apikey: apiKey,
-            Authorization: `Bearer ${apiKey}`,
+            apikey: serviceKey,
+            Authorization: `Bearer ${serviceKey}`,
           },
           body: JSON.stringify({
             password_hash: passwordHash,
@@ -233,8 +233,8 @@ export async function POST(req: Request) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        apikey: apiKey,
-        Authorization: `Bearer ${apiKey}`,
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
         Prefer: "resolution=merge-duplicates,return=minimal",
       },
       body: JSON.stringify({

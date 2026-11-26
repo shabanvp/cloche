@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSupabaseConfig, signInWithSupabaseAuth } from "@/lib/supabase";
+import { getSupabaseConfig, getSupabaseConfigError, signInWithSupabaseAuth } from "@/lib/supabase";
 import { AUTH_COOKIE_NAME, SESSION_EXPIRY_DAYS, signJwtToken, verifyPassword, hashPassword } from "@/lib/auth";
 
 export async function POST(req: Request) {
@@ -20,13 +20,14 @@ export async function POST(req: Request) {
     }
 
     let cleanEmail = email.trim().toLowerCase();
-    const { url, serviceKey, anonKey } = getSupabaseConfig();
-    const apiKey = serviceKey || anonKey;
+    const { url, serviceKey } = getSupabaseConfig();
+    const configError = getSupabaseConfigError({ anon: true, serviceRole: true });
+    const apiKey = serviceKey;
 
-    if (!url || !apiKey) {
+    if (configError || !apiKey) {
       return NextResponse.json(
-        { success: false, statusCode: 500, error: { code: "CONFIG_ERROR", message: "Database credentials unconfigured." } },
-        { status: 500 }
+        { success: false, statusCode: 503, error: { code: "CONFIG_ERROR", message: configError || "Missing SUPABASE_SERVICE_ROLE_KEY." } },
+        { status: 503 }
       );
     }
 
@@ -143,13 +144,13 @@ export async function POST(req: Request) {
       isPasswordValid = true;
 
       // Sync Supabase Auth user password if out of sync
-      if (authResult.error && (serviceKey || apiKey) && customUser.id) {
+      if (authResult.error && serviceKey && customUser.id) {
         await fetch(`${url}/auth/v1/admin/users/${customUser.id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            apikey: serviceKey || apiKey,
-            Authorization: `Bearer ${serviceKey || apiKey}`,
+            apikey: serviceKey,
+            Authorization: `Bearer ${serviceKey}`,
           },
           body: JSON.stringify({ password: password, email_confirm: true }),
         }).catch(() => null);

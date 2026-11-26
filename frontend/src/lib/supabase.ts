@@ -7,21 +7,14 @@ export interface SupabaseConfig {
 }
 
 export function getSupabaseConfig(): SupabaseConfig {
-  const url =
-    process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    process.env.SUPABASE_URL ||
-    "https://fumfjbcixcudjrnezfjl.supabase.co";
-
-  const serviceKey =
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    process.env.SUPABASE_ANON_KEY ||
-    "sb_secret_UrI6GZ8y25k5U8HheVLKnQ_LRbo08ox";
-
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "";
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
   const anonKey =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.SUPABASE_PUBLISHABLE_KEY ||
     process.env.SUPABASE_ANON_KEY ||
-    serviceKey;
+    "";
 
   return {
     url,
@@ -30,9 +23,24 @@ export function getSupabaseConfig(): SupabaseConfig {
   };
 }
 
+export function getSupabaseConfigError(options: { serviceRole?: boolean; anon?: boolean } = {}): string | null {
+  const { url, anonKey, serviceKey } = getSupabaseConfig();
+  const missing: string[] = [];
+  const publicUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim().replace(/\/+$/, "");
+  const serverUrl = process.env.SUPABASE_URL?.trim().replace(/\/+$/, "");
+  if (!url) missing.push("NEXT_PUBLIC_SUPABASE_URL or SUPABASE_URL");
+  if (publicUrl && serverUrl && publicUrl !== serverUrl) {
+    missing.push("NEXT_PUBLIC_SUPABASE_URL and SUPABASE_URL must identify the same Supabase project");
+  }
+  if (options.serviceRole && !serviceKey) missing.push("SUPABASE_SERVICE_ROLE_KEY");
+  if (options.anon && !anonKey) {
+    missing.push("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_PUBLISHABLE_KEY, or SUPABASE_ANON_KEY");
+  }
+  return missing.length ? `Missing required Supabase environment variable(s): ${missing.join(", ")}.` : null;
+}
+
 export function isSupabaseConfigured(): boolean {
-  const config = getSupabaseConfig();
-  return Boolean(config.url && (config.serviceKey || config.anonKey));
+  return getSupabaseConfigError({ anon: true }) === null;
 }
 
 /**
@@ -43,8 +51,9 @@ export async function supabaseFetch<T = any>(
   options: RequestInit = {}
 ): Promise<{ data: T | null; error: Error | null }> {
   const { url, serviceKey } = getSupabaseConfig();
-  if (!url || !serviceKey) {
-    return { data: null, error: new Error("Supabase is not configured yet.") };
+  const configError = getSupabaseConfigError({ serviceRole: true });
+  if (configError) {
+    return { data: null, error: new Error(configError) };
   }
 
   let res: Response | null = null;
@@ -101,9 +110,10 @@ export async function signUpWithSupabaseAuth(
   emailRedirectTo: string = "https://cloche-six.vercel.app/auth/callback"
 ): Promise<{ user: any | null; session: any | null; error: Error | null }> {
   const { url, anonKey, serviceKey } = getSupabaseConfig();
-  const apiKey = serviceKey || anonKey;
-  if (!url || !apiKey) {
-    return { user: null, session: null, error: new Error("Supabase credentials unconfigured.") };
+  const apiKey = anonKey;
+  const configError = getSupabaseConfigError({ anon: true });
+  if (configError || !apiKey) {
+    return { user: null, session: null, error: new Error(configError || "Missing required Supabase API key.") };
   }
 
   // 1. Prefer Admin API creation with email_confirm: true when serviceKey is available.
@@ -185,8 +195,9 @@ export async function signInWithSupabaseAuth(
   password: string
 ): Promise<{ user: any | null; session: any | null; error: Error | null }> {
   const { url, anonKey } = getSupabaseConfig();
-  if (!url || !anonKey) {
-    return { user: null, session: null, error: new Error("Supabase credentials unconfigured.") };
+  const configError = getSupabaseConfigError({ anon: true });
+  if (configError) {
+    return { user: null, session: null, error: new Error(configError) };
   }
 
   try {
@@ -215,8 +226,9 @@ export async function signInWithSupabaseAuth(
 
 export async function deleteAdminSupabaseUser(authUserId: string): Promise<{ success: boolean; error: Error | null }> {
   const { url, serviceKey } = getSupabaseConfig();
-  if (!url || !serviceKey || !authUserId) {
-    return { success: false, error: new Error("Missing parameters for admin user deletion.") };
+  const configError = getSupabaseConfigError({ serviceRole: true });
+  if (configError || !authUserId) {
+    return { success: false, error: new Error(configError || "Missing auth user ID for admin deletion.") };
   }
 
   try {
@@ -245,8 +257,9 @@ export async function resendSupabaseAuthEmail(
   emailRedirectTo: string = "https://cloche-six.vercel.app/auth/callback"
 ): Promise<{ success: boolean; error: Error | null }> {
   const { url, anonKey } = getSupabaseConfig();
-  if (!url || !anonKey) {
-    return { success: false, error: new Error("Supabase credentials unconfigured.") };
+  const configError = getSupabaseConfigError({ anon: true });
+  if (configError) {
+    return { success: false, error: new Error(configError) };
   }
 
   try {
@@ -747,9 +760,8 @@ export async function convertQuoteToBookingInDb(quotationId: string, vendorId: s
 }
 
 export async function recordLedgerPaymentInDb(paymentData: Record<string, any>) {
-  const { url, serviceKey, anonKey } = getSupabaseConfig();
-  const apiKey = serviceKey || anonKey;
-  if (!url || !apiKey) return { data: null, error: new Error("Credentials unconfigured.") };
+  const configError = getSupabaseConfigError({ serviceRole: true });
+  if (configError) return { data: null, error: new Error(configError) };
 
   return supabaseFetch(`payment_records`, {
     method: "POST",

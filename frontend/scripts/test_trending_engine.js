@@ -1,5 +1,6 @@
-const url = "https://fumfjbcixcudjrnezfjl.supabase.co";
-const key = "sb_secret_UrI6GZ8y25k5U8HheVLKnQ_LRbo08ox";
+const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+if (!url || !key) throw new Error("Set SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL) and SUPABASE_SERVICE_ROLE_KEY before running this script.");
 
 async function supabaseFetch(endpoint, options = {}) {
   const res = await fetch(`${url}/rest/v1/${endpoint}`, {

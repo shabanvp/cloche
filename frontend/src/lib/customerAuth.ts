@@ -99,7 +99,7 @@ export async function getAuthenticatedCustomerUser(req?: Request): Promise<Authe
   // 5. Query DB if userId or email is present but full details are missing
   if (userId || email) {
     const { url, anonKey, serviceKey } = getSupabaseConfig();
-    const apiKey = serviceKey || anonKey;
+    const apiKey = serviceKey;
     if (url && apiKey) {
       try {
         const filter = userId ? `id=eq.${encodeURIComponent(userId)}` : `email=eq.${encodeURIComponent(email!)}`;

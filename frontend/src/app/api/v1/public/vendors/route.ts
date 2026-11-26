@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSupabaseConfig, supabaseFetch } from "@/lib/supabase";
+import { getSupabaseConfig, getSupabaseConfigError, supabaseFetch } from "@/lib/supabase";
 import { normalizeCategory } from "@/lib/categories";
 import { mapPublicVendor } from "@/lib/vendorMapper";
 
@@ -95,13 +95,13 @@ export async function GET(req: Request) {
     const limit = Number(searchParams.get("limit") || 24);
     const offset = Number(searchParams.get("offset") || 0);
 
-    const { url, serviceKey, anonKey } = getSupabaseConfig();
-    const apiKey = serviceKey || anonKey;
+    const { url } = getSupabaseConfig();
+    const configError = getSupabaseConfigError({ serviceRole: true });
 
-    if (!url || !apiKey) {
+    if (configError) {
       return NextResponse.json(
-        { success: false, statusCode: 500, error: { code: "CONFIG_ERROR", message: "Database credentials unconfigured." } },
-        { status: 500 }
+        { success: false, statusCode: 503, error: { code: "CONFIG_ERROR", message: configError } },
+        { status: 503 }
       );
     }
 
@@ -141,7 +141,10 @@ export async function GET(req: Request) {
       filter += `&id=eq.${encodeURIComponent(vendorIdParam)}`;
     }
 
-    const endpoint = `vendors?${filter}&select=id,vendor_code,status,publication_status,is_verified,is_kyc_verified,created_at,vendor_categories(id,name,slug),vendor_profiles(id,vendor_id,business_name,slug,tagline,about,city,state,rating,review_count,starting_price,logo_media_id,cover_media_id,logo_media:media!logo_media_id(cdn_url),cover_media:media!cover_media_id(cdn_url)),vendor_services(id,name,base_price,pricing_type),vendor_gallery(id,media(cdn_url)),vendor_social_links(platform,url),catering_details(*)&order=created_at.desc&limit=${limit}&offset=${offset}`;
+    // This public endpoint uses the server-only service role because several related
+    // tables do not have consistent anonymous-read policies. Keep both the publication
+    // gate and selected columns explicit; never return raw Supabase rows to callers.
+    const endpoint = `vendors?${filter}&select=id,vendor_code,status,publication_status,is_verified,created_at,vendor_categories(id,name,slug),vendor_profiles(id,vendor_id,business_name,slug,tagline,about,city,state,rating,review_count,starting_price,logo_media_id,cover_media_id,logo_media:media!logo_media_id(cdn_url),cover_media:media!cover_media_id(cdn_url)),vendor_services(id,name,base_price,pricing_type),vendor_gallery(id,media(cdn_url)),vendor_social_links(platform,url),catering_details(cuisine_types,service_types,service_locations,guest_capacity,catering_specialities)&order=created_at.desc&limit=${limit}&offset=${offset}`;
 
     const res = await supabaseFetch(endpoint);
     console.log(`[DB:FETCH] public_vendors filter=${filter} rows=${Array.isArray(res.data) ? res.data.length : 0} ms=${Date.now() - startTime}`);
@@ -195,19 +198,24 @@ export async function GET(req: Request) {
       });
 
       return {
-        ...mapped,
         id: v.id,
         vendorCode: v.vendor_code,
+        slug: mapped.slug,
         name: profile.business_name || "Unnamed Vendor",
+        category: mapped.category,
+        categorySlug: mapped.categorySlug,
+        city: mapped.city,
+        district: mapped.district,
+        state: mapped.state,
+        rating: mapped.rating,
+        reviewCount: mapped.reviewCount,
+        startingPrice: mapped.startingPrice,
         logo: logoImg,
         logoUrl: logoImg,
         profileImage: logoImg,
         coverImage: coverImg,
         about: profile.about || "",
         tagline: profile.tagline || "",
-        colorTheme: profile.color_theme || "emerald",
-        galleryLayout: profile.gallery_layout || "grid",
-        introVideo: profile.intro_video_url || "",
         instagram,
         facebook,
         youtube,
@@ -217,9 +225,8 @@ export async function GET(req: Request) {
         serviceLocations: cateringDetail.service_locations || profile.service_locations || [],
         guestCapacity: cateringDetail.guest_capacity || profile.guest_capacity || "",
         cateringSpecialities: cateringDetail.catering_specialities || profile.catering_specialities || [],
-        isVerified: Boolean(v.is_verified || v.is_kyc_verified),
-        membershipBadge: v.plan || profile.plan || "Verified",
-        isFeatured: Boolean(v.is_featured || profile.is_featured),
+        isVerified: Boolean(v.is_verified),
+        membershipBadge: "Verified",
       };
     });
 

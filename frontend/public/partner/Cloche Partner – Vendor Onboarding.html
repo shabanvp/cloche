@@ -16,8 +16,7 @@
   <script>
     /* ====== FILL THESE IN (Supabase → Project Settings → API) ====== */
     window.CLOCHE_CONFIG = {
-      supabaseUrl: 'https://fumfjbcixcudjrnezfjl.supabase.co',
-      supabaseAnonKey: 'sb_publishable_mT0aQeCWtVzWNDCtpuA-pQ_M3rUNV53',  // publishable key (safe in browser code)
+      // Loaded from the same-origin runtime configuration endpoint.
       siteUrl: 'https://cloche.luxury',
       termsUrl: '/content/vendor-agreement',           // link to Partner Terms & Conditions
       vendorUrl: '/v/{slug}'  // public vendor page on your site; {slug} is replaced
@@ -2956,9 +2955,19 @@
       photoSessionReady: false, photoSessionError: '', photoVendorOnly: false
     });
     let S = freshState();
-    const CFG = window.CLOCHE_CONFIG || {};
-    const CFG_OK = !!(CFG.supabaseUrl && CFG.supabaseAnonKey && window.supabase);
-    const sb = CFG_OK ? supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce' } }) : null;
+    let CFG = window.CLOCHE_CONFIG || {};
+    let CFG_OK = false;
+    let sb = null;
+    async function loadSupabaseConfig() {
+      if (!(CFG.supabaseUrl && CFG.supabaseAnonKey)) {
+        const response = await fetch('/api/v1/public/supabase-config', { cache: 'no-store' });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result.success || !result.data) throw new Error('Supabase runtime configuration unavailable.');
+        CFG = { ...CFG, supabaseUrl: result.data.url, supabaseAnonKey: result.data.anonKey };
+      }
+      CFG_OK = !!(CFG.supabaseUrl && CFG.supabaseAnonKey && window.supabase);
+      if (CFG_OK) sb = supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce' } });
+    }
 
     async function withBusy(btn, label, fn) {
       if (btn && btn.dataset.busy) return;
@@ -3203,8 +3212,9 @@
     }
     function setupView() {
       return `<section class="screen"><div class="setup">${brand('md')}<h1>Connect your Supabase project</h1>
-  <p class="subtitle" style="max-width:none">Open <code>index.html</code> and fill in <code>supabaseUrl</code> and <code>supabaseAnonKey</code> inside <code>window.CLOCHE_CONFIG</code>, then reload.</p></div></section>`}
+  <p class="subtitle" style="max-width:none">Supabase configuration is unavailable. Check the Vercel Supabase URL and public publishable key settings, then reload.</p></div></section>`}
     async function boot() {
+      try { await loadSupabaseConfig(); } catch (_) { app.innerHTML = setupView(); return }
       if (!CFG_OK) { app.innerHTML = setupView(); return }
       app.innerHTML = '<section class="screen"><div class="loading">Loading\u2026</div></section>';
 

@@ -32,7 +32,7 @@ export async function login(formData: FormData) {
 
   try {
     const { url, anonKey, serviceKey } = getSupabaseConfig();
-    const apiKey = serviceKey || anonKey;
+    const apiKey = serviceKey;
     
     let user: any = null;
     let authResult: any = null;
@@ -106,13 +106,13 @@ export async function login(formData: FormData) {
       isPasswordValid = true;
 
       // If Supabase Auth failed (out of sync), sync Supabase Auth user password
-      if (authResult.error && url && (serviceKey || apiKey) && user.id) {
+      if (authResult.error && url && serviceKey && user.id) {
         await fetch(`${url}/auth/v1/admin/users/${user.id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            apikey: serviceKey || apiKey,
-            Authorization: `Bearer ${serviceKey || apiKey}`,
+            apikey: serviceKey,
+            Authorization: `Bearer ${serviceKey}`,
           },
           body: JSON.stringify({ password: password, email_confirm: true }),
         }).catch(() => null);
@@ -311,7 +311,7 @@ export async function signup(formData: FormData) {
     const role = (formData.get("account_type") as string) === "vendor" ? "vendor" : "customer";
 
     const { url, anonKey, serviceKey } = getSupabaseConfig();
-    const apiKey = serviceKey || anonKey;
+    const apiKey = serviceKey;
 
     if (url && apiKey) {
       const checkRes = await fetch(`${url}/rest/v1/users?email=ilike.${encodeURIComponent(email)}&select=id`, {
@@ -562,7 +562,7 @@ export async function getCurrentUser() {
 export async function resetPasswordAction(email: string, newPassword?: string) {
   const cleanEmail = email.trim().toLowerCase();
   const { url, serviceKey, anonKey } = getSupabaseConfig();
-  const apiKey = serviceKey || anonKey;
+  const apiKey = serviceKey;
 
   if (!cleanEmail) {
     return { success: false, error: "Email address is required." };

@@ -14,8 +14,9 @@ function signJwtToken(payload, expiresInDays = 30) {
 }
 
 const BASE_URL = "http://localhost:3099";
-const SUPABASE_URL = "https://fumfjbcixcudjrnezfjl.supabase.co";
-const SERVICE_KEY = "sb_secret_UrI6GZ8y25k5U8HheVLKnQ_LRbo08ox";
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+if (!SUPABASE_URL || !SERVICE_KEY) throw new Error("Set SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL) and SUPABASE_SERVICE_ROLE_KEY before running this script.");
 
 async function fetchWithRetry(url, opts, retries = 3) {
   for (let i = 0; i < retries; i++) {

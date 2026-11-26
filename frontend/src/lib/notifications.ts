@@ -57,7 +57,7 @@ export class InAppNotificationProvider implements NotificationProvider {
 
   async send(event: NotificationEventPayload): Promise<{ success: boolean; message?: string }> {
     const { url, serviceKey, anonKey } = getSupabaseConfig();
-    const apiKey = serviceKey || anonKey;
+    const apiKey = serviceKey;
     if (!url || !apiKey || !event.recipientId) return { success: true };
 
     try {
@@ -92,7 +92,7 @@ export class NotificationService {
    */
   async enqueueEvent(payload: NotificationEventPayload): Promise<{ success: boolean; queueId?: string }> {
     const { url, serviceKey, anonKey } = getSupabaseConfig();
-    const apiKey = serviceKey || anonKey;
+    const apiKey = serviceKey;
 
     if (!url || !apiKey) {
       // Fallback: execute in-memory asynchronously
@@ -141,7 +141,7 @@ export class NotificationService {
 
         if (queueId) {
           const { url, serviceKey, anonKey } = getSupabaseConfig();
-          const apiKey = serviceKey || anonKey;
+          const apiKey = serviceKey;
           if (url && apiKey) {
             await fetch(`${url}/rest/v1/notification_queue?id=eq.${encodeURIComponent(queueId)}`, {
               method: "PATCH",

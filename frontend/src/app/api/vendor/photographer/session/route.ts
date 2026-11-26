@@ -15,16 +15,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Supabase accessToken is required." }, { status: 400 });
     }
 
-    const { url, serviceKey, anonKey } = getSupabaseConfig();
-    const apiKey = serviceKey || anonKey;
-    if (!url || !apiKey) {
-      return NextResponse.json({ error: "Supabase configuration missing." }, { status: 500 });
+    const { url, anonKey } = getSupabaseConfig();
+    if (!url || !anonKey) {
+      return NextResponse.json({ error: "Missing required Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (or legacy anon-key equivalent)." }, { status: 503 });
     }
 
     // Cryptographically verify Supabase session token against Supabase Auth
     const authUserRes = await fetch(`${url}/auth/v1/user`, {
       headers: {
-        apikey: anonKey || apiKey,
+        apikey: anonKey,
         Authorization: `Bearer ${accessToken}`,
       },
       cache: "no-store",

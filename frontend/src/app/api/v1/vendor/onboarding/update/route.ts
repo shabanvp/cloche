@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     const { stage, completionPercentage, profileUpdates } = body;
 
     const { url, serviceKey, anonKey } = getSupabaseConfig();
-    const apiKey = serviceKey || anonKey;
+    const apiKey = serviceKey;
     if (!url || !apiKey) {
       return NextResponse.json(
         { success: false, statusCode: 500, error: { code: "CONFIG_ERROR", message: "Database unconfigured." } },

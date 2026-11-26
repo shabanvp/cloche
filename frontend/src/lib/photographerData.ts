@@ -820,7 +820,7 @@ export async function uploadPhotographerMediaFile(
   }
 
   const { url: supabaseUrl, serviceKey, anonKey } = getSupabaseConfig();
-  const apiKey = serviceKey || anonKey;
+  const apiKey = serviceKey;
   if (!supabaseUrl || !apiKey) {
     throw new Error("Storage service is not configured.");
   }
@@ -1344,7 +1344,7 @@ export async function deleteGalleryPhotoItem(vendorId: string, userId: string, g
       const m = Array.isArray(mRows) ? mRows[0] : null;
       if (m?.file_path && m?.bucket_name === "partner-media") {
         const { url, serviceKey, anonKey } = getSupabaseConfig();
-        const apiKey = serviceKey || anonKey;
+        const apiKey = serviceKey;
         await fetch(`${url}/storage/v1/object/partner-media/${m.file_path}`, {
           method: "DELETE",
           headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },

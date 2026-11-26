@@ -1,7 +1,9 @@
 const fs = require('fs');
 
-const url = 'https://fumfjbcixcudjrnezfjl.supabase.co/rest/v1';
-const key = 'sb_secret_UrI6GZ8y25k5U8HheVLKnQ_LRbo08ox';
+const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+if (!supabaseUrl || !key) throw new Error('Set SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL) and SUPABASE_SERVICE_ROLE_KEY before running this script.');
+const url = `${supabaseUrl}/rest/v1`;
 
 async function supabaseFetch(endpoint, options = {}) {
   const headers = {

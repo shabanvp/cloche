@@ -84,7 +84,7 @@ export async function POST(req: Request) {
     // Save image gallery if provided
     if (Array.isArray(images) && images.length > 0 && savedItem?.id) {
       const { url, serviceKey, anonKey } = getSupabaseConfig();
-      const apiKey = serviceKey || anonKey;
+      const apiKey = serviceKey;
       if (url && apiKey) {
         for (let i = 0; i < images.length; i++) {
           const imgUrl = typeof images[i] === "string" ? images[i] : images[i].image_url;

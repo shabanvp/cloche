@@ -11,9 +11,9 @@ export async function GET(req: Request) {
   const nextParam = searchParams.get("next");
 
   const { url, anonKey, serviceKey } = getSupabaseConfig();
-  const apiKey = serviceKey || anonKey;
+  const apiKey = serviceKey;
 
-  if (!url || !apiKey) {
+  if (!url || !anonKey || !apiKey) {
     return NextResponse.redirect(`${origin}/login?error=ConfigError`);
   }
 

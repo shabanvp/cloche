@@ -35,7 +35,11 @@ export function AuthShell({
       return;
     }
     if (typeof window !== "undefined") {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://fumfjbcixcudjrnezfjl.supabase.co";
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      if (!supabaseUrl) {
+        console.error("Missing required Supabase environment variable: NEXT_PUBLIC_SUPABASE_URL.");
+        return;
+      }
       const redirectUrl = encodeURIComponent(`${window.location.origin}/auth/callback`);
       window.location.href = `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${redirectUrl}`;
     }

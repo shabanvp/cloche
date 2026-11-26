@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     const { gstNumber, panNumber, identityDocUrl } = body;
 
     const { url, serviceKey, anonKey } = getSupabaseConfig();
-    const apiKey = serviceKey || anonKey;
+    const apiKey = serviceKey;
 
     if (!url || !apiKey) {
       return NextResponse.json(
