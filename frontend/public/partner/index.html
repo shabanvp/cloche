@@ -2966,6 +2966,71 @@
     const CFG_OK = !!(CFG.supabaseUrl && CFG.supabaseAnonKey && window.supabase);
     const sb = CFG_OK ? supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce' } }) : null;
 
+    async function refreshPartnerSession(session) {
+      if (!sb || !session || !session.refresh_token) throw new Error('Your partner session has expired. Please log in again.');
+      const refreshed = await sb.auth.refreshSession({ refresh_token: session.refresh_token });
+      if (refreshed.error) {
+        const status = Number(refreshed.error.status || 0);
+        const message = String(refreshed.error.message || '').toLowerCase();
+        if (status === 400 || status === 401 || message.includes('invalid refresh token') || message.includes('refresh token has expired')) {
+          throw new Error('Your partner session has expired. Please log in again.');
+        }
+        throw new Error('Could not refresh your session. Check your connection and retry.');
+      }
+      if (!refreshed.data?.session?.access_token) throw new Error('Your partner session has expired. Please log in again.');
+      return refreshed.data.session;
+    }
+
+    async function getActivePartnerSession() {
+      if (!sb) throw new Error('Authentication is unavailable. Please reload and try again.');
+      const current = await sb.auth.getSession();
+      if (current.error) throw current.error;
+      let session = current.data?.session;
+      if (!session) throw new Error('Your partner session has expired. Please log in again.');
+      if (!session.expires_at || session.expires_at <= Math.floor(Date.now() / 1000) + 60) {
+        session = await refreshPartnerSession(session);
+      }
+      return session;
+    }
+
+    function isPartnerSessionExpired(err) {
+      return /partner session has expired|could not be renewed|invalid or expired supabase session|jwt expired|auth session missing/i.test((err && err.message) || '');
+    }
+
+    async function redirectPartnerToLogin() {
+      try { if (sb) await sb.auth.signOut({ scope: 'local' }); } catch (e) {}
+      S.user = null;
+      S.vendor = null;
+      const target = new URL(location.href);
+      target.searchParams.set('tab', 'login');
+      target.searchParams.set('session', 'expired');
+      target.hash = 'login';
+      location.replace(target.toString());
+    }
+
+    async function establishPartnerDashboardSession(endpoint) {
+      let session = await getActivePartnerSession();
+
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          cache: 'no-store',
+          body: JSON.stringify({ accessToken: session.access_token })
+        });
+        if (res.ok) return session;
+        const result = await res.json().catch(() => ({}));
+        if (res.status === 401 && attempt === 0) {
+          session = await refreshPartnerSession(session);
+          continue;
+        }
+        if (res.status === 401) throw new Error('Your partner session could not be renewed. Please log in again.');
+        throw new Error(result.error || 'Could not start the vendor dashboard. Please try again.');
+      }
+      throw new Error('Could not start the vendor dashboard. Please try again.');
+    }
+
     async function withBusy(btn, label, fn) {
       if (btn && btn.dataset.busy) return;
       const old = btn ? btn.innerHTML : '';
@@ -3174,33 +3239,21 @@
       if (S.photoSessionReady || _photoBridgeInFlight) return;
       _photoBridgeInFlight = true;
       try {
-        const sessRes = sb ? await sb.auth.getSession() : { data: null };
-        const accessToken = sessRes && sessRes.data && sessRes.data.session ? sessRes.data.session.access_token : '';
-        if (!accessToken) {
-          const ovRes = await fetch('/api/vendor/photographer/overview', { credentials: 'include', cache: 'no-store' });
-          if (ovRes.ok) {
-            S.photoSessionReady = true;
-            S.photoSessionError = '';
-            if (S.step === 'dashboard') render();
-            return;
-          }
-          throw new Error('Please log in to open your Photographer Studio Dashboard.');
-        }
-        const res = await fetch('/api/vendor/photographer/session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ accessToken })
-        });
-        if (!res.ok) {
-          const j = await res.json().catch(() => ({}));
-          throw new Error(j.error || 'Could not start Photographer Studio Dashboard.');
-        }
+        const session = await establishPartnerDashboardSession('/api/vendor/photographer/session');
+        S.user = session.user || S.user;
         S.photoSessionReady = true;
         S.photoSessionError = '';
         if (S.step === 'dashboard') render();
       } catch (err) {
+        const ovRes = await fetch('/api/vendor/photographer/overview', { credentials: 'include', cache: 'no-store' }).catch(() => null);
+        if (ovRes?.ok) {
+          S.photoSessionReady = true;
+          S.photoSessionError = '';
+          if (S.step === 'dashboard') render();
+          return;
+        }
         S.photoSessionError = (err && err.message) || 'Could not load Photographer Studio Dashboard.';
+        if (isPartnerSessionExpired(err)) { redirectPartnerToLogin(); return; }
         if (S.step === 'dashboard') render();
       } finally {
         _photoBridgeInFlight = false;
@@ -3211,33 +3264,21 @@
       if (S.mehendiSessionReady || _mehendiBridgeInFlight) return;
       _mehendiBridgeInFlight = true;
       try {
-        const sessRes = sb ? await sb.auth.getSession() : { data: null };
-        const accessToken = sessRes && sessRes.data && sessRes.data.session ? sessRes.data.session.access_token : '';
-        if (!accessToken) {
-          const ovRes = await fetch('/api/vendor/mehendi/overview', { credentials: 'include', cache: 'no-store' });
-          if (ovRes.ok) {
-            S.mehendiSessionReady = true;
-            S.mehendiSessionError = '';
-            if (S.step === 'dashboard') render();
-            return;
-          }
-          throw new Error('Please log in to open your Mehendi Artist Dashboard.');
-        }
-        const res = await fetch('/api/vendor/mehendi/session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ accessToken })
-        });
-        if (!res.ok) {
-          const j = await res.json().catch(() => ({}));
-          throw new Error(j.error || 'Could not start Mehendi Artist Dashboard.');
-        }
+        const session = await establishPartnerDashboardSession('/api/vendor/mehendi/session');
+        S.user = session.user || S.user;
         S.mehendiSessionReady = true;
         S.mehendiSessionError = '';
         if (S.step === 'dashboard') render();
       } catch (err) {
+        const ovRes = await fetch('/api/vendor/mehendi/overview', { credentials: 'include', cache: 'no-store' }).catch(() => null);
+        if (ovRes?.ok) {
+          S.mehendiSessionReady = true;
+          S.mehendiSessionError = '';
+          if (S.step === 'dashboard') render();
+          return;
+        }
         S.mehendiSessionError = (err && err.message) || 'Could not load Mehendi Artist Dashboard.';
+        if (isPartnerSessionExpired(err)) { redirectPartnerToLogin(); return; }
         if (S.step === 'dashboard') render();
       } finally {
         _mehendiBridgeInFlight = false;
@@ -3252,7 +3293,23 @@
         ensureMehendiSession();
         return;
       }
-      try { const d = await rpc('partner_dashboard'); S.dash = d; applyState(d.state, true) } catch (e) { toast(e.message) }
+      try {
+        let session = await getActivePartnerSession();
+        let d;
+        try {
+          d = await rpc('partner_dashboard');
+        } catch (err) {
+          if (!/jwt|expired|token|session/i.test((err && err.message) || '')) throw err;
+          session = await refreshPartnerSession(session);
+          d = await rpc('partner_dashboard');
+        }
+        S.user = session.user || S.user;
+        S.dash = d;
+        applyState(d.state, true);
+      } catch (e) {
+        if (isPartnerSessionExpired(e)) redirectPartnerToLogin();
+        else toast(e.message);
+      }
       if (S.step === 'dashboard') render();
     }
     setInterval(() => { if (S.user && S.step === 'dashboard' && !S.sheet && !document.hidden && !isPhotographerPartner() && !isMehendiPartner() && !S.photoVendorOnly) loadDash() }, 60000);
@@ -3294,6 +3351,9 @@
         S.authTab = 'login';
       } else {
         S.authTab = 'register';
+      }
+      if (params.get('session') === 'expired') {
+        S.err.password = 'Your session expired. Log in again to continue.';
       }
 
       try {
@@ -3798,8 +3858,8 @@
           if (p.email) {
             try {
               const { data, error } = await sb.auth.signInWithPassword({ email: p.email, password: S.password });
-              if (!error && (data?.user || data?.session)) {
-                S.user = data.user || data.session?.user;
+              if (!error && data?.session?.access_token && data?.user) {
+                S.user = data.user;
                 authed = true;
               } else if (error) {
                 authError = error;
@@ -3818,8 +3878,8 @@
               if (authed) break;
               try {
                 const resPhone = await sb.auth.signInWithPassword({ phone: ph, password: S.password });
-                if (!resPhone.error && (resPhone.data?.user || resPhone.data?.session)) {
-                  S.user = resPhone.data.user || resPhone.data.session?.user;
+                if (!resPhone.error && resPhone.data?.session?.access_token && resPhone.data?.user) {
+                  S.user = resPhone.data.user;
                   authed = true;
                   break;
                 }
@@ -3830,8 +3890,8 @@
             if (!authed) {
               try {
                 const resEmail = await sb.auth.signInWithPassword({ email: `${d10}@partner.cloche.luxury`, password: S.password });
-                if (!resEmail.error && (resEmail.data?.user || resEmail.data?.session)) {
-                  S.user = resEmail.data.user || resEmail.data.session?.user;
+                if (!resEmail.error && resEmail.data?.session?.access_token && resEmail.data?.user) {
+                  S.user = resEmail.data.user;
                   authed = true;
                 }
               } catch (e) {}
@@ -3847,8 +3907,8 @@
                   const uList = await uRes.json();
                   if (Array.isArray(uList) && uList.length && uList[0]?.email) {
                     const resDb = await sb.auth.signInWithPassword({ email: uList[0].email, password: S.password });
-                    if (!resDb.error && (resDb.data?.user || resDb.data?.session)) {
-                      S.user = resDb.data.user || resDb.data.session?.user;
+                    if (!resDb.error && resDb.data?.session?.access_token && resDb.data?.user) {
+                      S.user = resDb.data.user;
                       authed = true;
                     }
                   }
@@ -3869,21 +3929,21 @@
               const bData = await bRes.json();
               if (bRes.ok && bData.success) {
                 const uObj = bData.data?.user || bData.user;
-                if (uObj) {
-                  S.user = uObj;
-                  authed = true;
-                  apiVendor = bData.data?.vendor || null;
-
-                  // Set client Supabase session if returned
-                  const sbSess = bData.data?.supabaseSession;
-                  if (sbSess?.access_token && sbSess?.refresh_token) {
-                    try {
-                      await sb.auth.setSession({
-                        access_token: sbSess.access_token,
-                        refresh_token: sbSess.refresh_token
-                      });
-                    } catch (e) {}
+                const sbSess = bData.data?.supabaseSession;
+                if (uObj && sbSess?.access_token && sbSess?.refresh_token) {
+                  const established = await sb.auth.setSession({
+                    access_token: sbSess.access_token,
+                    refresh_token: sbSess.refresh_token
+                  });
+                  if (!established.error && established.data?.session?.access_token) {
+                    S.user = established.data.session.user || uObj;
+                    authed = true;
+                    apiVendor = bData.data?.vendor || null;
+                  } else {
+                    authError = established.error || new Error('Could not establish an authenticated Supabase session. Please log in again.');
                   }
+                } else if (uObj) {
+                  authError = new Error('Login succeeded but no Supabase session was returned. Please try again.');
                 }
               } else if (bData?.error?.message) {
                 authError = new Error(bData.error.message);
@@ -3895,7 +3955,9 @@
 
           if (!authed) {
             const rawMsg = (authError && authError.message) || 'Invalid mobile number, email, or password.';
-            let userMsg = (rawMsg.includes('Invalid login credentials') || rawMsg.includes('INVALID_CREDENTIALS'))
+            let userMsg = rawMsg.toLowerCase().includes('email not confirmed')
+              ? 'Your email needs verification before you can log in. Confirm your email, then return here to sign in.'
+              : (rawMsg.includes('Invalid login credentials') || rawMsg.includes('INVALID_CREDENTIALS'))
               ? 'Invalid mobile number, email, or password. Please try again.'
               : rawMsg;
             if (userMsg.toLowerCase().includes('rate limit')) {
@@ -3974,15 +4036,24 @@
             return fail(errMsg);
           }
 
-          let data = null;
+          let signRes;
           try {
-            const signRes = await sb.auth.signInWithPassword({ email: email, password: S.password });
-            if (signRes?.data?.user) data = signRes.data;
-          } catch (e) {}
-          if (!data?.user && regJson?.data?.userId) {
-            data = { user: { id: regJson.data.userId, email: email, phone: phone } };
+            signRes = await sb.auth.signInWithPassword({ email: email, password: S.password });
+          } catch (e) {
+            signRes = { error: e, data: null };
           }
-          S.user = data.user || (data.session && data.session.user);
+          if (signRes?.error || !signRes?.data?.session?.access_token || !signRes?.data?.user) {
+            const authMessage = String(signRes?.error?.message || '').toLowerCase();
+            const needsVerification = authMessage.includes('email not confirmed');
+            if (needsVerification) S.authTab = 'login';
+            const message = needsVerification
+              ? 'Your email needs verification before you can log in. Confirm your email, then return here to sign in.'
+              : (signRes?.error?.message || 'Your account was created, but Cloche could not establish a sign-in session. Please log in with your email and password.');
+            S.err.contact = message;
+            return fail(message);
+          }
+          const data = signRes.data;
+          S.user = data.user;
           if (p.email) S.biz.email = p.email;
           if (phone) S.biz.phone = phone;
 

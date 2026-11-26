@@ -89,6 +89,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No vendor record linked to this account." }, { status: 404 });
     }
 
+    const vendorOwnerId = String(vendorRow.user_id || "");
+    if (vendorOwnerId !== resolvedUserId && vendorOwnerId !== authUserId) {
+      return NextResponse.json({ error: "This vendor profile is not linked to the authenticated account." }, { status: 403 });
+    }
+
     const cat = Array.isArray(vendorRow.vendor_categories)
       ? vendorRow.vendor_categories[0]
       : vendorRow.vendor_categories;
